@@ -8,9 +8,9 @@ class Predictor:
             rules = []
         if not isinstance(predictionOperators, list) or any(
                 not isinstance(i, BlockOperator) for i in predictionOperators):
-            raise Exception(f'Parameter blockOperators expects list of BlockOperator')
+            raise ValueError('Parameter blockOperators expects list of BlockOperator')
         if not isinstance(rules, list) or any(not isinstance(i, Rule) for i in rules):
-            raise Exception(f'Parameter rules expects list of Rules')
+            raise ValueError('Parameter rules expects list of Rules')
 
         self.predictionOperators = predictionOperators
         self.rules = rules

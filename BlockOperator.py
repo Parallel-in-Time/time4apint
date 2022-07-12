@@ -2,9 +2,16 @@ from BlockComponent import BlockComponent
 
 
 class BlockOperator:
+
+    SIGN = {
+        '+': lambda x: +x,
+        '-': lambda x: -x,
+    }
+
     def __init__(self, blockComponent: BlockComponent, depTime: int, depIter: int, sign: str):
-        if sign not in ['+', '-']:
-            raise Exception('Please specify the sign of the BlockOperator as "+" or "-"')
+        if sign not in self.SIGN.keys():
+            raise ValueError(
+                f'Unknown sign {sign}, must be in {self.SIGN.keys()}')
 
         self.blockComponent = blockComponent
         self.depTime = depTime

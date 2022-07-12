@@ -107,7 +107,7 @@ class PintRun:
         for op in self.blockIteration.getOperators():
             nMod = op.getDepTime()
             kMod = op.getDepIter()
-            iterationRule += op.getSymbol() * self.createSymbolForUnk(n=n + nMod, k=k + kMod)
+            iterationRule += op.symbol * self.createSymbolForUnk(n=n + nMod, k=k + kMod)
         iterationRule.simplify()
         return iterationRule
 
@@ -115,7 +115,7 @@ class PintRun:
         predictorRule = self.null
         for op in self.predictor.getOperators():
             nMod = op.getDepTime()
-            predictorRule += op.getSymbol() * self.createSymbolForUnk(n=n + nMod, k=0)
+            predictorRule += op.symbol * self.createSymbolForUnk(n=n + nMod, k=0)
         predictorRule.simplify()
         return predictorRule
 
