@@ -38,7 +38,7 @@ class PintGraph:
                 elif q == 3:
                     pos = (n - (z * 0.1), k - .4)
                 else:
-                    pos = (n, k)
+                    pos = (n, k-.4)
             self.graph.add_node(key.name, pos=pos, name=value.name, cost=value.cost)
 
             for item in value.dep:
@@ -48,6 +48,7 @@ class PintGraph:
         plt.figure()
         pos = nx.get_node_attributes(self.graph, 'pos')
         nx.draw(self.graph, pos, labels=nx.get_node_attributes(self.graph, 'name'), with_labels=True)
+        #nx.draw_planar(self.graph, labels=nx.get_node_attributes(self.graph, 'name'), with_labels=True, alpha=0.8)
         plt.show()
 
     def create_only_edge_weighted_graph(self) -> nx.DiGraph:
