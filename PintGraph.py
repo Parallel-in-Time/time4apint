@@ -1,6 +1,7 @@
-import networkx as nx
-import matplotlib.pyplot as plt
 import re
+
+import matplotlib.pyplot as plt
+import networkx as nx
 import numpy as np
 from matplotlib.patches import Rectangle
 
@@ -16,29 +17,39 @@ class PintGraph:
 
     def generateGraphFromPool(self, pool):
         self.pool = pool
+        last_subtask = None
+        last_subsubtask = None
         for key, value in pool.items():
             parts = re.split('_|\^', key.name)
             n = int(parts[1])
             k = int(parts[2])
             if len(parts) > 3:
-                q = int(parts[3])
+                subtask = int(parts[3])
             else:
-                q = 0
-            if q == 0:
+                subtask = None
+                last_subtask = None
+            if subtask is None:
                 pos = (n, k)
             else:
                 if len(parts) > 4:
                     z = 3 - int(parts[4])
+                    last_subsubtask = int(parts[4])
                 else:
                     z = 0
-                if q == 1:
+                if last_subtask is None:
+                    last_subtask = 1
+                else:
+                    last_subtask += 1
+                    if last_subsubtask == 2:
+                        last_subtask -=1
+                if last_subtask == 1:
                     pos = (n - .4, k - .4)
-                elif q == 2:
-                    pos = (n - .4, k - (z * 0.1))
-                elif q == 3:
+                elif last_subtask == 2:
+                    pos = (n - .4 - (z * 0.1), k)
+                elif last_subtask == 3:
                     pos = (n - (z * 0.1), k - .4)
                 else:
-                    pos = (n, k-.4)
+                    pos = (n, k - .4)
             self.graph.add_node(key.name, pos=pos, name=value.name, cost=value.cost)
 
             for item in value.dep:
@@ -48,7 +59,7 @@ class PintGraph:
         plt.figure()
         pos = nx.get_node_attributes(self.graph, 'pos')
         nx.draw(self.graph, pos, labels=nx.get_node_attributes(self.graph, 'name'), with_labels=True)
-        #nx.draw_planar(self.graph, labels=nx.get_node_attributes(self.graph, 'name'), with_labels=True, alpha=0.8)
+        # nx.draw_planar(self.graph, labels=nx.get_node_attributes(self.graph, 'name'), with_labels=True, alpha=0.8)
         plt.show()
 
     def create_only_edge_weighted_graph(self) -> nx.DiGraph:
