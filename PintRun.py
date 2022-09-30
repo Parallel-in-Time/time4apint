@@ -104,24 +104,34 @@ class PintRun:
 
     def createIterationRule(self, n, k):
         iterationRule = self.null
-        for op in self.blockIteration.getOperators():
-            nMod = op.getDepTime()
-            kMod = op.getDepIter()
-            iterationRule += op.symbol * self.createSymbolForUnk(n=n + nMod, k=k + kMod)
-        iterationRule.simplify()
+        if hasattr(self.blockIteration, "NEW_VERSION"):
+            for (nMod, kMod), op in self.blockIteration.coeffs:
+                iterationRule += op.symbol * self.createSymbolForUnk(
+                    n=n + nMod - 1, k=k + kMod - 1)
+        else:
+            for op in self.blockIteration.getOperators():
+                nMod = op.getDepTime()
+                kMod = op.getDepIter()
+                iterationRule += op.symbol * self.createSymbolForUnk(n=n + nMod, k=k + kMod)
+        iterationRule = iterationRule.simplify().expand()
         return iterationRule
 
     def createPredictionRule(self, n):
         predictorRule = self.null
-        for op in self.predictor.getOperators():
-            nMod = op.getDepTime()
-            predictorRule += op.symbol * self.createSymbolForUnk(n=n + nMod, k=0)
-        predictorRule.simplify()
+        if hasattr(self.blockIteration, "NEW_VERSION"):
+            for (nMod, _), op in self.blockIteration.predCoeffs:
+                predictorRule += op.symbol * self.createSymbolForUnk(
+                    n=n + nMod - 1, k=0)
+        else:
+            for op in self.predictor.getOperators():
+                nMod = op.getDepTime()
+                predictorRule += op.symbol * self.createSymbolForUnk(n=n + nMod, k=0)
+        predictorRule = predictorRule.simplify().expand()
         return predictorRule
 
     def substitute_and_simplify(self, expr):
-        expr = expr.subs(self.approx_to_computation).subs(self.blockIteration.getRules())
-        return expr.subs(self.computation_to_approx).subs(self.blockIteration.getRules())
+        expr = expr.subs(self.approx_to_computation).subs(self.blockIteration.rules)
+        return expr.subs(self.computation_to_approx).subs(self.blockIteration.rules)
 
     def createExpressions(self):
 

@@ -42,7 +42,7 @@ def extractTerm(s):
     ----------
     s : str
         String representing the block iteration, for instance
-        "(F - G) u_{n}^k + G u_{n}^{k+1}"
+        "(F - G) u_{n}^k + G u_{n}^{k+1}", or "G u_n^0"
 
     Returns
     -------
@@ -74,3 +74,33 @@ def extractTerm(s):
     kIndex = eval(kIndex.replace('k', '0'))
 
     return nIndex, kIndex, blockOp, rest
+
+
+def getCoeffsFromFormula(s, blockOps):
+    """
+    Extract block coefficients from an update formula of the form
+    "(F - G) u_{n}^k + G u_{n}^{k+1}", or a predictor formula like
+    "G u_n^0".
+
+    Parameters
+    ----------
+    s : str
+        The formula to get coeffs from.
+    blockOps : dict
+        dictionnary containing the (irreducibles) block operators used in all
+        block coefficients
+
+    Returns
+    -------
+    coeffs : dict
+        Keys are offset in n & k index (e.g u_{n}^{k+1} => (0, 1)), values are
+        the associated BlockOperator objects.
+    """
+    coeffs = {}
+    while s != '':
+        nIndex, kIndex, block, s = extractTerm(s)
+        try:
+            coeffs[(nIndex, kIndex)] += eval(block, blockOps)
+        except KeyError:
+            coeffs[(nIndex, kIndex)] = eval(block, blockOps)
+    return coeffs

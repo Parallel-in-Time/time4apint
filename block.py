@@ -8,15 +8,28 @@ Created on Thu Sep 29 13:17:29 2022
 import sympy as sy
 import numpy as np
 
-from utils import extractTerm
+from utils import getCoeffsFromFormula
 
 # -----------------------------------------------------------------------------
 # Block Operator class & specific operators
 # -----------------------------------------------------------------------------
 class BlockOperator(object):
+    """DOCTODO"""
 
     # Constructor
     def __init__(self, name, cost=1, matrix=None):
+        """
+        DOCTODO
+
+        Parameters
+        ----------
+        name : TYPE
+            DESCRIPTION.
+        cost : TYPE, optional
+            DESCRIPTION. The default is 1.
+        matrix : TYPE, optional
+            DESCRIPTION. The default is None.
+        """
         # Common to everyone
         self.symbol = sy.symbols(name, commutative=False)
         self.matrix = np.array([[1]]) if matrix is None else matrix
@@ -116,19 +129,48 @@ zero.matrix *= 0
 # Block Iteration class
 # -----------------------------------------------------------------------------
 class BlockIteration(object):
+    """DOCTODO"""
 
-    def __init__(self, expr, rules=None, **blockOps):
-        blockCoeffs = {}
-        while expr != '':
-            nIndex, kIndex, block, expr = extractTerm(expr)
-            blockCoeffs[(nIndex, kIndex)] = eval(block, blockOps)
-        self.blockCoeffs = blockCoeffs
+    NEW_VERSION = None
 
+    def __init__(self, update, predictor, rules=None, **blockOps):
+        """
+        DOCTODO
+
+        Parameters
+        ----------
+        update : TYPE
+            DESCRIPTION.
+        predictor : TYPE
+            DESCRIPTION.
+        rules : TYPE, optional
+            DESCRIPTION. The default is None.
+        **blockOps : TYPE
+            DESCRIPTION.
+        """
+        # Store block coefficients from the iteration update formula
+        self.blockCoeffs = getCoeffsFromFormula(update, blockOps)
+
+        # Store block coefficients from the predictor formula
+        self.predBlockCoeffs = getCoeffsFromFormula(predictor, blockOps)
+
+        # Stores the generated symbols for the rules
+        # TODO : check if the rules hold with the given matrices
         rules = [] if rules is None else rules
         condEval = lambda x: \
-            x if isinstance(x, BlockOperator) \
-            else eval(x, blockOps)
-        self.rules = [(condEval(a), condEval(b)) for a,b in rules]
+            x.symbol if isinstance(x, BlockOperator) \
+            else eval(x, blockOps).symbol
+        self.rules = {condEval(a): condEval(b) for a,b in rules}
+
+    @property
+    def coeffs(self):
+        """Return an iterator on the (key, values) of blockCoeffs"""
+        return self.blockCoeffs.items()
+
+    @property
+    def predCoeffs(self):
+        """Return an iterator on the (key, values) of predBlockCoeffs"""
+        return self.predBlockCoeffs.items()
 
 
 # Quick script testing
@@ -142,4 +184,6 @@ if __name__ == '__main__':
     rules = [(r*p, one)]
 
     parareal = BlockIteration(
-        "(f - p*g*r)u_{n}^k + p*g*r*u_{n}^{k+1}", **locals())
+        "(f - p*g*r)u_{n}^k + p*g*r*u_{n}^{k+1}",
+        "p*g*r u_{n}^k",
+        **locals())

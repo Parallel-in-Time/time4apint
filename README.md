@@ -1,4 +1,4 @@
-# Framework for combined convergence and speedup analysis of iterative PinT methods
+# Call of PinTy : BlockOps
 
 ## Base convention
 
@@ -21,7 +21,7 @@ Then we have two block coefficients $B_0^0 = F-G$ and $B_0^1 = G$. Note that the
 :warning: **Important** : block coefficients indices don't depend on $k$ and $n$, but on the offset. 
 Hence, $B_1^0$ is the block coefficient for the $u_{n+1}^{k+0}$ term, and the block coefficient for the $u_{n-1}^{k+1}$ term would then be $B_{-1}^{1}$.
 
-:bell: **Note** : any combination of block operators can be seen as a unique block operator. This aspect is fully used in the framework implementation.
+:bell: **Note** : any combination of block operators can be seen as a unique block operator, which applies also to a block coefficient. This aspect is fully used in the framework implementation.
 
 
 ## Code core concept
@@ -30,20 +30,21 @@ A block iteration is represented using the following classes :
 
 ```python
 class BlockOperator(object):
-    # Atributes
+    # Attributes
     symbol      # sympy symbol (using name attribute for variable name)
     matrix      # numpy array that represent the action of this block operator on a vector
     cost        # some theoretical cost for the evaluation of this component
     components  # Dictionnary with key = name, value = BlockOperator, storing all irreducible block operator
 
 class BlockIteration(object):
-    blockCoeffs  # Dictionnary with key = (n, k), value = BlockCoefficients
-    rules        # List of tuples of block operator supposed to be equals
-
+    # Attributes
+    blockCoeffs  # Dictionnary with key = (n, k), value = BlockCoefficients for the update formula
+    predBlockCoeffs  # Dictionnary with key = (n, k), value = BlockCoefficients for the predictor formula
+    rules        # Dictionnary with numpy expression as key and values, that are supposed to be equals.
 ```
 
-Arithmetic operation are oveloaded for BlockOperator, such that the BlockOperator class can represent block operator, but also any combination of several block operator.
+Arithmetic operation are oveloaded for BlockOperator, such that the BlockOperator class can represent one irreducible block operator, but also any combination of several block operators.
 
+## Tutorials
 
-
-## Example of use
+1. [Basic example with Parareal](./notebook/01_baseTuto.ipynb)
