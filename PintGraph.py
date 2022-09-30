@@ -1,5 +1,4 @@
 import re
-
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -10,92 +9,97 @@ from matplotlib.patches import Rectangle
 # - Communication costs
 
 class PintGraph:
+    """DOCTODO"""
+
+    # Constructor
     def __init__(self):
+        """
+        Creates a graph
+
+        Parameters
+        ----------
+        """
         self.graph = nx.DiGraph()
         self.graph.add_node('u_0', pos=(0, -1), cost=0, name='init')
         self.pool = None
 
-    def generateGraphFromPool(self, pool):
-        self.pool = pool
-        last_subtask = None
-        last_subsubtask = None
-        for key, value in pool.items():
+    def computeDependencies(self, pool):
+        """Returns a restructured task pool for the creation of a plot"""
+        newPool = {}
+        for key, value in reversed(pool.items()):
             parts = re.split('_|\^', key.name)
-            n = int(parts[1])
-            k = int(parts[2])
-            if len(parts) > 3:
-                subtask = int(parts[3])
+            new_key = [int(parts[1]), int(parts[2])]
+            size = len(parts)
+            if size == 3:
+                newPool[tuple(new_key)] = {'task': value, 'subtasks': [], 'oldkey': key}
             else:
-                subtask = None
-                last_subtask = None
-            if subtask is None:
-                pos = (n, k)
-            else:
-                if len(parts) > 4:
-                    z = 3 - int(parts[4])
-                    last_subsubtask = int(parts[4])
-                else:
-                    z = 0
-                if last_subtask is None:
-                    last_subtask = 1
-                else:
-                    last_subtask += 1
-                    if last_subsubtask == 2:
-                        last_subtask -=1
-                if last_subtask == 1:
-                    pos = (n - .4, k - .4)
-                elif last_subtask == 2:
-                    pos = (n - .4 - (z * 0.1), k)
-                elif last_subtask == 3:
-                    pos = (n - (z * 0.1), k - .4)
-                else:
-                    pos = (n, k - .4)
-            self.graph.add_node(key.name, pos=pos, name=value.name, cost=value.cost)
+                for j in range(3, size):
+                    new_key.append(int(parts[j]))
+                newPool[tuple(new_key[:-1])]['subtasks'].append(tuple(new_key))
+                newPool[tuple(new_key)] = {'task': value, 'subtasks': [], 'oldkey': key}
+        return newPool
 
-            for item in value.dep:
-                self.graph.add_edge(item.name, key.name)
+    def computePos(self, pos, i, size):
+        """Returns a position for a task"""
+        diff = 0.3
+        if i == 0:
+            return (pos[0] - diff, pos[1])
+        elif i == 1:
+            return (pos[0] - diff, pos[1] - diff)
+        else:
+            return (pos[0] - diff + ((i - 1) * diff / (size - 1))), pos[1] - diff
+
+    def addTaskToGraph(self, pos, task):
+        """Adds task to the digraph. Previously recursively all subtasks"""
+        old_key = task['oldkey'].name
+        for i in range(len(task['subtasks'])):
+            self.addTaskToGraph(pos=self.computePos(pos=pos, i=i, size=len(task['subtasks'])),
+                                task=self.pool[task['subtasks'][i]])
+        self.graph.add_node(old_key, pos=pos, name=f'${task["task"].name}$', cost=task['task'].cost)
+        for item in task['task'].dep:
+            self.graph.add_edge(item.name, old_key)
+
+    def generateGraphFromPool(self, pool):
+        """Creates graph vom taskpool"""
+        self.pool = self.computeDependencies(pool=pool)
+        for key, value in reversed(self.pool.items()):
+            if len(key) == 2:
+                self.addTaskToGraph(pos=key, task=value)
 
     def plotGraph(self):
+        """Plots the graph"""
         plt.figure()
         pos = nx.get_node_attributes(self.graph, 'pos')
         nx.draw(self.graph, pos, labels=nx.get_node_attributes(self.graph, 'name'), with_labels=True)
-        # nx.draw_planar(self.graph, labels=nx.get_node_attributes(self.graph, 'name'), with_labels=True, alpha=0.8)
         plt.show()
 
-    def create_only_edge_weighted_graph(self) -> nx.DiGraph:
-        """
-        Creates a graph with only edge weights to use the longest path algorithm
-
-        :return: Graph with only edge weights
-        """
-        new_graph = nx.DiGraph()
+    def createEdgeWeightedGraph(self) -> nx.DiGraph:
+        """Creates a graph with only edge weights to use the longest path algorithm"""
+        newGraph = nx.DiGraph()
         trans = {}
         for node, node_data in self.graph.nodes(data=True):
             name1 = node + ".1"
             name2 = node + ".2"
-            new_graph.add_node(name1, cost=0, pos=(node_data['pos'][0], node_data['pos'][1] - 0.001))
-            new_graph.add_node(name2, cost=0, pos=(node_data['pos'][0], node_data['pos'][1] + 0.001))
-            new_graph.add_edge(name1, name2, cost=node_data['cost'])
+            newGraph.add_node(name1, cost=0, pos=(node_data['pos'][0], node_data['pos'][1] - 0.001))
+            newGraph.add_node(name2, cost=0, pos=(node_data['pos'][0], node_data['pos'][1] + 0.001))
+            newGraph.add_edge(name1, name2, cost=node_data['cost'])
             trans[node] = [name1, name2]
 
         for edge_from, edge_to, edge_data in self.graph.edges(data=True):
             from_ = trans[edge_from][1]
             to_ = trans[edge_to][0]
-            new_graph.add_edge(from_, to_, cost=edge_data['cost'])
-        return new_graph
+            newGraph.add_edge(from_, to_, cost=edge_data['cost'])
+        return newGraph
 
-    def longest_path(self) -> float:
-        """
-        Computes longest path
-
-        :return: Longest path length
-        """
+    def longestPath(self) -> float:
+        """Computes longest path within the graph"""
         length = nx.dag_longest_path_length(self.graph)
         print('Longest path:', nx.dag_longest_path(self.graph))
         print('Longest path costs:', length)
         return length
 
-    def compute_optimal_schedule(self, plot: bool) -> dict:
+    #TODO: This is a first version, requires improvement
+    def computeOptimalSchedule(self, plot: bool) -> dict:
         """
         Calculates an optimal schedule using a simple greedy approach.
         Assumes unlimited processes and does not minimize the number of processes.
@@ -134,7 +138,7 @@ class PintGraph:
 
         if plot:
             fig, (ax) = plt.subplots(1, 1, figsize=(8, 4.8))
-            self.plot_schedule(schedule=schedule, ax=ax)
+            self.plotSchedule(schedule=schedule, ax=ax)
             ax.set_xlim(0, makespan)
             ax.set_ylim(0, required_procs)
             plt.yticks(np.linspace(required_procs - 1, 0, required_procs) + 0.5,
@@ -143,7 +147,7 @@ class PintGraph:
         return schedule
 
     @staticmethod
-    def plot_schedule(schedule: dict, ax: plt.axis) -> None:
+    def plotSchedule(schedule: dict, ax: plt.axis) -> None:
         """
         Plots a schedule
 
@@ -163,7 +167,9 @@ class PintGraph:
                 ax.annotate(operation, (cx, cy), color='w', weight='bold',
                             fontsize=6, ha='center', va='center')
 
-    def simplify_graph(self):
+    #TODO: Not required so far, i think can be deleted
+    def simplifyGraph(self):
+        """Graph simplification"""
         rev_multidict = {}
         for key, value in self.pool.items():
             rev_multidict.setdefault(tuple(value[:2]), set()).add(key)

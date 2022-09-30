@@ -64,7 +64,7 @@ class BlockIteration():
         self.pintGraph.generateGraphFromPool(pool=self.taskPool)
         # self.pintGraph.simplify_graph()
         self.pintGraph.plotGraph()
-        self.pintGraph.compute_optimal_schedule(plot=True)
+        self.pintGraph.computeOptimalSchedule(plot=True)
 
     def node(self, n, k):
         if k > self.kMax[n]:

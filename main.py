@@ -1,40 +1,9 @@
-# Import from the previous version
-from Parareal import parareal, parareal_predictor, parareal_sc, parareal_predictor_sc
 # Import from the new version
 from block import BlockOperator, BlockIteration, one
 
 # Common import
 from PintRun import PintRun
 
-
-# Previous version run
-class Framework:
-    def __init__(self):
-        self.runs = []
-
-    def testConfiguration(self, blockIteration, predictor, nBlocks, stop_crit):
-        self.runs.append(PintRun(blockIteration=blockIteration, nBlocks=nBlocks, predictor=predictor))
-
-
-a = Framework()
-
-a.testConfiguration(
-    blockIteration=parareal,
-    predictor=parareal_predictor,
-    nBlocks=4, stop_crit=10)
-a.testConfiguration(
-    blockIteration=parareal_sc,
-    predictor=parareal_predictor_sc,
-    nBlocks=4, stop_crit=10)
-
-# a.testConfiguration(
-#    blockIteration=sdc_block_jacobi,
-#    predictor=sdc_block_jacobi_predictor,
-#    nBlocks=4,
-#    stop_crit=10
-# )
-
-# New version run
 nBlocks = 4
 
 g = BlockOperator('g')
@@ -55,3 +24,11 @@ pararealSC_new = BlockIteration(
     **locals())
 
 PintRun(pararealSC_new, nBlocks, None)
+
+#TODO: The inverse is not implemented yet
+#sdc_block_jacobi = BlockIteration(
+#    "(i-d)^{-1}*h * u_{n}^k + (I-d)^{-1}*(q-qd)* u_{n+1}^{k}",
+#    "i * u_{n}^k",
+#    i=one, d = BlockOperator('d'), g = BlockOperator('q'), h = BlockOperator('h'))
+
+#PintRun(pararealSC_new, nBlocks, rules)

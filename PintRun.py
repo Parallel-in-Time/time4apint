@@ -1,8 +1,7 @@
 from PintGraph import PintGraph
 from ErrorEstimator import convergenceEstimator
-from Task import Task
 import sympy as sy
-from NameGenerator import NameGenerator
+import re
 
 
 class PintRun:
@@ -21,7 +20,7 @@ class PintRun:
         self.localsave = {}
 
         self.taskPool[self.createSymbolForUnk(0, 0)] = Task(op=sy.symbols(f'u_{0}', commutative=False),
-                                                            res=self.createSymbolForUnk(0, 0),
+                                                            result=self.createSymbolForUnk(0, 0),
                                                             cost=0)
 
         self.createExpressions()
@@ -29,7 +28,7 @@ class PintRun:
         self.pintGraph.plotGraph()
 
     def getMinimalRuntime(self):
-        return self.pintGraph.longest_path()
+        return self.pintGraph.longestPath()
 
     def createSymbolForUnk(self, n, k):
         if k > self.kMax[n]:
@@ -98,7 +97,7 @@ class PintRun:
             else:
                 if isinstance(expr, sy.Add) or isinstance(expr, sy.Mul):
                     self.tasks[expr] = key
-                    self.taskPool[key] = Task(op=expr, res=key, cost=0)
+                    self.taskPool[key] = Task(op=expr, result=key, cost=0)
                 else:
                     self.localsave[key] = expr
 
@@ -150,3 +149,63 @@ class PintRun:
                     self.taskGenerator(rule=rule, res=res)
                     self.computation_to_approx[rule] = res
                     self.approx_to_computation[res] = rule
+
+
+class NameGenerator(object):
+    """DOCTODO"""
+    def __init__(self, prefix):
+        """
+        DOCTODO
+
+        Parameters
+        ----------
+        prefix : TYPE
+            DESCRIPTION.
+        """
+        self.prefix = prefix
+        self.counter = 0
+
+    def get(self):
+        if self.counter > 0:
+            name = sy.symbols(f'{self.prefix}_{self.counter}', commutative=False)
+        else:
+            name = sy.symbols(f'{self.prefix}', commutative=False)
+        self.counter += 1
+        return name
+
+class Task(object):
+    """Represents one task"""
+    def __init__(self, op, result, cost):
+        """
+        Creates a task based.
+
+        Parameters
+        ----------
+        op : TYPE
+            DESCRIPTION. Represents the expression that the task performs.
+        result : TYPE
+            DESCRIPTION. A representation for the result of the expression
+        cost : TYPE
+            DESCRIPTION. The cost of the task
+        """
+        self.op = op  # Operation (sympy expression)
+        self.result = result  # Result (what is computed by this task)
+        self.dep = self.find_dependencies()  # Find dependencies based on op
+        # Set a name (only for visualization)
+        # TODO: Find a better way to set the name
+        if len(op.args) > 0:
+            if len(re.split('_|\^', op.args[0].name))>1:
+                self.name = result
+            else:
+                self.name = op.args[0]
+        else:
+            self.name = 'copy'
+        self.cost = cost
+
+    def find_dependencies(self):
+        """
+        Gets the dependencies from the operation (expects dependencies to start with u)
+
+        :return: dependencies
+        """
+        return [item for item in self.op.atoms() if (isinstance(item, sy.Symbol) and item.name.startswith('u'))]

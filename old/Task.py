@@ -1,4 +1,6 @@
 import sympy as sy
+import re
+
 
 
 class Task(object):
@@ -7,8 +9,12 @@ class Task(object):
         self.res = res  # Result (what is computed by this task)
         self.dep = self.find_dependencies()  # Find dependencies based on op
         # Set a name (only for visualization)
+        # TODO: Find a better way to set the name
         if len(op.args) > 0:
-            self.name = op.args[0]
+            if len(re.split('_|\^', op.args[0].name))>1:
+                self.name = res
+            else:
+                self.name = op.args[0]
         else:
             self.name = 'copy'
         self.cost = cost
