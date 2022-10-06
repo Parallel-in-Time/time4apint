@@ -42,7 +42,7 @@ class BlockOperator(object):
         new = BlockOperator('mouahaha', cost=self.cost, matrix=self.matrix)
         try:
             new.symbol = self.symbol.copy()
-        except TypeError:
+        except (TypeError, AttributeError):
             new.symbol = self.symbol
         new.components = self.components.copy()
         return new
@@ -117,6 +117,11 @@ class BlockOperator(object):
         res = self.copy()
         res *= other
         return res
+
+class BlockIdentity(BlockOperator):
+    def __init__(self, M, cost):
+        super().__init__('Id', cost=1, matrix=np.eye(M))
+        self.symbol = 1
 
 # Preinstantiated block operators
 one = BlockOperator('Id', cost=0)
