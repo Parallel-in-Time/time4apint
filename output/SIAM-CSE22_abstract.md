@@ -4,14 +4,13 @@ J. Hahne, _T. Lunet_
 
 ## Abstract 
 
-In order to increase parallel concurrency for the simulation of time-dependent problems, many ideas for time parallelization algorithms have been developped the last two decades.
-Among them, iterative parallel-in-time (PinT) methods, like Parareal, MGRIT, PFASST and Space-Time Multigrid, have received the most attention.
-Since those algorithms have different variants and can depend on many parameters, there is many ways for the scientific community to use them for PinT simulations.
-However, when comes the question about what is the more efficient PinT approach for a given problem, this is still rather unclear and hard to determine.
+To increase parallel concurrency for the simulation of time-dependent problems, many ideas for time parallelization algorithms have been developped the last two decades.
+Iterative parallel-in-time (PinT) methods, like Parareal, MGRIT, and PFASST, have received the most attention.
+Since those algorithms have different variants and can depend on many parameters, there is many ways for the scientific community to use them for PinT simulations. The optimal approach for one given problem is then quite difficult to determine.
 
-Parallel efficiency of iterative PinT algorithms relies on two main aspects : the number of iterations required to get the PinT error below an acceptable level (convergence) and the computational cost for doing all those iterations, compared to a sequential simulation without PinT (speedup).
-Recently, a new analysis approach [[1]](#1) has been introduced for the convergence analysis of all iterative PinT method in a common framework, allowing to compare their convergence when using equivalent settings.
-On an other side, recent research work have investigated how to compare the parallel performance of PinT methods using a common approach [[2]](#2), allowing to compare their speedup for a given number of iteration.
+Parallel efficiency of iterative PinT algorithms relies on two aspects : the number of iterations required to get the PinT error below an acceptable level (convergence) and the computational cost for doing all those iterations, compared to a sequential simulation (speedup).
+Recently, a new analysis approach has been introduced to study and compare the convergence analysis of all iterative PinT methods in a common framework.
+On an other side, recent research work have investigated how to compare the parallel performance of PinT methods using a common approach.
 In this talk, we present our recent work in trying to merge both analysis (convergence & speedup), in order to develop a generic tool that can be used to compare the parallel performance of several PinT methods on simple problems, and provide indications on optimal approach for a given type of problem.
 
 ## References

@@ -1,13 +1,15 @@
-from PintGraph import PintGraph
-from ErrorEstimator import convergenceEstimator
+# Python imports
 import sympy as sy
 import re
 
+# BlockOps import
+from .graph import PintGraph
+from .error import convergenceEstimator
+
 
 class PintRun:
-    def __init__(self, blockIteration, nBlocks, predictor):
+    def __init__(self, blockIteration, nBlocks):
         self.blockIteration = blockIteration
-        self.predictor = predictor
         self.nBlocks = nBlocks
         self.taskPool = {}
         self.pintGraph = PintGraph()

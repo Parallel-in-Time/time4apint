@@ -8,7 +8,7 @@ Created on Thu Sep 29 13:17:29 2022
 import sympy as sy
 import numpy as np
 
-from utils import getCoeffsFromFormula
+from .utils import getCoeffsFromFormula
 
 # -----------------------------------------------------------------------------
 # Block Operator class & specific operators
