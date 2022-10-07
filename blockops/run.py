@@ -1,6 +1,7 @@
 # Python imports
 import re
 
+import sympy
 import sympy as sy
 
 from .error import convergenceEstimator
@@ -208,10 +209,22 @@ class Task(object):
         # Set a name (only for visualization)
         # TODO: Find a better way to set the name
         if len(op.args) > 0:
-            if len(re.split('u_|u\^', op.args[0].name)) > 1:
-                self.name = result
+            if isinstance(op.args[0], sy.Symbol):
+                if len(re.split('u_|u\^', op.args[0].name)) > 1:
+                    self.name = result
+                else:
+                    self.name = op.args[0]
+            elif isinstance(op.args[0], sy.Integer):
+                func = op.func
+                if op.func.is_Mul:
+                    func = '*'
+                elif op.func.is_Add:
+                    func = '+'
+                else:
+                    raise Exception(f'Unknown func in {self.result}={self.op} with {type(op.func)}')
+                self.name=f'{op.args[0]}{func}'
             else:
-                self.name = op.args[0]
+                raise Exception(f'Unknown operation in {self.result}={self.op} with {type(self.op.args[0])}')
         else:
             self.name = f'u_0^0'
         self.cost = cost
