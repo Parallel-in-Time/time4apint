@@ -1,10 +1,11 @@
 # Python imports
-import sympy as sy
 import re
 
+import sympy as sy
+
+from .error import convergenceEstimator
 # BlockOps import
 from .graph import PintGraph
-from .error import convergenceEstimator
 
 
 class PintRun:
@@ -12,16 +13,17 @@ class PintRun:
         self.blockIteration = blockIteration
         self.nBlocks = nBlocks
         self.taskPool = {}
-        self.pintGraph = PintGraph()
         self.kMax = convergenceEstimator(nBlocks=self.nBlocks)
+        self.pintGraph = PintGraph(nBlocks, max(self.kMax))
         self.null = 0 * sy.symbols('null', commutative=False)
         self.approx_to_computation = {}
         self.computation_to_approx = {}
+        self.equBlockCoeff = {}
         self.subtasks = {}
         self.tasks = {}
         self.localsave = {}
 
-        self.taskPool[self.createSymbolForUnk(0, 0)] = Task(op=sy.symbols(f'u_{0}', commutative=False),
+        self.taskPool[self.createSymbolForUnk(0, 0)] = Task(op=self.null,
                                                             result=self.createSymbolForUnk(0, 0),
                                                             cost=0)
 
@@ -132,7 +134,8 @@ class PintRun:
 
     def substitute_and_simplify(self, expr):
         expr = expr.subs(self.approx_to_computation).subs(self.blockIteration.rules)
-        return expr.subs(self.computation_to_approx).subs(self.blockIteration.rules)
+        expr = expr.subs(self.computation_to_approx).subs(self.blockIteration.rules)
+        return expr.subs(self.equBlockCoeff).subs(self.blockIteration.rules)
 
     def createExpressions(self):
 
@@ -140,8 +143,11 @@ class PintRun:
             rule = self.substitute_and_simplify(self.createPredictionRule(n=n + 1))
             res = self.createSymbolForUnk(n=n + 1, k=0)
             self.taskGenerator(rule=rule, res=res)
-            self.approx_to_computation[res] = rule
-            self.computation_to_approx[rule] = res
+            if len(rule.args) > 0:
+                self.approx_to_computation[res] = rule
+                self.computation_to_approx[rule] = res
+            else:
+                self.equBlockCoeff[res] = rule
 
         for k in range(max(self.kMax)):
             for n in range(self.nBlocks):
@@ -149,12 +155,16 @@ class PintRun:
                     rule = self.substitute_and_simplify(self.createIterationRule(n=n + 1, k=k + 1))
                     res = self.createSymbolForUnk(n=n + 1, k=k + 1)
                     self.taskGenerator(rule=rule, res=res)
-                    self.computation_to_approx[rule] = res
-                    self.approx_to_computation[res] = rule
+                    if len(rule.args) > 0:
+                        self.computation_to_approx[rule] = res
+                        self.approx_to_computation[res] = rule
+                    else:
+                        self.equBlockCoeff[res] = rule
 
 
 class NameGenerator(object):
     """DOCTODO"""
+
     def __init__(self, prefix):
         """
         DOCTODO
@@ -175,8 +185,10 @@ class NameGenerator(object):
         self.counter += 1
         return name
 
+
 class Task(object):
     """Represents one task"""
+
     def __init__(self, op, result, cost):
         """
         Creates a task based.
@@ -196,12 +208,12 @@ class Task(object):
         # Set a name (only for visualization)
         # TODO: Find a better way to set the name
         if len(op.args) > 0:
-            if len(re.split('_|\^', op.args[0].name))>1:
+            if len(re.split('u_|u\^', op.args[0].name)) > 1:
                 self.name = result
             else:
                 self.name = op.args[0]
         else:
-            self.name = 'copy'
+            self.name = f'u_0^0'
         self.cost = cost
 
     def find_dependencies(self):

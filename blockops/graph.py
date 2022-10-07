@@ -1,5 +1,6 @@
 # Python import
 import re
+
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -13,7 +14,7 @@ class PintGraph:
     """DOCTODO"""
 
     # Constructor
-    def __init__(self):
+    def __init__(self, nBlocks, maxK):
         """
         Creates a graph
 
@@ -21,8 +22,10 @@ class PintGraph:
         ----------
         """
         self.graph = nx.DiGraph()
-        self.graph.add_node('u_0', pos=(0, -1), cost=0, name='init')
+        #self.graph.add_node('u_0_0', pos=(0, -1), cost=0, name='init')
         self.pool = None
+        self.nBlocks = nBlocks
+        self.maxK = maxK
 
     def computeDependencies(self, pool):
         """Returns a restructured task pool for the creation of a plot"""
@@ -56,7 +59,9 @@ class PintGraph:
         for i in range(len(task['subtasks'])):
             self.addTaskToGraph(pos=self.computePos(pos=pos, i=i, size=len(task['subtasks'])),
                                 task=self.pool[task['subtasks'][i]])
-        self.graph.add_node(old_key, pos=pos, name=f'${task["task"].name}$', cost=task['task'].cost)
+        name = task["task"].name if (
+                    f'{task["task"].name}'.startswith('$') and f'{task["task"].name}'.endswith('$')) else f'${task["task"].name}$'
+        self.graph.add_node(old_key, pos=pos, name=name, cost=task['task'].cost)
         for item in task['task'].dep:
             self.graph.add_edge(item.name, old_key)
 
@@ -69,9 +74,23 @@ class PintGraph:
 
     def plotGraph(self):
         """Plots the graph"""
-        plt.figure()
+        fig, ax = plt.subplots()
         pos = nx.get_node_attributes(self.graph, 'pos')
-        nx.draw(self.graph, pos, labels=nx.get_node_attributes(self.graph, 'name'), with_labels=True)
+        nx.draw(self.graph, pos, labels=nx.get_node_attributes(self.graph, 'name'), with_labels=True, ax=ax)
+        limits = plt.axis('on')  # turns on axis
+        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
+        for k in range(self.maxK):
+            plt.axhline(y=k+0.2, color='gray', linestyle='-')
+        for n in range(self.nBlocks):
+            plt.axvline(x=n + 0.2, color='gray', linestyle='-')
+        ax.set_xlim(left=-0.8, right=self.nBlocks+0.2)
+        ax.set_ylim(bottom=-0.8, top=self.maxK+.2)
+        ax.set_xlabel(xlabel='Time block n')
+        ax.set_ylabel(ylabel='Iteration k')
+        ax.set_xticks(ticks=np.arange(0,self.nBlocks+1)-0.3)
+        ax.set_xticklabels(labels=np.arange(0,self.nBlocks+1))
+        ax.set_yticks(ticks=np.arange(0,self.maxK+1)-0.3)
+        ax.set_yticklabels(labels=np.arange(0,self.maxK+1))
         plt.show()
 
     def createEdgeWeightedGraph(self) -> nx.DiGraph:
@@ -99,7 +118,7 @@ class PintGraph:
         print('Longest path costs:', length)
         return length
 
-    #TODO: This is a first version, requires improvement
+    # TODO: This is a first version, requires improvement
     def computeOptimalSchedule(self, plot: bool) -> dict:
         """
         Calculates an optimal schedule using a simple greedy approach.
@@ -168,7 +187,7 @@ class PintGraph:
                 ax.annotate(operation, (cx, cy), color='w', weight='bold',
                             fontsize=6, ha='center', va='center')
 
-    #TODO: Not required so far, i think can be deleted
+    # TODO: Not required so far, i think can be deleted
     def simplifyGraph(self):
         """Graph simplification"""
         rev_multidict = {}
