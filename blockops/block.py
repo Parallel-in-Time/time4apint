@@ -162,9 +162,15 @@ class BlockIteration(object):
         # Stores the generated symbols for the rules
         # TODO : check if the rules hold with the given matrices
         rules = [] if rules is None else rules
-        condEval = lambda x: \
-            x.symbol if isinstance(x, BlockOperator) \
-            else eval(x, blockOps).symbol
+        def condEval(x):
+            if isinstance(x, BlockOperator):
+                return x.symbol
+            else:
+                e = eval(x, blockOps)
+                if hasattr(e, 'symbol'):
+                    return e.symbol
+                else:
+                    return e
         self.rules = {condEval(a): condEval(b) for a,b in rules}
 
     @property
