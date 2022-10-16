@@ -75,21 +75,21 @@ class PintGraph:
     def plotGraph(self):
         """Plots the graph"""
         fig, ax = plt.subplots()
+        for k in range(self.maxK+1):
+            plt.axhline(y=k, color='gray', linestyle='-', alpha=0.3)
+        for n in range(self.nBlocks+1):
+            plt.axvline(x=n, color='gray', linestyle='-', alpha=0.3)
         pos = nx.get_node_attributes(self.graph, 'pos')
         nx.draw(self.graph, pos, labels=nx.get_node_attributes(self.graph, 'name'), with_labels=True, ax=ax)
         limits = plt.axis('on')  # turns on axis
         ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-        for k in range(self.maxK):
-            plt.axhline(y=k+0.2, color='gray', linestyle='-')
-        for n in range(self.nBlocks):
-            plt.axvline(x=n + 0.2, color='gray', linestyle='-')
-        ax.set_xlim(left=-0.8, right=self.nBlocks+0.2)
-        ax.set_ylim(bottom=-0.8, top=self.maxK+.2)
+        ax.set_xlim(left=-0.2, right=self.nBlocks+0.2)
+        ax.set_ylim(bottom=-0.2, top=self.maxK+.2)
         ax.set_xlabel(xlabel='Time block n')
         ax.set_ylabel(ylabel='Iteration k')
-        ax.set_xticks(ticks=np.arange(0,self.nBlocks+1)-0.3)
+        ax.set_xticks(ticks=np.arange(0,self.nBlocks+1))
         ax.set_xticklabels(labels=np.arange(0,self.nBlocks+1))
-        ax.set_yticks(ticks=np.arange(0,self.maxK+1)-0.3)
+        ax.set_yticks(ticks=np.arange(0,self.maxK+1))
         ax.set_yticklabels(labels=np.arange(0,self.maxK+1))
         plt.show()
 

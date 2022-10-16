@@ -1,7 +1,6 @@
 # Python imports
 import re
 
-import sympy
 import sympy as sy
 
 from .error import convergenceEstimator
@@ -141,14 +140,19 @@ class PintRun:
     def createExpressions(self):
 
         for n in range(self.nBlocks):
-            rule = self.substitute_and_simplify(self.createPredictionRule(n=n + 1))
-            res = self.createSymbolForUnk(n=n + 1, k=0)
-            self.taskGenerator(rule=rule, res=res)
-            if len(rule.args) > 0:
-                self.approx_to_computation[res] = rule
-                self.computation_to_approx[rule] = res
+            if len(self.blockIteration.predCoeffs) == 0:
+                self.taskPool[self.createSymbolForUnk(n + 1, 0)] = Task(op=self.null,
+                                                                        result=self.createSymbolForUnk(n + 1, 0),
+                                                                        cost=0)
             else:
-                self.equBlockCoeff[res] = rule
+                rule = self.substitute_and_simplify(self.createPredictionRule(n=n + 1))
+                res = self.createSymbolForUnk(n=n + 1, k=0)
+                self.taskGenerator(rule=rule, res=res)
+                if len(rule.args) > 0:
+                    self.approx_to_computation[res] = rule
+                    self.computation_to_approx[rule] = res
+                else:
+                    self.equBlockCoeff[res] = rule
 
         for k in range(max(self.kMax)):
             for n in range(self.nBlocks):
@@ -222,11 +226,11 @@ class Task(object):
                     func = '+'
                 else:
                     raise Exception(f'Unknown func in {self.result}={self.op} with {type(op.func)}')
-                self.name=f'{op.args[0]}{func}'
+                self.name = f'{op.args[0]}{func}'
             else:
                 raise Exception(f'Unknown operation in {self.result}={self.op} with {type(self.op.args[0])}')
         else:
-            self.name = f'u_0^0'
+            self.name = result.name
         self.cost = cost
 
     def find_dependencies(self):

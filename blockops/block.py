@@ -138,7 +138,7 @@ class BlockIteration(object):
 
     NEW_VERSION = None
 
-    def __init__(self, update, predictor, rules=None, **blockOps):
+    def __init__(self, update, predictor='', rules=None, **blockOps):
         """
         DOCTODO
 
