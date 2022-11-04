@@ -7,8 +7,8 @@ Created on Fri Nov  4 15:56:41 2022
 """
 import numpy as np
 
-from .schemes import getBlockMatrices
-from .block import BlockOperator
+from .schemes import getBlockMatrices, getTransferMatrices
+from .block import BlockOperator, BlockIteration
 
 class BlockProblem(object):
 
@@ -17,16 +17,86 @@ class BlockProblem(object):
         # Block sizes and problem settings
         self.N, self.M = N, M
         self.dt = tEnd/N
-        self.lamDt = lam*self.dt
+        self.lam = lam
 
-        # Set up bock operators and propagator
-        phi, chi, nodes = getBlockMatrices(self.lamDt, M, scheme, **schemeArgs)
-        self.phi = BlockOperator(r'$\phi$', matrix=phi)
-        self.chi = BlockOperator(r'$\chi$', matrix=chi)
+        # Set up bock operators and propagator of the sequential problem
+        phi, chi, nodes, cost, form = getBlockMatrices(
+            lam*self.dt, M, scheme, **schemeArgs)
+        self.phi = BlockOperator(r'$\phi$', matrix=phi, cost=cost)
+        self.chi = BlockOperator(r'$\chi$', matrix=chi, cost=0)
         self.prop = self.phi**(-1) * self.chi
+        self.nodes = nodes
+        self.scheme = scheme
+        self.form = form
 
-        # Initial solution
-        self.u0 = np.ones(M)*u0
+        # Storage for approximate and coarse block operators
+        self.phiDelta = None
+        self.schemeDelta = None
+        self.propDelta = None
+
+        self.phiCoarse = None
+        self.chiCoarse = None
+        self.nodesCoarse = None
+        self.TFtoC = None
+        self.TCtoF = None
+        self.deltaChi = None
+
+        self.phiDeltaCoarse = None
+        self.methodDeltaCoarse = None
+
+        # Problem parameters
+        self.u0 = np.ones(M)*u0 + 0*lam
+
+    @property
+    def times(self):
+        return np.array([[(i+tau)*self.dt for tau in self.nodes]
+                         for i in range(self.N)])
+
+    @property
+    def uShape(self):
+        return (self.N, self.M)
+
+    def setPhiDelta(self, scheme, **schemeArgs):
+        phi, _, _, cost, _ = getBlockMatrices(
+            self.lam*self.dt, self.M, scheme, nodes=self.nodes, form=self.form,
+            **schemeArgs)
+        self.phiDelta = BlockOperator(r'$\phi_{Delta}$', matrix=phi, cost=cost)
+        self.schemeDelta = scheme
+        self.propDelta = self.phiDelta**(-1) * self.chi
+
+    def setCoarseLevel(self, M):
+        phi, chi, nodes, cost, _ = getBlockMatrices(
+            self.lam*self.dt, M, self.method, form=self.form)
+        self.nodesCoarse = nodes
+        self.phiCoarse = BlockOperator(
+            r'$\tilde{\phi}$', matrix=phi, cost=cost)
+        TFtoC, TCtoF = getTransferMatrices(self.nodes, self.nodesCoarse)
+        self.TFtoC = BlockOperator('$T_F^C$', matrix=TFtoC, cost=0)
+        self.TCtoF = BlockOperator('$T_C^F$', matrix=TCtoF, cost=0)
+        # TODO : add deltaChi
 
     def getFineSolution(self):
-        return
+        u = [self.u0]
+        for i in range(self.N):
+            u.append(self.prop(u[-1]))
+        return np.array(u[1:])
+
+    def getDeltaSolution(self):
+        u = [self.u0]
+        for i in range(self.N):
+            u.append(self.propDelta(u[-1]))
+        return np.array(u[1:])
+
+    def getExactSolution(self):
+        return np.exp(self.lam*self.times)*self.u0[0]
+
+    def getBlockIteration(self, algo):
+        if algo == 'Parareal':
+            update = "(phi**(-1)-phiDelta**(-1))*chi * u_{n}^k "
+            update += "+ phiDelta**(-1)*chi * u_{n}^{k+1}"
+            predictor="phiDelta**(-1)*chi*u_{n}^0"
+        else:
+            raise NotImplementedError()
+        return BlockIteration(
+            update, predictor,
+            phi=self.phi, phiDelta=self.phiDelta, chi=self.chi)

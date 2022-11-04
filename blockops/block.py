@@ -43,7 +43,8 @@ class BlockOperator(object):
         self.invert = invert
 
     def copy(self):
-        new = BlockOperator('mouahaha', cost=self.cost, matrix=self.matrix)
+        new = BlockOperator('mouahaha',
+            cost=self.cost, matrix=self.matrix.copy(), invert=self.invert)
         try:
             new.symbol = self.symbol.copy()
         except (TypeError, AttributeError):
@@ -70,6 +71,7 @@ class BlockOperator(object):
             self.components.update(other.components)
             self.symbol += other.symbol
             self.matrix += other.matrix
+            self.cost = None
         else:
             raise ValueError(
                 'incompatible addition between BlockOperator '
@@ -81,6 +83,7 @@ class BlockOperator(object):
             self.components.update(other.components)
             self.symbol -= other.symbol
             self.matrix -= other.matrix
+            self.cost = None
         else:
             raise ValueError(
                 'incompatible substraction between BlockOperator '
@@ -102,6 +105,7 @@ class BlockOperator(object):
                     raise NotImplementedError()
                 else:
                     self.matrix = np.dot(self.matrix, other.matrix)
+            self.cost = None
         else:
             raise ValueError(
                 'incompatible multiplication between BlockOperator '
@@ -209,7 +213,17 @@ class BlockIteration(object):
         """Return an iterator on the (key, values) of blockCoeffs"""
         return self.blockCoeffs.items()
 
-    @property
-    def predCoeffs(self):
-        """Return an iterator on the (key, values) of predBlockCoeffs"""
-        return self.predBlockCoeffs.items()
+    def __call__(self, u0, K, N):
+        u0 = np.asarray(u0)
+        u = np.zeros((K+1, N+1, u0.size), dtype=u0.dtype)
+        u[:, 0] = u0
+        # Prediction
+        pred = self.predBlockCoeffs[(0, 0)]
+        for n in range(N):
+            u[0, n+1] = pred(u[0, n])
+        # Iterations
+        for k in range(K):
+            for n in range(N):
+                for (nMod, kMod), blockOp in self.coeffs:
+                    u[k+1, n+1] += blockOp(u[k+kMod, n+nMod])
+        return u[:, 1:]

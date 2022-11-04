@@ -71,6 +71,8 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
             phi = T @ phi
             chi = T @ chi
 
+        cost = nStepPerNode * M
+
     # Collocation methods
     elif scheme == 'COLLOCATION':
 
@@ -99,6 +101,9 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
             phi = T @ phi
             chi = T @ chi
 
+        # TODO : specific cost for collocation methods
+        cost = 1
+
     elif scheme == 'MULTISTEP':  # Adams-Bashforth method
 
         # Default node-to-node formulation
@@ -120,10 +125,13 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
             phi = T @ phi
             chi = T @ chi
 
+        # TODO : specific cost for multistep methods
+        cost = 1
+
     else:
         raise NotImplementedError(f'scheme = {scheme}')
 
-    return phi, chi, nodes
+    return phi, chi, nodes, cost, form
 
 
 def getTransferMatrices(nodesFine, nodesCoarse):
