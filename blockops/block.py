@@ -17,7 +17,7 @@ class BlockOperator(object):
     """DOCTODO"""
 
     # Constructor
-    def __init__(self, name, cost=1, matrix=None):
+    def __init__(self, name, cost=1, matrix=None, invert=False):
         """
         DOCTODO
 
@@ -29,6 +29,8 @@ class BlockOperator(object):
             DESCRIPTION. The default is 1.
         matrix : TYPE, optional
             DESCRIPTION. The default is None.
+        invert : TYPE, optional
+            DESCRIPTION. The default is False.
         """
         # Common to everyone
         self.symbol = sy.symbols(name, commutative=False)
@@ -37,6 +39,8 @@ class BlockOperator(object):
         self.cost = cost
         # For multicomponent blocks operators
         self.components = {self.name: self}
+        # If performing an inversion or not
+        self.invert = invert
 
     def copy(self):
         new = BlockOperator('mouahaha', cost=self.cost, matrix=self.matrix)
@@ -68,7 +72,7 @@ class BlockOperator(object):
             self.matrix += other.matrix
         else:
             raise ValueError(
-                'Incompatible addition between BlockOperator '
+                'incompatible addition between BlockOperator '
                 f'and {other.__class__.__name__} ({other})')
         return self
 
@@ -79,7 +83,7 @@ class BlockOperator(object):
             self.matrix -= other.matrix
         else:
             raise ValueError(
-                'Incompatible substraction between BlockOperator '
+                'incompatible substraction between BlockOperator '
                 f'and {other.__class__.__name__} ({other})')
         return self
 
@@ -87,12 +91,32 @@ class BlockOperator(object):
         if isinstance(other, BlockOperator):
             self.components.update(other.components)
             self.symbol *= other.symbol
-            self.matrix = self.matrix @ other.matrix
+            if self.invert:
+                if other.invert:
+                    self.matrix = np.dot(other.matrix, self.matrix)
+                else:
+                    self.matrix = np.linalg.solve(self.matrix, other.matrix)
+                    self.invert = False
+            else:
+                if other.invert:
+                    raise NotImplementedError()
+                else:
+                    self.matrix = np.dot(self.matrix, other.matrix)
         else:
             raise ValueError(
-                'Incompatible multiplication between BlockOperator '
+                'incompatible multiplication between BlockOperator '
                 f'and {other.__class__.__name__} ({other})')
         return self
+
+    def __ipow__(self, n):
+        if n == -1:
+            self.invert ^= True
+            self.symbol **= -1
+            return self
+        else:
+            raise ValueError(
+                'power operator can only be used to generate the inverse '
+                'of a block operator')
 
     def __neg__(self):
         res = self.copy()
@@ -118,17 +142,24 @@ class BlockOperator(object):
         res *= other
         return res
 
+    def __pow__(self, n):
+        res = self.copy()
+        res **= n
+        return res
+
+    def __call__(self, u):
+        if self.invert:
+            return np.linalg.solve(self.matrix, u)
+        else:
+            return np.dot(self.matrix, u)
+
+# Identity block operator
 class BlockIdentity(BlockOperator):
-    def __init__(self, M, cost):
-        super().__init__('Id', cost=1, matrix=np.eye(M))
+    def __init__(self, M, cost=0):
+        super().__init__('I', cost, matrix=np.eye(M))
         self.symbol = 1
 
-# Preinstantiated block operators
-one = BlockOperator('Id', cost=0)
-one.symbol = 1
-zero = BlockOperator('O', cost=0)
-zero.symbol = 0
-zero.matrix *= 0
+one = BlockIdentity(1, cost=0)
 
 # -----------------------------------------------------------------------------
 # Block Iteration class
@@ -182,19 +213,3 @@ class BlockIteration(object):
     def predCoeffs(self):
         """Return an iterator on the (key, values) of predBlockCoeffs"""
         return self.predBlockCoeffs.items()
-
-
-# Quick script testing
-if __name__ == '__main__':
-
-    g = BlockOperator('g')
-    f = BlockOperator('f')
-    r = BlockOperator('r')
-    p = BlockOperator('p')
-
-    rules = [(r*p, one)]
-
-    parareal = BlockIteration(
-        "(f - p*g*r)u_{n}^k + p*g*r*u_{n}^{k+1}",
-        "p*g*r u_{n}^k",
-        **locals())
