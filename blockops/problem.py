@@ -99,11 +99,24 @@ class BlockProblem(object):
         else:
             return np.array(u[1:])
 
+    def getError(self, uNum='fine', uRef='exact'):
+        if isinstance(uRef, str):
+            if uRef == 'exact':
+                uRef = self.getSolution('exact')
+            elif uRef == 'fine':
+                uRef = self.getSolution('fine')
+        if isinstance(uNum, str):
+            if uNum == 'fine':
+                uNum = self.getSolution('fine')
+        return np.abs(uNum - uRef)
+
     def getBlockIteration(self, algo):
         try:
             BlockIter = ALGORITHMS[algo]
-            return BlockIter(
+            blockIter = BlockIter(
                 phi=self.phi, phiDelta=self.phiDelta, chi=self.chi)
+            blockIter.problem = self
+            return blockIter
         except KeyError:
             raise NotImplementedError(
                 f'block iteration for {algo} not implemented')

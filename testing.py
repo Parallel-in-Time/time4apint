@@ -11,30 +11,34 @@ import matplotlib.pyplot as plt
 from blockops.problem import BlockProblem
 
 
-tEnd = 2*np.pi-0.1
+tEnd = 2*np.pi-0.2
 lam = 1j
-N = 4
-nStepsF = 20
-nStepsG = 1
+N = 8
+nStepsF = 50
+nStepsG = 3
 
-p = BlockProblem(lam, tEnd, N, 1, 'BE', nStepPerNode=nStepsF)
-p.setApprox('BE', nStepPerNode=nStepsG)
+prob = BlockProblem(lam, tEnd, N, 1, 'BE', nStepPerNode=nStepsF)
+prob.setApprox('BE', nStepPerNode=nStepsG)
 
 
-uSeq = p.getSolution('fine', initSol=True)
-uCoarse = p.getSolution('approx', initSol=True)
-uExact = p.getSolution('exact', initSol=True)
+uSeq = prob.getSolution('fine', initSol=True)
+uExact = prob.getSolution('exact', initSol=True)
+
+errDiscr = prob.getError('fine', 'exact')
 
 plt.plot(uExact.ravel().real, uExact.ravel().imag, '^-', label='Exact')
 plt.plot(uSeq.ravel().real, uSeq.ravel().imag, 'o-', label='Sequential', ms=10)
 
-parareal = p.getBlockIteration('Parareal')
+parareal = prob.getBlockIteration('Parareal')
 
-uPar = parareal(p.u0, 4, N, initSol=True)
+uPar = parareal(prob.u0, 4, N, initSol=True)
+
+print(f'max discretization error : {errDiscr.max()}')
 
 for k in range(4):
     plt.plot(uPar[k].ravel().real, uPar[k].ravel().imag, 'o-',
               label=f'Iter{k}')
-
+    errPar = prob.getError(uPar[k][1:], 'fine')
+    print(f'iter {k}, max fine error : {errPar.max()}')
 plt.legend()
 plt.show()

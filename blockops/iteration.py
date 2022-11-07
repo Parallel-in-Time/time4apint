@@ -53,6 +53,9 @@ class BlockIteration(object):
                     return e
         self.rules = {condEval(a): condEval(b) for a,b in rules}
 
+        # Attribute that can be used to store an associated problem
+        self.problem = None
+
     @property
     def coeffs(self):
         """Return an iterator on the (key, values) of blockCoeffs"""
