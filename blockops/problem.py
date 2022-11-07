@@ -58,7 +58,7 @@ class BlockProblem(object):
     def uShape(self):
         return (self.N, self.M)
 
-    def setPhiDelta(self, scheme, **schemeArgs):
+    def setApprox(self, scheme, **schemeArgs):
         phi, _, _, cost, _ = getBlockMatrices(
             self.lam*self.dt, self.M, scheme, nodes=self.nodes, form=self.form,
             **schemeArgs)
@@ -77,20 +77,27 @@ class BlockProblem(object):
         self.TCtoF = BlockOperator('$T_C^F$', matrix=TCtoF, cost=0)
         # TODO : add deltaChi
 
-    def getFineSolution(self):
+    def getSolution(self, sType='fine', initSol=False):
         u = [self.u0]
-        for i in range(self.N):
-            u.append(self.prop(u[-1]))
-        return np.array(u[1:])
 
-    def getDeltaSolution(self):
-        u = [self.u0]
-        for i in range(self.N):
-            u.append(self.propDelta(u[-1]))
-        return np.array(u[1:])
+        if sType == 'exact':
+            uTh = np.exp(self.lam*self.times)*self.u0[0]
+            if initSol:
+                return np.array(u + uTh.tolist())
+            else:
+                return uTh
 
-    def getExactSolution(self):
-        return np.exp(self.lam*self.times)*self.u0[0]
+        if sType == 'fine':
+            prop = self.prop
+        elif sType == 'approx':
+            prop = self.propDelta
+        for i in range(self.N):
+            u.append(prop(u[-1]))
+
+        if initSol:
+            return np.array(u)
+        else:
+            return np.array(u[1:])
 
     def getBlockIteration(self, algo):
         try:
