@@ -8,8 +8,6 @@ Created on Thu Sep 29 13:17:29 2022
 import sympy as sy
 import numpy as np
 
-from .utils import getCoeffsFromFormula
-
 # -----------------------------------------------------------------------------
 # Block Operator class & specific operators
 # -----------------------------------------------------------------------------
@@ -17,34 +15,38 @@ class BlockOperator(object):
     """DOCTODO"""
 
     # Constructor
-    def __init__(self, name, cost=1, matrix=None, invert=False):
+    def __init__(self, name=None, cost=0, matrix=None, invert=None):
         """
         DOCTODO
 
         Parameters
         ----------
-        name : TYPE
-            DESCRIPTION.
+        name : TYPE, optional
+            DESCRIPTION. The default is 'I'.
         cost : TYPE, optional
-            DESCRIPTION. The default is 1.
+            DESCRIPTION. The default is 0.
         matrix : TYPE, optional
             DESCRIPTION. The default is None.
         invert : TYPE, optional
-            DESCRIPTION. The default is False.
+            DESCRIPTION. The default is None.
         """
-        # Common to everyone
-        self.symbol = sy.symbols(name, commutative=False)
-        self.matrix = np.array([[1]]) if matrix is None else matrix
+        if name is None:
+            self.symbol = 1
+        else:
+            self.symbol = sy.symbols(name, commutative=False)
+        self.matrix = matrix
+        self.invert = invert
         # For mono-component blocks operators
         self.cost = cost
         # For multicomponent blocks operators
         self.components = {self.name: self}
-        # If performing an inversion or not
-        self.invert = invert
+
 
     def copy(self):
-        new = BlockOperator('mouahaha',
-            cost=self.cost, matrix=self.matrix.copy(), invert=self.invert)
+        new = BlockOperator(
+            cost=self.cost,
+            matrix=None if self.matrix is None else self.matrix.copy(),
+            invert=None if self.invert is None else self.invert.copy())
         try:
             new.symbol = self.symbol.copy()
         except (TypeError, AttributeError):
@@ -68,9 +70,16 @@ class BlockOperator(object):
     # -------------------------------------------------------------------------
     def __iadd__(self, other):
         if isinstance(other, BlockOperator):
+            if self.invert is not None or other.invert is not None:
+                raise ValueError(
+                    'cannot add block operator with invert part '
+                    f'(here {self})')
+            if self.matrix is not None and other.matrix is not None:
+                self.matrix += other.matrix
+            else:
+                self.matrix = None
             self.components.update(other.components)
             self.symbol += other.symbol
-            self.matrix += other.matrix
             self.cost = None
         else:
             raise ValueError(
@@ -80,9 +89,16 @@ class BlockOperator(object):
 
     def __isub__(self, other):
         if isinstance(other, BlockOperator):
+            if self.invert is not None or other.invert is not None:
+                raise ValueError(
+                    'cannot substract block operator with invert part '
+                    f'(here {self})')
+            if self.matrix is not None and other.matrix is not None:
+                self.matrix -= other.matrix
+            else:
+                self.matrix = None
             self.components.update(other.components)
             self.symbol -= other.symbol
-            self.matrix -= other.matrix
             self.cost = None
         else:
             raise ValueError(
@@ -94,17 +110,23 @@ class BlockOperator(object):
         if isinstance(other, BlockOperator):
             self.components.update(other.components)
             self.symbol *= other.symbol
-            if self.invert:
-                if other.invert:
-                    self.matrix = np.dot(other.matrix, self.matrix)
+            if self.invert is not None:
+                if other.matrix is not None:
+                    inv = np.linalg.solve(self.invert, other.matrix)
+                    if self.matrix is not None:
+                        self.matrix = np.dot(self.matrix, inv)
+                    else:
+                        self.matrix = inv
+                    self.invert = other.invert
                 else:
-                    self.matrix = np.linalg.solve(self.matrix, other.matrix)
-                    self.invert = False
+                    if other.invert is not None:
+                        self.invert = np.dot(other.invert, self.invert)
             else:
-                if other.invert:
-                    raise NotImplementedError()
-                else:
+                if self.matrix is None:
+                    self.matrix = other.matrix
+                elif other.matrix is not None:
                     self.matrix = np.dot(self.matrix, other.matrix)
+                self.invert = other.invert
             self.cost = None
         else:
             raise ValueError(
@@ -114,7 +136,7 @@ class BlockOperator(object):
 
     def __ipow__(self, n):
         if n == -1:
-            self.invert ^= True
+            self.invert, self.matrix = self.matrix, self.invert
             self.symbol **= -1
             return self
         else:
@@ -125,7 +147,8 @@ class BlockOperator(object):
     def __neg__(self):
         res = self.copy()
         res.symbol *= -1
-        res.matrix *= -1
+        if self.matrix is not None:
+            res.matrix *= -1
         return res
 
     def __pos__(self):
@@ -152,78 +175,11 @@ class BlockOperator(object):
         return res
 
     def __call__(self, u):
-        if self.invert:
-            return np.linalg.solve(self.matrix, u)
-        else:
-            return np.dot(self.matrix, u)
+        if self.invert is not None:
+            u = np.linalg.solve(self.invert, u)
+        if self.matrix is not None:
+            u = np.dot(self.matrix, u)
+        return u
 
 # Identity block operator
-class BlockIdentity(BlockOperator):
-    def __init__(self, M, cost=0):
-        super().__init__('I', cost, matrix=np.eye(M))
-        self.symbol = 1
-
-one = BlockIdentity(1, cost=0)
-
-# -----------------------------------------------------------------------------
-# Block Iteration class
-# -----------------------------------------------------------------------------
-class BlockIteration(object):
-    """DOCTODO"""
-
-    NEW_VERSION = None
-
-    def __init__(self, update, predictor='', rules=None, **blockOps):
-        """
-        DOCTODO
-
-        Parameters
-        ----------
-        update : TYPE
-            DESCRIPTION.
-        predictor : TYPE
-            DESCRIPTION.
-        rules : TYPE, optional
-            DESCRIPTION. The default is None.
-        **blockOps : TYPE
-            DESCRIPTION.
-        """
-        # Store block coefficients from the iteration update formula
-        self.blockCoeffs = getCoeffsFromFormula(update, blockOps)
-
-        # Store block coefficients from the predictor formula
-        self.predBlockCoeffs = getCoeffsFromFormula(predictor, blockOps)
-
-        # Stores the generated symbols for the rules
-        # TODO : check if the rules hold with the given matrices
-        rules = [] if rules is None else rules
-        def condEval(x):
-            if isinstance(x, BlockOperator):
-                return x.symbol
-            else:
-                e = eval(x, blockOps)
-                if hasattr(e, 'symbol'):
-                    return e.symbol
-                else:
-                    return e
-        self.rules = {condEval(a): condEval(b) for a,b in rules}
-
-    @property
-    def coeffs(self):
-        """Return an iterator on the (key, values) of blockCoeffs"""
-        return self.blockCoeffs.items()
-
-    def __call__(self, u0, K, N):
-        u0 = np.asarray(u0)
-        u = np.zeros((K+1, N+1, u0.size), dtype=u0.dtype)
-        u[:, 0] = u0
-        # Prediction
-        pred = self.predBlockCoeffs[(0, 0)]
-        for n in range(N):
-            u[0, n+1] = pred(u[0, n])
-        # Iterations
-        for k in range(K):
-            for n in range(N):
-                for (nMod, kMod), blockOp in self.coeffs:
-                    u[k+1, n+1] += blockOp(u[k+kMod, n+nMod])
-        return u[:, 1:]
+one = BlockOperator()

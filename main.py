@@ -2,29 +2,33 @@ from blockops import BlockOperator, BlockIteration, one, PintRun
 
 nBlocks = 4
 
-g = BlockOperator('g')
-f = BlockOperator('f')
-r = BlockOperator('r')
-p = BlockOperator('p')
+G = BlockOperator('G', cost=1)
+F = BlockOperator('F', cost=10)
+R = BlockOperator('R', cost=0)
+P = BlockOperator('P', cost=0)
 
-rules = [(r*p, one)]
+predictor = "G u_{n}^k"
+
 parareal = BlockIteration(
-    "(f - g) u_{n}^k + g u_{n}^{k+1}",
-    "g u_{n}^k",
-    **locals())
-
+    "(F - G) u_{n}^k + G u_{n}^{k+1}",
+    predictor,
+    F=F, G=G)
 PintRun(parareal, nBlocks)
-pararealSC = BlockIteration(
-    "(f - p*g*r) u_{n}^k + p*g*r * u_{n}^{k+1}",
-    "p*g*r u_{n}^k",
-    **locals())
 
+pararealSC = BlockIteration(
+    "(F - P*G*R) u_{n}^k + P*G*R * u_{n}^{k+1}",
+    "P*G*R u_{n}^k",
+    rules=[(R*P, one)], F=F, G=G, R=R, P=P, I=one)
 PintRun(pararealSC, nBlocks)
 
-#TODO: The inverse is not implemented yet
-#sdc_block_jacobi = BlockIteration(
-#    "(i-d)^{-1}*h * u_{n}^k + (I-d)^{-1}*(q-qd)* u_{n+1}^{k}",
-#    "i * u_{n}^k",
-#    i=one, d = BlockOperator('d'), g = BlockOperator('q'), h = BlockOperator('h'))
+abj = BlockIteration(
+    "G u_{n}^k + (I-G*F**(-1)) u_{n+1}^{k}",
+    predictor,
+    F=F, G=G, I=one)
+PintRun(abj, nBlocks)
 
-#PintRun(pararealSC_new, nBlocks, rules)
+abgs = BlockIteration(
+    "G u_{n}^{k+1} + (I-G*F**(-1)) u_{n+1}^{k}",
+    predictor,
+    F=F, G=G, I=one)
+PintRun(abgs, nBlocks)

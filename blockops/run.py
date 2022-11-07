@@ -107,28 +107,17 @@ class PintRun:
 
     def createIterationRule(self, n, k):
         iterationRule = self.null
-        if hasattr(self.blockIteration, "NEW_VERSION"):
-            for (nMod, kMod), op in self.blockIteration.coeffs:
-                iterationRule += op.symbol * self.createSymbolForUnk(
-                    n=n + nMod - 1, k=k + kMod - 1)
-        else:
-            for op in self.blockIteration.getOperators():
-                nMod = op.getDepTime()
-                kMod = op.getDepIter()
-                iterationRule += op.symbol * self.createSymbolForUnk(n=n + nMod, k=k + kMod)
+        for (nMod, kMod), op in self.blockIteration.coeffs:
+            iterationRule += op.symbol * self.createSymbolForUnk(
+                n=n + nMod - 1, k=k + kMod - 1)
         iterationRule = iterationRule.simplify().expand()
         return iterationRule
 
     def createPredictionRule(self, n):
         predictorRule = self.null
-        if hasattr(self.blockIteration, "NEW_VERSION"):
-            for (nMod, _), op in self.blockIteration.predCoeffs:
-                predictorRule += op.symbol * self.createSymbolForUnk(
-                    n=n + nMod - 1, k=0)
-        else:
-            for op in self.predictor.getOperators():
-                nMod = op.getDepTime()
-                predictorRule += op.symbol * self.createSymbolForUnk(n=n + nMod, k=0)
+        for (nMod, _), op in self.blockIteration.predCoeffs:
+            predictorRule += op.symbol * self.createSymbolForUnk(
+                n=n + nMod - 1, k=0)
         predictorRule = predictorRule.simplify().expand()
         return predictorRule
 

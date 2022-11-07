@@ -1,6 +1,7 @@
-from .block import BlockIteration, BlockOperator, one
+from .block import BlockOperator, one
+from .iteration import BlockIteration
 from .run import PintRun
 
-__all__ = ['BlockIteration', 'BlockOperator',
-           'one',
+__all__ = ['BlockOperator', 'one',
+           'BlockIteration',
            'PintRun']

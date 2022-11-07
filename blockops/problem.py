@@ -8,7 +8,9 @@ Created on Fri Nov  4 15:56:41 2022
 import numpy as np
 
 from .schemes import getBlockMatrices, getTransferMatrices
-from .block import BlockOperator, BlockIteration
+from .block import BlockOperator
+from .iteration import ALGORITHMS
+
 
 class BlockProblem(object):
 
@@ -91,12 +93,10 @@ class BlockProblem(object):
         return np.exp(self.lam*self.times)*self.u0[0]
 
     def getBlockIteration(self, algo):
-        if algo == 'Parareal':
-            update = "(phi**(-1)-phiDelta**(-1))*chi * u_{n}^k "
-            update += "+ phiDelta**(-1)*chi * u_{n}^{k+1}"
-            predictor="phiDelta**(-1)*chi*u_{n}^0"
-        else:
-            raise NotImplementedError()
-        return BlockIteration(
-            update, predictor,
-            phi=self.phi, phiDelta=self.phiDelta, chi=self.chi)
+        try:
+            BlockIter = ALGORITHMS[algo]
+            return BlockIter(
+                phi=self.phi, phiDelta=self.phiDelta, chi=self.chi)
+        except KeyError:
+            raise NotImplementedError(
+                f'block iteration for {algo} not implemented')

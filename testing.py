@@ -16,7 +16,7 @@ tEnd = 2*np.pi
 lam = 1j
 N = 4
 nStepsF = 20
-nStepsG = 2
+nStepsG = 1
 
 p = BlockProblem(lam, tEnd, N, 1, 'BE', nStepPerNode=nStepsF)
 p.setPhiDelta('BE', nStepPerNode=nStepsG)
@@ -27,16 +27,14 @@ uCoarse = p.getDeltaSolution()
 uExact = p.getExactSolution()
 
 plt.plot(uExact.ravel().real, uExact.ravel().imag, '^-', label='Exact')
-plt.plot(uSeq.ravel().real, uSeq.ravel().imag, 'o-', label='Sequential')
-# plt.plot(uCoarse.ravel().real, uCoarse.ravel().imag, 'o-', label='Coarse')
+plt.plot(uSeq.ravel().real, uSeq.ravel().imag, 'o-', label='Sequential', ms=10)
 
 parareal = p.getBlockIteration('Parareal')
 
-
 uPar = parareal(p.u0, 4, N)
 
-for k in range(2):
+for k in range(4):
     plt.plot(uPar[k].ravel().real, uPar[k].ravel().imag, 'o-',
-             label=f'Iter{k}')
+              label=f'Iter{k}')
 
 plt.legend()
