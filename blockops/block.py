@@ -147,8 +147,10 @@ class BlockOperator(object):
     def __neg__(self):
         res = self.copy()
         res.symbol *= -1
-        if self.matrix is not None:
+        if res.matrix is not None:
             res.matrix *= -1
+        elif res.invert is not None:
+            res.invert *= -1
         return res
 
     def __pos__(self):
