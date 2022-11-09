@@ -9,11 +9,11 @@ from .graph import PintGraph
 
 
 class PintRun:
-    def __init__(self, blockIteration, nBlocks):
+    def __init__(self, blockIteration, nBlocks, kMax):
         self.blockIteration = blockIteration
         self.nBlocks = nBlocks
         self.taskPool = {}
-        self.kMax = convergenceEstimator(nBlocks=self.nBlocks)
+        self.kMax = kMax
         self.pintGraph = PintGraph(nBlocks, max(self.kMax))
         self.null = 0 * sy.symbols('null', commutative=False)
         self.approx_to_computation = {}
@@ -29,10 +29,12 @@ class PintRun:
 
         self.createExpressions()
         self.pintGraph.generateGraphFromPool(pool=self.taskPool)
-        self.pintGraph.plotGraph()
 
     def getMinimalRuntime(self):
         return self.pintGraph.longestPath()
+
+    def plotGraph(self):
+        return self.pintGraph.plotGraph()
 
     def createSymbolForUnk(self, n, k):
         if k > self.kMax[n]:
@@ -56,7 +58,8 @@ class PintRun:
                 ta = [getTasks(n) for n in node.args]
                 for i in range(len(ta)):
                     if isinstance(ta[i], sy.Pow):
-                        ta[i:i + 1] = [ta[i].base for item in range(ta[i].exp)]
+                        if not isinstance(ta[0], sy.core.numbers.NegativeOne):
+                            ta[i:i + 1] = [ta[i].base for item in range(ta[i].exp)]
                 # Some fix to merge the -1 into one given tasks
                 if isinstance(ta[0], sy.core.numbers.NegativeOne):
                     merged = ta[1]
@@ -101,7 +104,11 @@ class PintRun:
             else:
                 if isinstance(expr, sy.Add) or isinstance(expr, sy.Mul):
                     self.tasks[expr] = key
-                    self.taskPool[key] = Task(op=expr, result=key, cost=0)
+                    cost = 0
+                    for atoms in expr.atoms():
+                        if hasattr(atoms, "name") and atoms.name in self.blockIteration.blockOps:
+                            cost = self.blockIteration.blockOps[atoms.name].cost
+                    self.taskPool[key] = Task(op=expr, result=key, cost=cost)
                 else:
                     self.localsave[key] = expr
 
@@ -197,16 +204,24 @@ class Task(object):
             DESCRIPTION. The cost of the task
         """
         self.op = op  # Operation (sympy expression)
-        self.result = result  # Result (what is computed by this task)
+        self.result = result # Result (what is computed by this task)
+        self.cost = cost
+        self.result_latex = self.translate_to_latex(input=f'{result}')
+        if f'{op}' != '0':
+            self.op_latex = self.trans_latex_op(op=f'{op}')
+        else:
+            self.op_latex = 'initial condition'
         self.dep = self.find_dependencies()  # Find dependencies based on op
         # Set a name (only for visualization)
         # TODO: Find a better way to set the name
         if len(op.args) > 0:
             if isinstance(op.args[0], sy.Symbol):
                 if len(re.split('u_|u\^', op.args[0].name)) > 1:
-                    self.name = result
+                    self.name = re.sub('\$', '', f'{result}')
+                    self.name = f"${self.name}$"
                 else:
-                    self.name = op.args[0]
+                    self.name = re.sub('\$', '', f'{op.args[0]}')
+                    self.name = f"${self.name}$"
             elif isinstance(op.args[0], sy.Integer):
                 func = op.func
                 if op.func.is_Mul:
@@ -216,11 +231,15 @@ class Task(object):
                 else:
                     raise Exception(f'Unknown func in {self.result}={self.op} with {type(op.func)}')
                 self.name = f'{op.args[0]}{func}'
+            elif isinstance(op.args[0], sy.Pow):
+                self.name = f'{op.args[0].args[0]}^{{{op.args[0].args[1]}}}'
+                self.name = re.sub('\$', '', f'{self.name}')
+                self.name = f"${self.name}$"
             else:
                 raise Exception(f'Unknown operation in {self.result}={self.op} with {type(self.op.args[0])}')
         else:
-            self.name = result.name
-        self.cost = cost
+            self.name = re.sub('\$', '', f'{result.name}')
+            self.name = f"${self.name}$"
 
     def find_dependencies(self):
         """
@@ -229,3 +248,28 @@ class Task(object):
         :return: dependencies
         """
         return [item for item in self.op.atoms() if (isinstance(item, sy.Symbol) and item.name.startswith('u'))]
+
+    def translate_to_latex(self, input):
+        indices = re.split('_|\^', input)
+        st = ''
+        for i in range(3,len(indices)):
+            if i == 3:
+                st += f'{indices[i]}'
+            else:
+                st += f',{indices[i]}'
+        if len(indices) > 3:
+            new_string = f'${{{indices[0]}_{indices[1]}^{indices[2]}|}}_{{{st}}}$'
+        else:
+            new_string = f'${{{indices[0]}_{indices[1]}^{indices[2]}}}$'
+        return new_string
+
+    def trans_latex_op(self, op):
+        a=re.search('u_\d+\^\d+(_\d+)*', f'{op}')
+        u_part = self.translate_to_latex(input=a.group(0))
+        rest = re.sub('u_\d+\^\d+(_\d+)*', '', f'{op}')
+        rest += u_part
+        rest = re.sub('\$', '', f'{rest}')
+        rest = f'${rest}$'
+        return rest
+
+

@@ -22,10 +22,12 @@ class PintGraph:
         ----------
         """
         self.graph = nx.DiGraph()
-        #self.graph.add_node('u_0_0', pos=(0, -1), cost=0, name='init')
+        # self.graph.add_node('u_0_0', pos=(0, -1), cost=0, name='init')
         self.pool = None
         self.nBlocks = nBlocks
         self.maxK = maxK
+        self.counter = 0
+        self.lookup = {}
 
     def computeDependencies(self, pool):
         """Returns a restructured task pool for the creation of a plot"""
@@ -56,14 +58,18 @@ class PintGraph:
     def addTaskToGraph(self, pos, task):
         """Adds task to the digraph. Previously recursively all subtasks"""
         old_key = task['oldkey'].name
-        for i in range(len(task['subtasks'])):
+        for i in range(len(task['subtasks']) - 1, -1, -1):
             self.addTaskToGraph(pos=self.computePos(pos=pos, i=i, size=len(task['subtasks'])),
                                 task=self.pool[task['subtasks'][i]])
-        name = task["task"].name if (
-                    f'{task["task"].name}'.startswith('$') and f'{task["task"].name}'.endswith('$')) else f'${task["task"].name}$'
-        self.graph.add_node(old_key, pos=pos, name=name, cost=task['task'].cost)
+        name = task["task"].name
+        # name = task["task"].name if (
+        #            f'{task["task"].name}'.startswith('$') and f'{task["task"].name}'.endswith('$')) else f'${task["task"].name}$'
+        self.graph.add_node(self.counter, pos=pos, name=name, cost=task['task'].cost, op=task['task'].op_latex,
+                            result=task['task'].result_latex, counter=self.counter)
+        self.lookup[old_key] = self.counter
         for item in task['task'].dep:
-            self.graph.add_edge(item.name, old_key)
+            self.graph.add_edge(self.lookup[item.name], self.counter, cost=0)
+        self.counter += 1
 
     def generateGraphFromPool(self, pool):
         """Creates graph vom taskpool"""
@@ -75,22 +81,79 @@ class PintGraph:
     def plotGraph(self):
         """Plots the graph"""
         fig, ax = plt.subplots()
-        for k in range(self.maxK+1):
+        for k in range(self.maxK + 1):
             plt.axhline(y=k, color='gray', linestyle='-', alpha=0.3)
-        for n in range(self.nBlocks+1):
+        for n in range(self.nBlocks + 1):
             plt.axvline(x=n, color='gray', linestyle='-', alpha=0.3)
         pos = nx.get_node_attributes(self.graph, 'pos')
         nx.draw(self.graph, pos, labels=nx.get_node_attributes(self.graph, 'name'), with_labels=True, ax=ax)
         limits = plt.axis('on')  # turns on axis
         ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-        ax.set_xlim(left=-0.2, right=self.nBlocks+0.2)
-        ax.set_ylim(bottom=-0.2, top=self.maxK+.2)
+        ax.set_xlim(left=-0.2, right=self.nBlocks + 0.2)
+        ax.set_ylim(bottom=-.6, top=self.maxK + .2)
         ax.set_xlabel(xlabel='Time block n')
         ax.set_ylabel(ylabel='Iteration k')
-        ax.set_xticks(ticks=np.arange(0,self.nBlocks+1))
-        ax.set_xticklabels(labels=np.arange(0,self.nBlocks+1))
-        ax.set_yticks(ticks=np.arange(0,self.maxK+1))
-        ax.set_yticklabels(labels=np.arange(0,self.maxK+1))
+        ax.set_xticks(ticks=np.arange(0, self.nBlocks + 1))
+        ax.set_xticklabels(labels=np.arange(0, self.nBlocks + 1))
+        ax.set_yticks(ticks=np.arange(0, self.maxK + 1))
+        ax.set_yticklabels(labels=np.arange(0, self.maxK + 1))
+        plt.show()
+
+    def plotGraph2(self):
+        G = self.graph
+        fig, ax = plt.subplots()
+        pos = nx.get_node_attributes(self.graph, 'pos')
+        for k in range(self.maxK + 1):
+            plt.axhline(y=k, color='gray', linestyle='-', alpha=0.3)
+        for n in range(self.nBlocks + 1):
+            plt.axvline(x=n, color='gray', linestyle='-', alpha=0.3)
+
+        nodes = nx.draw_networkx_nodes(G, node_size=500, pos=pos, ax=ax,
+                                       label=nx.get_node_attributes(self.graph, 'name'))
+        nx.draw_networkx_edges(G, pos=pos, ax=ax)
+        nx.draw_networkx_labels(G, pos, labels=nx.get_node_attributes(self.graph, 'name'))
+
+        annot = ax.annotate("", xy=(0, 0), xytext=(20, 20), textcoords="offset points",
+                            bbox=dict(boxstyle="round", fc="w"),
+                            arrowprops=dict(arrowstyle="->"))
+        annot.set_visible(False)
+
+        limits = plt.axis('on')  # turns on axis
+        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
+        ax.set_xlim(left=-0.2, right=self.nBlocks + 0.2)
+        ax.set_ylim(bottom=-0.6, top=self.maxK + .2)
+        ax.set_xlabel(xlabel='Time block n')
+        ax.set_ylabel(ylabel='Iteration k')
+        ax.set_xticks(ticks=np.arange(0, self.nBlocks + 1))
+        ax.set_xticklabels(labels=np.arange(0, self.nBlocks + 1))
+        ax.set_yticks(ticks=np.arange(0, self.maxK + 1))
+        ax.set_yticklabels(labels=np.arange(0, self.maxK + 1))
+
+        def update_annot(ind):
+            node = ind["ind"][0]
+            xy = pos[node]
+            annot.xy = xy
+            node_attr = {'node': node}
+            node_attr.update(G.nodes[node])
+            attr_list = ['name', 'cost', 'result', 'op', 'counter']
+            text = '\n'.join(f'{k}: {v}' for k, v in node_attr.items() if k in attr_list)
+            annot.set_text(text)
+
+        def hover(event):
+            vis = annot.get_visible()
+            if event.inaxes == ax:
+                cont, ind = nodes.contains(event)
+                if cont:
+                    update_annot(ind)
+                    annot.set_visible(True)
+                    fig.canvas.draw_idle()
+                else:
+                    if vis:
+                        annot.set_visible(False)
+                        fig.canvas.draw_idle()
+
+        fig.canvas.mpl_connect("motion_notify_event", hover)
+
         plt.show()
 
     def createEdgeWeightedGraph(self) -> nx.DiGraph:
@@ -98,8 +161,8 @@ class PintGraph:
         newGraph = nx.DiGraph()
         trans = {}
         for node, node_data in self.graph.nodes(data=True):
-            name1 = node + ".1"
-            name2 = node + ".2"
+            name1 = f'{node}' + ".1"
+            name2 = f'{node}' + ".2"
             newGraph.add_node(name1, cost=0, pos=(node_data['pos'][0], node_data['pos'][1] - 0.001))
             newGraph.add_node(name2, cost=0, pos=(node_data['pos'][0], node_data['pos'][1] + 0.001))
             newGraph.add_edge(name1, name2, cost=node_data['cost'])
@@ -113,9 +176,10 @@ class PintGraph:
 
     def longestPath(self) -> float:
         """Computes longest path within the graph"""
-        length = nx.dag_longest_path_length(self.graph)
-        print('Longest path:', nx.dag_longest_path(self.graph))
-        print('Longest path costs:', length)
+        gra = self.createEdgeWeightedGraph()
+        length = nx.dag_longest_path_length(gra, weight="cost")
+        # print('Longest path:', nx.dag_longest_path(gra, weight="cost"))
+        # print('Longest path costs:', length)
         return length
 
     # TODO: This is a first version, requires improvement
