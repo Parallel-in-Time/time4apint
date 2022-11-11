@@ -36,6 +36,11 @@ class BlockOperator(object):
             self.symbol = sy.symbols(name, commutative=False)
         self.matrix = matrix
         self.invert = invert
+        # For M=1, forces scalar computation
+        if self.M == 1 and self.invert is not None:
+            self.matrix = self.invert**(-1) if self.matrix is None else \
+                self.matrix/self.invert
+            self.invert = None
         # For mono-component blocks operators
         self.cost = cost
         # For multicomponent blocks operators
@@ -57,6 +62,15 @@ class BlockOperator(object):
     @property
     def name(self):
         return self.symbol.__str__()
+
+    @property
+    def M(self):
+        if self.matrix is not None:
+            return self.matrix.shape[0]
+        elif self.invert is not None:
+            return self.invert.shape[0]
+        else:
+            return 0
 
     # -------------------------------------------------------------------------
     # Object representation
@@ -136,7 +150,10 @@ class BlockOperator(object):
 
     def __ipow__(self, n):
         if n == -1:
-            self.invert, self.matrix = self.matrix, self.invert
+            if self.M == 1:
+                self.matrix **= -1
+            else:
+                self.invert, self.matrix = self.matrix, self.invert
             self.symbol **= -1
             return self
         else:

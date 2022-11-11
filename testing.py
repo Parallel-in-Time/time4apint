@@ -31,7 +31,7 @@ plt.plot(uSeq.ravel().real, uSeq.ravel().imag, 'o-', label='Sequential', ms=10)
 
 parareal = prob.getBlockIteration('Parareal')
 
-uPar = parareal(prob.u0, 4, N, initSol=True)
+uPar = parareal(N, 4, u0=prob.u0, initSol=True)
 
 print(f'max discretization error : {errDiscr.max()}')
 

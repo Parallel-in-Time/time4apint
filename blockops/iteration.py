@@ -6,6 +6,7 @@ Created on Mon Nov  7 15:40:41 2022
 @author: cpf5546
 """
 import numpy as np
+import sympy as sy
 
 from .block import BlockOperator
 from .run import PintRun
@@ -17,8 +18,6 @@ from .utils import getCoeffsFromFormula
 # -----------------------------------------------------------------------------
 class BlockIteration(object):
     """DOCTODO"""
-
-    NEW_VERSION = None
 
     def __init__(self, update, predictor='', rules=None, name=None, **blockOps):
         """
@@ -79,19 +78,88 @@ class BlockIteration(object):
         """Return an iterator on the (key, values) of predBlockCoeffs"""
         return self.predBlockCoeffs.items()
 
-    def __call__(self, u0, K, N, initSol=False):
-        u0 = np.asarray(u0)
-        u = np.zeros((K + 1, N + 1, u0.size), dtype=u0.dtype)
-        u[:, 0] = u0
-        # Prediction
-        pred = self.predBlockCoeffs[(0, 0)]
-        for n in range(N):
-            u[0, n + 1] = pred(u[0, n])
-        # Iterations
-        for k in range(K):
-            for n in range(N):
-                for (nMod, kMod), blockOp in self.coeffs:
-                    u[k + 1, n + 1] += blockOp(u[k + kMod, n + nMod])
+    @property
+    def M(self):
+        return list(self.blockCoeffs.values())[0].M
+
+    def __call__(self, N, K, u0=None, initSol=False, predSol=None):
+        """
+        Evaluate the block iteration from given initial solution, number of
+        blocks and number of iteration.
+
+        Parameters
+        ----------
+        N : int
+            Number of blocks.
+        K : int or N-sequence of int
+            Number of iteration, for each block (if int) or each block
+            separately.
+        u0 : M-sequence of floats or complex
+            Initial solution used for numerical evaluation
+            (not required if M==0).
+        initSol : bool, optional
+            Wether or not return the initial solution in the solution array.
+            The default is False.
+        predSol : N-sequence of vector, optional
+            Prediction solution used if the block iteration has no prediction
+            rule. The default is None.
+
+        Returns
+        -------
+        np.array of size (K+1, N or N+1)
+            The solution fo each block and each iteration. If initSol==True,
+            includes the initial solution u0 and has size (K+1, N+1).
+            If not, has size (K+1,N).
+        """
+        if self.M == 0:
+
+            # Symbolic evaluation
+            u0 = sy.symbols('u0', commutative=False)
+            u = np.zeros((K + 1, N + 1), dtype=sy.Expr)
+            u[:, 0] = u0
+            # Prediction
+            if len(self.predCoeffs) != 0:
+                pred = self.predBlockCoeffs[(0, 0)]
+                for n in range(N):
+                    u[0, n + 1] = pred.symbol * u[0, n]
+            else:
+                u[0, 1:] = [sy.symbols(f'u_{n+1}^0', commutative=False)
+                            for n in range(N)]
+            # Iterations
+            for k in range(K):
+                for n in range(N):
+                    for (nMod, kMod), b in self.coeffs:
+                        u[k + 1, n + 1] += b.symbol * u[k + kMod, n + nMod]
+                    u[k + 1, n + 1] = u[k + 1, n + 1].simplify()
+
+        else:
+
+            # Numerical evaluation
+            if u0 is None:
+                raise ValueError(
+                    'u0 must be provided for numerical evaluation'
+                    ' of a block iteration')
+            u0 = np.asarray(u0)
+            u = np.zeros((K + 1, N + 1, u0.size), dtype=u0.dtype)
+            u[:, 0] = u0
+            # Prediction
+            if len(self.predCoeffs) != 0:
+                pred = self.predBlockCoeffs[(0, 0)]
+                for n in range(N):
+                    u[0, n + 1] = pred(u[0, n])
+            else:
+                if predSol is None:
+                    raise ValueError(
+                        'evaluating block iteration without prediction rule'
+                        ' requires predSol list given as argument')
+                for n in range(N):
+                    u[0, n + 1] = predSol[n]
+            # Iterations
+            for k in range(K):
+                for n in range(N):
+                    for (nMod, kMod), blockOp in self.coeffs:
+                        u[k + 1, n + 1] += blockOp(u[k + kMod, n + nMod])
+
         if initSol:
             return u
         else:
@@ -148,4 +216,5 @@ class Parareal(BlockIteration):
             B01 = "G * u_{n}^{k+1}"
             predictor = "G * u_{n}^0" if coarsePred else ""
         update = f"{B00} + {B01}"
-        super().__init__(update, predictor, rules=None, **blockOps)
+        super().__init__(update, predictor, rules=None, name='Parareal',
+                         **blockOps)
