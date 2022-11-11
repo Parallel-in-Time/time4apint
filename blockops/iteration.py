@@ -8,7 +8,7 @@ Created on Mon Nov  7 15:40:41 2022
 import numpy as np
 import sympy as sy
 
-from .block import BlockOperator
+from .block import BlockOperator, one
 from .run import PintRun
 from .utils import getCoeffsFromFormula
 
@@ -208,13 +208,49 @@ class Parareal(BlockIteration):
 
     def __init__(self, implicitForm=True, coarsePred=True, **blockOps):
         if implicitForm:
-            B00 = "(phi**(-1)*chi-phiDelta**(-1)*chi) * u_{n}^k "
+            B00 = "(phi**(-1)*chi-phiDelta**(-1)*chi) * u_{n}^k"
             B01 = "phiDelta**(-1)*chi * u_{n}^{k+1}"
             predictor = "phiDelta**(-1)*chi*u_{n}^0" if coarsePred else ""
         else:
-            B00 = "(F-G) * u_{n}^k "
+            B00 = "(F-G) * u_{n}^k"
             B01 = "G * u_{n}^{k+1}"
             predictor = "G * u_{n}^0" if coarsePred else ""
         update = f"{B00} + {B01}"
         super().__init__(update, predictor, rules=None, name='Parareal',
+                         **blockOps)
+
+
+@register
+class ABJ(BlockIteration):
+
+    def __init__(self, implicitForm=True, coarsePred=True, **blockOps):
+        if implicitForm:
+            B00 = "phiDelta**(-1)*chi * u_{n}^k"
+            B10 = "(I-phiDelta**-1 * phi) * u_{n+1}^{k}"
+            predictor = "phiDelta**(-1)*chi*u_{n}^0" if coarsePred else ""
+        else:
+            B00 = "G * u_{n}^k"
+            B10 = "(I-G*F**(-1)) * u_{n}^{k+1}"
+            predictor = "G * u_{n}^0" if coarsePred else ""
+        blockOps['I'] = one
+        update = f"{B10} + {B00}"
+        super().__init__(update, predictor, rules=None, name='ABJ',
+                         **blockOps)
+
+
+@register
+class ABGS(BlockIteration):
+
+    def __init__(self, implicitForm=True, coarsePred=True, **blockOps):
+        if implicitForm:
+            B01 = "phiDelta**(-1)*chi * u_{n}^{k+1}"
+            B10 = "(I-phiDelta**-1 * phi) * u_{n+1}^{k}"
+            predictor = "phiDelta**(-1)*chi*u_{n}^0" if coarsePred else ""
+        else:
+            B01 = "G * u_{n}^{k+1}"
+            B10 = "(I-G*F**(-1)) * u_{n}^{k+1}"
+            predictor = "G * u_{n}^0" if coarsePred else ""
+        update = f"{B10} + {B01}"
+        blockOps['I'] = one
+        super().__init__(update, predictor, rules=None, name='ABGS',
                          **blockOps)

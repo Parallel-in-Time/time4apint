@@ -16,6 +16,7 @@ lam = 1j
 N = 8
 nStepsF = 50
 nStepsG = 3
+algoName = 'ABGS'
 
 prob = BlockProblem(lam, tEnd, N, 1, 'BE', nStepPerNode=nStepsF)
 prob.setApprox('BE', nStepPerNode=nStepsG)
@@ -26,19 +27,20 @@ uExact = prob.getSolution('exact', initSol=True)
 
 errDiscr = prob.getError('fine', 'exact')
 
+plt.figure(algoName)
 plt.plot(uExact.ravel().real, uExact.ravel().imag, '^-', label='Exact')
 plt.plot(uSeq.ravel().real, uSeq.ravel().imag, 'o-', label='Sequential', ms=10)
 
-parareal = prob.getBlockIteration('Parareal')
+algo = prob.getBlockIteration(algoName)
 
-uPar = parareal(N, 4, u0=prob.u0, initSol=True)
+uNum = algo(N, 4, u0=prob.u0, initSol=True)
 
 print(f'max discretization error : {errDiscr.max()}')
 
 for k in range(4):
-    plt.plot(uPar[k].ravel().real, uPar[k].ravel().imag, 'o-',
+    plt.plot(uNum[k].ravel().real, uNum[k].ravel().imag, 'o-',
               label=f'Iter{k}')
-    errPar = prob.getError(uPar[k][1:], 'fine')
-    print(f'iter {k}, max fine error : {errPar.max()}')
+    err = prob.getError(uNum[k][1:], 'fine')
+    print(f'iter {k}, max fine error : {err.max()}')
 plt.legend()
 plt.show()

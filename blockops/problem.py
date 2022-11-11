@@ -24,8 +24,8 @@ class BlockProblem(object):
         # Set up bock operators and propagator of the sequential problem
         phi, chi, nodes, cost, form = getBlockMatrices(
             lam*self.dt, M, scheme, **schemeArgs)
-        self.phi = BlockOperator(r'$\phi$', matrix=phi, cost=cost)
-        self.chi = BlockOperator(r'$\chi$', matrix=chi, cost=0)
+        self.phi = BlockOperator(r'\phi', matrix=phi, cost=cost)
+        self.chi = BlockOperator(r'\chi', matrix=chi, cost=0)
         self.prop = self.phi**(-1) * self.chi
         self.nodes = nodes
         self.scheme = scheme
@@ -62,7 +62,7 @@ class BlockProblem(object):
         phi, _, _, cost, _ = getBlockMatrices(
             self.lam*self.dt, self.M, scheme, nodes=self.nodes, form=self.form,
             **schemeArgs)
-        self.phiDelta = BlockOperator(r'$\phi_{Delta}$', matrix=phi, cost=cost)
+        self.phiDelta = BlockOperator(r'\phi_{Delta}', matrix=phi, cost=cost)
         self.schemeDelta = scheme
         self.propDelta = self.phiDelta**(-1) * self.chi
 
@@ -71,10 +71,10 @@ class BlockProblem(object):
             self.lam*self.dt, M, self.method, form=self.form)
         self.nodesCoarse = nodes
         self.phiCoarse = BlockOperator(
-            r'$\tilde{\phi}$', matrix=phi, cost=cost)
+            r'\tilde{\phi}', matrix=phi, cost=cost)
         TFtoC, TCtoF = getTransferMatrices(self.nodes, self.nodesCoarse)
-        self.TFtoC = BlockOperator('$T_F^C$', matrix=TFtoC, cost=0)
-        self.TCtoF = BlockOperator('$T_C^F$', matrix=TCtoF, cost=0)
+        self.TFtoC = BlockOperator('T_F^C', matrix=TFtoC, cost=0)
+        self.TCtoF = BlockOperator('T_C^F', matrix=TCtoF, cost=0)
         # TODO : add deltaChi
 
     def getSolution(self, sType='fine', initSol=False):
