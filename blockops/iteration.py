@@ -20,7 +20,7 @@ class BlockIteration(object):
 
     NEW_VERSION = None
 
-    def __init__(self, update, predictor='', rules=None, **blockOps):
+    def __init__(self, update, predictor='', rules=None, name=None, **blockOps):
         """
         DOCTODO
 
@@ -35,6 +35,9 @@ class BlockIteration(object):
         **blockOps : TYPE
             DESCRIPTION.
         """
+        # Store name for the block iteration (optional)
+        self.name = name
+
         # Store block coefficients from the iteration update formula
         self.blockCoeffs = getCoeffsFromFormula(update, blockOps)
 
@@ -102,7 +105,11 @@ class BlockIteration(object):
         runtime_ts = N * 10
 
         print('=============================')
-        print(f'Block iteration: {self.update}')
+        if self.name is None:
+            print(f'Block iteration: {self.update}')
+        else:
+            print(f'Block iteration: {self.name}')
+            print(f'Update: {self.update}')
         print(f'Predictor: {self.predictor}')
         print(f'N={N}, K={K}')
         print(f'Theoretical lower runtime bound: {runtime}')
@@ -114,7 +121,7 @@ class BlockIteration(object):
 
     def plotGraph(self, N, K):
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
-        run.plotGraph()
+        run.plotGraph(self.name)
 
 
 # -----------------------------------------------------------------------------

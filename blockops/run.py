@@ -33,8 +33,8 @@ class PintRun:
     def getMinimalRuntime(self):
         return self.pintGraph.longestPath()
 
-    def plotGraph(self):
-        return self.pintGraph.plotGraph()
+    def plotGraph(self, figName=None):
+        return self.pintGraph.plotGraph(figName)
 
     def createSymbolForUnk(self, n, k):
         if k > self.kMax[n]:
@@ -271,5 +271,3 @@ class Task(object):
         rest = re.sub('\$', '', f'{rest}')
         rest = f'${rest}$'
         return rest
-
-

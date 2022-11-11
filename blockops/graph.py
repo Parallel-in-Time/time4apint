@@ -78,9 +78,9 @@ class PintGraph:
             if len(key) == 2:
                 self.addTaskToGraph(pos=key, task=value)
 
-    def plotGraph(self):
+    def plotGraph(self, figName=None):
         """Plots the graph"""
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(num=figName)
         for k in range(self.maxK + 1):
             plt.axhline(y=k, color='gray', linestyle='-', alpha=0.3)
         for n in range(self.nBlocks + 1):
