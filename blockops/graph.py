@@ -183,7 +183,7 @@ class PintGraph:
         return length
 
     # TODO: This is a first version, requires improvement
-    def computeOptimalSchedule(self, plot: bool) -> dict:
+    def computeOptimalSchedule(self, plot: bool, figName=None) -> dict:
         """
         Calculates an optimal schedule using a simple greedy approach.
         Assumes unlimited processes and does not minimize the number of processes.
@@ -221,12 +221,13 @@ class PintGraph:
         print('Makespan of optimal schedule:', makespan, 'using', required_procs, 'processes')
 
         if plot:
-            fig, (ax) = plt.subplots(1, 1, figsize=(8, 4.8))
+            fig, ax = plt.subplots(1, 1, figsize=(8, 4.8), num=figName)
             self.plotSchedule(schedule=schedule, ax=ax)
             ax.set_xlim(0, makespan)
             ax.set_ylim(0, required_procs)
-            plt.yticks(np.linspace(required_procs - 1, 0, required_procs) + 0.5,
-                       ['P' + str(i) for i in range(required_procs - 1, -1, -1)])
+            ax.set_yticks(
+                np.linspace(required_procs - 1, 0, required_procs) + 0.5,
+                ['P' + str(i) for i in range(required_procs - 1, -1, -1)])
             plt.show()
         return schedule
 
