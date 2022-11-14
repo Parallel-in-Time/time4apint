@@ -68,9 +68,24 @@ class BlockOperator(object):
         return M
 
     @property
+    def isSymbolic(self):
+        return (self.matrix is None) and (self.invert is None)
+
+    @property
+    def isScalar(self):
+        try:
+            float(self.symbol)
+            return self.isSymbolic
+        except TypeError:
+            return False
+
+    @property
     def isIdentity(self):
         return self.symbol == self.symbol**(-1)
 
+    @property
+    def isNull(self):
+        return self.symbol + self.symbol == self.symbol
 
     # -------------------------------------------------------------------------
     # Object representation
@@ -84,21 +99,21 @@ class BlockOperator(object):
     # -------------------------------------------------------------------------
     def __iadd__(self, other):
         if isinstance(other, BlockOperator):
-            if self.invert is not None or other.invert is not None:
+            if (self.invert is not None) or (other.invert is not None):
                 raise ValueError(
                     'cannot add block operator with invert part '
                     f'(here {self})')
-            if self.isIdentity:
-                if other.isIdentity:
-                    raise ValueError(
-                        'cannot add identity block operator '
-                        '(just do it yourself)')
-                self.matrix = np.eye(other.M, dtype=other.matrix.dtype)
-                self.matrix += other.matrix
-            elif self.matrix is not None:
-                if other.isIdentity:
-                    self.matrix += np.eye(self.M, dtype=self.matrix.dtype)
-                else:
+            if self.isScalar:
+                if not other.isSymbolic:
+                    self.matrix = np.eye(other.M, dtype=other.matrix.dtype)
+                    self.matrix *= float(self.symbol)
+                    self.matrix += other.matrix
+            elif not self.isSymbolic:
+                if other.isScalar:
+                    matrix = np.eye(self.M, dtype=self.matrix.dtype)
+                    matrix *= float(other.symbol)
+                    self.matrix += matrix
+                elif not other.isSymbolic:
                     self.matrix += other.matrix
             self.components.update(other.components)
             self.symbol += other.symbol
@@ -115,17 +130,17 @@ class BlockOperator(object):
                 raise ValueError(
                     'cannot substract block operator with invert part '
                     f'(here {self})')
-            if self.isIdentity:
-                if other.isIdentity:
-                    raise ValueError(
-                        'cannot add identity block operator '
-                        '(just do it yourself)')
-                self.matrix = np.eye(other.M, dtype=other.matrix.dtype)
-                self.matrix -= other.matrix
-            elif self.matrix is not None:
-                if other.isIdentity:
-                    self.matrix -= np.eye(self.M, dtype=self.matrix.dtype)
-                else:
+            if self.isScalar:
+                if not other.isSymbolic:
+                    self.matrix = np.eye(other.M, dtype=other.matrix.dtype)
+                    self.matrix *= float(self.symbol)
+                    self.matrix -= other.matrix
+            elif not self.isSymbolic:
+                if other.isScalar:
+                    matrix = np.eye(self.M, dtype=self.matrix.dtype)
+                    matrix *= float(other.symbol)
+                    self.matrix -= matrix
+                elif not other.isSymbolic:
                     self.matrix -= other.matrix
             self.components.update(other.components)
             self.symbol -= other.symbol
@@ -211,7 +226,10 @@ class BlockOperator(object):
             u = np.linalg.solve(self.invert, u)
         if self.matrix is not None:
             u = np.dot(self.matrix, u)
+        if self.isScalar:
+            u = float(self.symbol)*u
         return u
+
 
 one = BlockOperator()
 

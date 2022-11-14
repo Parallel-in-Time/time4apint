@@ -1,5 +1,6 @@
-from blockops import BlockOperator, BlockIteration, I
+from blockops import BlockOperator, BlockIteration, one
 
+I = one
 nBlocks = 4
 
 G = BlockOperator('G', cost=1)
