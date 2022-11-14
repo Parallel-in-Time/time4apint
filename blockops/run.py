@@ -121,10 +121,8 @@ class PintRun:
         return iterationRule
 
     def createPredictionRule(self, n):
-        predictorRule = self.null
-        for (nMod, _), op in self.blockIteration.predCoeffs:
-            predictorRule += op.symbol * self.createSymbolForUnk(
-                n=n + nMod - 1, k=0)
+        pred = self.blockIteration.predictor
+        predictorRule = pred.symbol * self.createSymbolForUnk(n=n-1, k=0)
         predictorRule = predictorRule.simplify().expand()
         return predictorRule
 
@@ -136,7 +134,7 @@ class PintRun:
     def createExpressions(self):
 
         for n in range(self.nBlocks):
-            if len(self.blockIteration.predCoeffs) == 0:
+            if self.blockIteration.predictor is None:
                 self.taskPool[self.createSymbolForUnk(n + 1, 0)] = Task(op=self.null,
                                                                         result=self.createSymbolForUnk(n + 1, 0),
                                                                         cost=0)

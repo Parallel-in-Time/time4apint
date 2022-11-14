@@ -42,10 +42,16 @@ class BlockIteration(object):
         self.blockCoeffs = getCoeffsFromFormula(update, blockOps)
 
         # Store block coefficient for the (fine) propagator
-        self.propagator = eval(propagator, blockOps)
+        if isinstance(propagator, BlockOperator):
+            self.propagator = propagator
+        else:
+            self.propagator = eval(propagator, blockOps)
 
-        # Store block coefficients from the predictor formula
-        self.predictor = eval(str(predictor), blockOps)
+        # Store block coefficients from the predictor
+        if isinstance(predictor, BlockOperator):
+            self.predictor = predictor
+        else:
+            self.predictor = eval(str(predictor), blockOps)
 
         # Stores the generated symbols for the rules
         # TODO : check if the rules hold with the given matrices
@@ -142,7 +148,7 @@ class BlockIteration(object):
             u = np.zeros((K + 1, N + 1, u0.size), dtype=u0.dtype)
             u[:, 0] = u0
             # Prediction
-            if len(self.predCoeffs) != 0:
+            if self.predictor is not None:
                 for n in range(N):
                     u[0, n + 1] = self.predictor(u[0, n])
             else:
@@ -205,6 +211,9 @@ def register(cls):
     ALGORITHMS[cls.__name__] = cls
     return cls
 
+DEFAULT_PROP = {
+    True: 'phi**(-1)*chi',
+    False: 'F'}
 
 @register
 class Parareal(BlockIteration):
@@ -213,14 +222,14 @@ class Parareal(BlockIteration):
         if implicitForm:
             B00 = "(phi**(-1)*chi-phiDelta**(-1)*chi) * u_{n}^k"
             B01 = "phiDelta**(-1)*chi * u_{n}^{k+1}"
-            predictor = "phiDelta**(-1)*chi*u_{n}^0" if coarsePred else ""
+            predictor = "phiDelta**(-1)*chi" if coarsePred else None
         else:
             B00 = "(F-G) * u_{n}^k"
             B01 = "G * u_{n}^{k+1}"
-            predictor = "G * u_{n}^0" if coarsePred else ""
+            predictor = "G" if coarsePred else None
         update = f"{B00} + {B01}"
-        super().__init__(update, predictor, rules=None, name='Parareal',
-                         **blockOps)
+        super().__init__(update, DEFAULT_PROP[implicitForm], predictor,
+                         rules=None, name='Parareal', **blockOps)
 
 
 @register
@@ -230,15 +239,15 @@ class ABJ(BlockIteration):
         if implicitForm:
             B00 = "phiDelta**(-1)*chi * u_{n}^k"
             B10 = "(I-phiDelta**-1 * phi) * u_{n+1}^{k}"
-            predictor = "phiDelta**(-1)*chi*u_{n}^0" if coarsePred else ""
+            predictor = "phiDelta**(-1)*chi" if coarsePred else None
         else:
             B00 = "G * u_{n}^k"
             B10 = "(I-G*F**(-1)) * u_{n}^{k+1}"
-            predictor = "G * u_{n}^0" if coarsePred else ""
+            predictor = "G" if coarsePred else None
         blockOps['I'] = I
         update = f"{B10} + {B00}"
-        super().__init__(update, predictor, rules=None, name='ABJ',
-                         **blockOps)
+        super().__init__(update, DEFAULT_PROP[implicitForm], predictor,
+                         rules=None, name='ABJ', **blockOps)
 
 
 @register
@@ -248,12 +257,12 @@ class ABGS(BlockIteration):
         if implicitForm:
             B01 = "phiDelta**(-1)*chi * u_{n}^{k+1}"
             B10 = "(I-phiDelta**-1 * phi) * u_{n+1}^{k}"
-            predictor = "phiDelta**(-1)*chi*u_{n}^0" if coarsePred else ""
+            predictor = "phiDelta**(-1)*chi" if coarsePred else None
         else:
             B01 = "G * u_{n}^{k+1}"
             B10 = "(I-G*F**(-1)) * u_{n}^{k+1}"
-            predictor = "G * u_{n}^0" if coarsePred else ""
+            predictor = "G" if coarsePred else None
         update = f"{B10} + {B01}"
         blockOps['I'] = I
-        super().__init__(update, predictor, rules=None, name='ABGS',
-                         **blockOps)
+        super().__init__(update, DEFAULT_PROP[implicitForm], predictor,
+                         rules=None, name='ABGS', **blockOps)

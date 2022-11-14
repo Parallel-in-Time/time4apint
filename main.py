@@ -7,12 +7,12 @@ F = BlockOperator('F', cost=10)
 R = BlockOperator('R', cost=0.2)
 P = BlockOperator('P', cost=0.2)
 
-predictor = "G u_{n}^k"
-predictor = ""
+predictor = "G"
+predictor = None
 
 parareal = BlockIteration(
     "(F - G) u_{n}^k + G u_{n}^{k+1}",
-    propagator="F", predictor="G",
+    propagator="F", predictor=predictor,
     F=F, G=G,
     name='Parareal')
 parareal.speedup(N=nBlocks, K=[0, 1, 2, 2, 2])
@@ -30,7 +30,7 @@ pararealSC.plotSchedule(N=nBlocks, K=[0, 1, 2, 2, 2])
 
 abj = BlockIteration(
     "G u_{n}^k + (I-G*F**(-1)) u_{n+1}^{k}",
-    predictor,
+    propagator="F", predictor=predictor,
     F=F, G=G, I=I,
     name='Approx. Block Jacobi')
 abj.speedup(N=nBlocks, K=[0, 1, 2, 2, 2])
@@ -40,7 +40,7 @@ abj.plotSchedule(N=nBlocks, K=[0, 1, 2, 2, 2])
 
 abgs = BlockIteration(
     "G u_{n}^{k+1} + (I-G*F**(-1)) u_{n+1}^{k}",
-    predictor,
+    propagator="F", predictor=predictor,
     F=F, G=G, I=I,
     name='Approx. Block Gauss-Seidel')
 abgs.speedup(N=nBlocks, K=[0, 1, 2, 2, 2])
