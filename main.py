@@ -12,7 +12,7 @@ predictor = ""
 
 parareal = BlockIteration(
     "(F - G) u_{n}^k + G u_{n}^{k+1}",
-    predictor,
+    propagator="F", predictor="G",
     F=F, G=G,
     name='Parareal')
 parareal.speedup(N=nBlocks, K=[0, 1, 2, 2, 2])
@@ -21,7 +21,7 @@ parareal.plotSchedule(N=nBlocks, K=[0, 1, 2, 2, 2])
 
 pararealSC = BlockIteration(
     "(F - P*G*R) u_{n}^k + P*G*R * u_{n}^{k+1}",
-    "P*G*R u_{n}^k",
+    propagator="F", predictor="P*G*R",
     rules=[(R * P, I)], F=F, G=G, R=R, P=P, I=I,
     name='PararealSC')
 pararealSC.speedup(N=nBlocks, K=[0, 1, 2, 2, 2])

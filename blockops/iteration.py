@@ -19,7 +19,8 @@ from .utils import getCoeffsFromFormula
 class BlockIteration(object):
     """DOCTODO"""
 
-    def __init__(self, update, predictor='', rules=None, name=None, **blockOps):
+    def __init__(self, update, propagator,
+                 predictor=None, rules=None, name=None, **blockOps):
         """
         DOCTODO
 
@@ -40,8 +41,11 @@ class BlockIteration(object):
         # Store block coefficients from the iteration update formula
         self.blockCoeffs = getCoeffsFromFormula(update, blockOps)
 
+        # Store block coefficient for the (fine) propagator
+        self.propagator = eval(propagator, blockOps)
+
         # Store block coefficients from the predictor formula
-        self.predBlockCoeffs = getCoeffsFromFormula(predictor, blockOps)
+        self.predictor = eval(str(predictor), blockOps)
 
         # Stores the generated symbols for the rules
         # TODO : check if the rules hold with the given matrices
@@ -63,20 +67,15 @@ class BlockIteration(object):
         self.problem = None
 
         # Saving the BlockOps to make it easier to get the cost later on
-        self.blockOps = {v.name: v for k, v in blockOps.items() if isinstance(v, BlockOperator)}
+        self.blockOps = {v.name: v for v in blockOps.values()
+                         if isinstance(v, BlockOperator)}
 
         self.update = update
-        self.predictor = predictor
 
     @property
     def coeffs(self):
         """Return an iterator on the (key, values) of blockCoeffs"""
         return self.blockCoeffs.items()
-
-    @property
-    def predCoeffs(self):
-        """Return an iterator on the (key, values) of predBlockCoeffs"""
-        return self.predBlockCoeffs.items()
 
     @property
     def M(self):
@@ -119,7 +118,7 @@ class BlockIteration(object):
             u[:, 0] = u0
             # Prediction
             if len(self.predCoeffs) != 0:
-                pred = self.predBlockCoeffs[(0, 0)]
+                pred = self.predictor
                 for n in range(N):
                     u[0, n + 1] = pred.symbol * u[0, n]
             else:
@@ -144,9 +143,8 @@ class BlockIteration(object):
             u[:, 0] = u0
             # Prediction
             if len(self.predCoeffs) != 0:
-                pred = self.predBlockCoeffs[(0, 0)]
                 for n in range(N):
-                    u[0, n + 1] = pred(u[0, n])
+                    u[0, n + 1] = self.predictor(u[0, n])
             else:
                 if predSol is None:
                     raise ValueError(
