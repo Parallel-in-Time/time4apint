@@ -81,7 +81,10 @@ class BlockOperator(object):
 
     @property
     def isIdentity(self):
-        return self.symbol == self.symbol**(-1)
+        try:
+            return self.symbol == self.symbol**(-1)
+        except ZeroDivisionError:
+            return False
 
     @property
     def isNull(self):
@@ -229,6 +232,13 @@ class BlockOperator(object):
         if self.isScalar:
             u = float(self.symbol)*u
         return u
+
+    def __eq__(self, other):
+        try:
+            return self.symbol == other.symbol
+        except AttributeError:
+            return self.symbol == other
+
 
 I = BlockOperator()
 

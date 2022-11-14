@@ -8,7 +8,7 @@ Created on Mon Nov  7 13:15:19 2022
 import numpy as np
 import pytest
 
-from ..block import BlockOperator
+from ..block import BlockOperator, scalarBlock, I
 
 M = 5
 m1 = np.random.rand(M, M)
@@ -17,6 +17,7 @@ m3 = np.random.rand(M, M)
 m4 = np.random.rand(M, M)
 u = np.random.rand(M)
 
+zero = scalarBlock(0)
 dot = np.dot
 solve = np.linalg.solve
 
@@ -55,20 +56,52 @@ class TestBase:
         assert np.allclose(uTest, uCheck)
 
     def testIdentity(self):
-        op = BlockOperator()
+        op = I
         assert op.name == '1'
         assert op.symbol == 1
         assert np.allclose(op(u), u)
-        assert op.isIdentity
+        assert op.isIdentity and not op.isNull
         assert op.isScalar
         assert op.isSymbolic
 
+    def testNull(self):
+        op = zero
+        assert op.name == '0'
+        assert op.symbol == 0
+        assert np.allclose(op(u), 0*u)
+        assert op.isNull and not op.isIdentity
+        assert op.isScalar
+        assert op.isSymbolic
+
+    def testScalar(self):
+        op = scalarBlock(0.5)
+        assert op.name == '0.5'
+        assert op.symbol == 0.5
+        assert np.allclose(op(u), 0.5*u)
+        assert not op.isNull and not op.isIdentity
+        assert op.isScalar
+        assert op.isSymbolic
+
+    def testEquality(self):
+        assert I == I
+        assert I == 1
+        assert zero == zero
+        assert zero == 0
+        assert self.op == self.op
+
 class TestArithmetics:
+
+    f = BlockOperator('F')
 
     b1 = BlockOperator('B1', matrix=m1, invert=m2)
     b2 = BlockOperator('B2', matrix=m3, invert=m4)
 
     def testAddition(self):
+        op = zero + zero
+        assert op.isNull
+        op = self.f + zero
+        assert op == self.f
+
         with pytest.raises(ValueError):
             self.b1 + self.b2
         b1 = self.b1.copy()
@@ -84,6 +117,13 @@ class TestArithmetics:
         assert np.allclose(uTest, uCheck)
 
     def testSubstraction(self):
+        op = I - I
+        assert op == zero
+        op = self.f - self.f
+        assert op == zero
+        op = self.f + I - self.f
+        assert op == 1
+
         with pytest.raises(ValueError):
             self.b1 - self.b2
         b1 = self.b1.copy()
@@ -108,6 +148,12 @@ class TestArithmetics:
         assert np.allclose(uTest, uCheck)
 
     def testMultiplication(self):
+        op = self.f * I
+        assert op == self.f
+        op = self.b1 * I
+        assert op == self.b1
+        assert np.allclose(op(u), self.b1(u))
+
         op = self.b1 * self.b2
         assert op.name == 'B1*B2'
         assert op.symbol == self.b1.symbol * self.b2.symbol
