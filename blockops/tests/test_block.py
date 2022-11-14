@@ -59,6 +59,9 @@ class TestBase:
         assert op.name == '1'
         assert op.symbol == 1
         assert np.allclose(op(u), u)
+        assert op.isIdentity
+        assert op.isScalar
+        assert op.isSymbolic
 
 class TestArithmetics:
 

@@ -230,10 +230,9 @@ class BlockOperator(object):
             u = float(self.symbol)*u
         return u
 
+I = BlockOperator()
 
-one = BlockOperator()
-
-
-class Identity(BlockOperator):
-    def __init__(self, M):
-        super().__init__('I', matrix=np.eye(M))
+def scalarBlock(val):
+    op = I.copy()
+    op.symbol = val
+    return op

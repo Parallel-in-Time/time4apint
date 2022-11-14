@@ -8,7 +8,7 @@ Created on Mon Nov  7 15:40:41 2022
 import numpy as np
 import sympy as sy
 
-from .block import BlockOperator, one
+from .block import BlockOperator, I
 from .run import PintRun
 from .utils import getCoeffsFromFormula
 
@@ -232,7 +232,7 @@ class ABJ(BlockIteration):
             B00 = "G * u_{n}^k"
             B10 = "(I-G*F**(-1)) * u_{n}^{k+1}"
             predictor = "G * u_{n}^0" if coarsePred else ""
-        blockOps['I'] = one
+        blockOps['I'] = I
         update = f"{B10} + {B00}"
         super().__init__(update, predictor, rules=None, name='ABJ',
                          **blockOps)
@@ -251,6 +251,6 @@ class ABGS(BlockIteration):
             B10 = "(I-G*F**(-1)) * u_{n}^{k+1}"
             predictor = "G * u_{n}^0" if coarsePred else ""
         update = f"{B10} + {B01}"
-        blockOps['I'] = one
+        blockOps['I'] = I
         super().__init__(update, predictor, rules=None, name='ABGS',
                          **blockOps)
