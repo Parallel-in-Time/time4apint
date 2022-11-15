@@ -69,13 +69,12 @@ class BlockIteration(object):
 
         self.rules = {condEval(a): condEval(b) for a, b in rules}
 
-        # Attribute that can be used to store an associated problem
-        self.problem = None
 
         # Saving the BlockOps to make it easier to get the cost later on
         self.blockOps = {v.name: v for v in blockOps.values()
                          if isinstance(v, BlockOperator)}
 
+        # Saving update formula, just in case ...
         self.update = update
 
     @property
