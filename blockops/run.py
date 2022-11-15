@@ -56,10 +56,11 @@ class PintRun:
                 elif node.func == sy.Mul:
                     op = 'o'
                 ta = [getTasks(n) for n in node.args]
-                for i in range(len(ta)):
-                    if isinstance(ta[i], sy.Pow):
-                        if not isinstance(ta[0], sy.core.numbers.NegativeOne):
-                            ta[i:i + 1] = [ta[i].base for item in range(ta[i].exp)]
+                # Eventually expand [.., op**n, ..] into [.., op, .., op, ..]
+                # ONLY for n > 0 !
+                for i, sym in enumerate(ta):
+                    if isinstance(sym, sy.Pow) and sym.exp > 0:
+                        ta[i:i + 1] = [sym.base for item in range(sym.exp)]
                 # Some fix to merge the -1 into one given tasks
                 if isinstance(ta[0], sy.core.numbers.NegativeOne):
                     merged = ta[1]
@@ -68,7 +69,6 @@ class PintRun:
                     cou = 1
                     tmp = sy.symbols(name.name + f'_{cou}', commutative=False)
                     while len(ta) > 2:
-                        op_tmp = ta[-2:]
                         localTaskPool[tmp] = {'op': op, 'task': ta[-2:]}
                         ta = ta[:-2]
                         ta.append(tmp)

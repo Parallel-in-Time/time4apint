@@ -193,12 +193,13 @@ class BlockIteration(object):
 
     def plotGraph(self, N, K):
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
-        run.plotGraph(self.name+' (graph)')
+        run.plotGraph(None if self.name is None else self.name+' (graph)')
 
     def plotSchedule(self, N, K):
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         run.pintGraph.computeOptimalSchedule(
-            plot=True, figName=self.name+' (schedule)')
+            plot=True,
+            figName=None if self.name is None else self.name+' (schedule)')
 
 
 # -----------------------------------------------------------------------------

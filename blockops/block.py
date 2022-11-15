@@ -104,8 +104,8 @@ class BlockOperator(object):
         if isinstance(other, BlockOperator):
             if (self.invert is not None) or (other.invert is not None):
                 raise ValueError(
-                    'cannot add block operator with invert part '
-                    f'(here {self})')
+                    'cannot add non symbolic block operator '
+                    f'with invert part (here {self})')
             if self.isScalar:
                 if not other.isSymbolic:
                     self.matrix = np.eye(other.M, dtype=other.matrix.dtype)
@@ -131,8 +131,8 @@ class BlockOperator(object):
         if isinstance(other, BlockOperator):
             if self.invert is not None or other.invert is not None:
                 raise ValueError(
-                    'cannot substract block operator with invert part '
-                    f'(here {self})')
+                    'cannot substract non symbolic block operator '
+                    f'with invert part (here {self})')
             if self.isScalar:
                 if not other.isSymbolic:
                     self.matrix = np.eye(other.M, dtype=other.matrix.dtype)
