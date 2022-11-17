@@ -1,13 +1,12 @@
 # Python import
+
 import re
 
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-from matplotlib.patches import Rectangle
 
-
-# TODO:
+#TODO
 # - Communication costs
 
 class PintGraph:
@@ -65,7 +64,7 @@ class PintGraph:
         # name = task["task"].name if (
         #            f'{task["task"].name}'.startswith('$') and f'{task["task"].name}'.endswith('$')) else f'${task["task"].name}$'
         self.graph.add_node(self.counter, pos=pos, name=name, cost=task['task'].cost, op=task['task'].op_latex,
-                            result=task['task'].result_latex, counter=self.counter)
+                            result=task['task'].result_latex, counter=self.counter, point=task['task'].time_point)
         self.lookup[old_key] = self.counter
         for item in task['task'].dep:
             self.graph.add_edge(self.lookup[item.name], self.counter, cost=0)
@@ -156,8 +155,8 @@ class PintGraph:
 
         plt.show()
 
-    def createEdgeWeightedGraph(self) -> nx.DiGraph:
-        """Creates a graph with only edge weights to use the longest path algorithm"""
+    def longestPath(self) -> float:
+        """Computes longest path within the graph"""
         newGraph = nx.DiGraph()
         trans = {}
         for node, node_data in self.graph.nodes(data=True):
@@ -172,101 +171,7 @@ class PintGraph:
             from_ = trans[edge_from][1]
             to_ = trans[edge_to][0]
             newGraph.add_edge(from_, to_, cost=edge_data['cost'])
-        return newGraph
-
-    def longestPath(self) -> float:
-        """Computes longest path within the graph"""
-        gra = self.createEdgeWeightedGraph()
-        length = nx.dag_longest_path_length(gra, weight="cost")
+        length = nx.dag_longest_path_length(newGraph, weight="cost")
         # print('Longest path:', nx.dag_longest_path(gra, weight="cost"))
         # print('Longest path costs:', length)
         return length
-
-    # TODO: This is a first version, requires improvement
-    def computeOptimalSchedule(self, plot: bool, figName=None) -> dict:
-        """
-        Calculates an optimal schedule using a simple greedy approach.
-        Assumes unlimited processes and does not minimize the number of processes.
-
-        :param plot: Plot the schedule
-        :return: Schedule
-        """
-        print('Optimal schedule assumes unlimited resources and no communication costs')
-
-        graph = self.graph
-
-        schedule = {}
-        nodes = list(graph.nodes(data=True))
-        makespan = 0
-        proc_start = np.zeros(20000000)
-        counter = 0
-
-        for item in nodes:
-            minimal_start_time = 0
-            for u, v, data in graph.in_edges(item[0], data=True):
-                if schedule[u]['end'] > minimal_start_time:
-                    minimal_start_time = schedule[u]['end']
-            for i in range(len(proc_start)):
-                if proc_start[i] <= minimal_start_time:
-                    schedule[item[0]] = {'proc': i,
-                                         'start': minimal_start_time,
-                                         'end': minimal_start_time + item[1]['cost'],
-                                         'name': item[1]['name']}
-                    proc_start[i] = schedule[item[0]]['end']
-                    break
-            if schedule[item[0]]['end'] > makespan:
-                makespan = schedule[item[0]]['end']
-
-        required_procs = len(np.where(proc_start != 0)[0])
-        print('Makespan of optimal schedule:', makespan, 'using', required_procs, 'processes')
-
-        if plot:
-            fig, ax = plt.subplots(1, 1, figsize=(8, 4.8), num=figName)
-            self.plotSchedule(schedule=schedule, ax=ax)
-            ax.set_xlim(0, makespan)
-            ax.set_ylim(0, required_procs)
-            ax.set_yticks(
-                np.linspace(required_procs - 1, 0, required_procs) + 0.5,
-                ['P' + str(i) for i in range(required_procs - 1, -1, -1)])
-            plt.show()
-        return schedule
-
-    @staticmethod
-    def plotSchedule(schedule: dict, ax: plt.axis) -> None:
-        """
-        Plots a schedule
-
-        :param schedule: Schedule
-        :param ax: Axis
-        """
-        for key, value in schedule.items():
-            time = value['end'] - value['start']
-            if time > 0:
-                operation = value['name']
-                color = 'gray'  # get_color(operation=operation, model=True, level=level)
-                rec = Rectangle((value['start'], value['proc'] + .225), time, .25, color='k', fc=color)
-                ax.add_patch(rec)
-                rx, ry = rec.get_xy()
-                cx = rx + rec.get_width() / 2.0
-                cy = ry + rec.get_height() / 2.0
-                ax.annotate(operation, (cx, cy), color='w', weight='bold',
-                            fontsize=6, ha='center', va='center')
-
-    # TODO: Not required so far, i think can be deleted
-    def simplifyGraph(self):
-        """Graph simplification"""
-        rev_multidict = {}
-        for key, value in self.pool.items():
-            rev_multidict.setdefault(tuple(value[:2]), set()).add(key)
-        for key, values in rev_multidict.items():
-            if len(values) > 1:
-                node = min(values)
-                for item in values:
-                    if item != node:
-                        foll = list(self.graph.out_edges(item))
-                        if len(foll[0]) > 1:
-                            foll = list(foll[0])
-                        for z in foll:
-                            if z != item:
-                                self.graph.add_edge(node, z)
-                        self.graph.remove_node(item)

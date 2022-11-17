@@ -205,6 +205,12 @@ class Task(object):
         self.result = result # Result (what is computed by this task)
         self.cost = cost
         self.result_latex = self.translate_to_latex(input=f'{result}')
+        if len(re.split('_|\^', result.name)) >= 3:
+            self.iteration = int(re.split('_|\^', result.name)[2])
+            self.time_point = int(re.split('_|\^', result.name)[1])
+        else:
+            self.iteration = 0
+            self.time_point = 0
         if f'{op}' != '0':
             self.op_latex = self.trans_latex_op(op=f'{op}')
         else:

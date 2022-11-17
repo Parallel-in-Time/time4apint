@@ -31,6 +31,9 @@ Hence, $B_1^0$ is the block coefficient for the $u_{n+1}^{k+0}$ term, and the bl
 Implemented [here](./blockops/iteration.py), with some documentation details provided [here](./doc/blockIteration.md).
 3. [BlockProblem :](./doc/blockProblem.md) object representing a given problem, _i.e_ the numerical solution of the ODE problem represented as a linear system where each time solution is an unknown of the problem.
 Implemented [here](./blockops/problem.py), with some documentation details provided [here](./doc/blockProblem.md).
+4. [Task Graph:](./doc/taskGraphs.md) TODO
+5. [Schedule:](./doc/schedules.md) TODO
+
 
 **Important notes** :
 

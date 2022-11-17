@@ -10,6 +10,7 @@ import sympy as sy
 
 from .block import BlockOperator, I
 from .run import PintRun
+from .schedule import getSchedule
 from .utils import getCoeffsFromFormula
 
 
@@ -69,7 +70,6 @@ class BlockIteration(object):
 
         self.rules = {condEval(a): condEval(b) for a, b in rules}
 
-
         # Saving the BlockOps to make it easier to get the cost later on
         self.blockOps = {v.name: v for v in blockOps.values()
                          if isinstance(v, BlockOperator)}
@@ -127,7 +127,7 @@ class BlockIteration(object):
                 for n in range(N):
                     u[0, n + 1] = pred.symbol * u[0, n]
             else:
-                u[0, 1:] = [sy.symbols(f'u_{n+1}^0', commutative=False)
+                u[0, 1:] = [sy.symbols(f'u_{n + 1}^0', commutative=False)
                             for n in range(N)]
             # Iterations
             for k in range(K):
@@ -168,9 +168,18 @@ class BlockIteration(object):
         else:
             return u[:, 1:]
 
-    def speedup(self, N, K):
+    def speedup(self, N, K, nProc, schedule_type='OPTIMAL'):
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
-        runtime = run.getMinimalRuntime()
+        schedule = getSchedule(graph=run.pintGraph, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
+        runtime = schedule.getRuntime()
+
+        optimal_schedule = getSchedule(graph=run.pintGraph, nProc=nProc, nPoints=N + 1, schedule_type='OPTIMAL')
+        optimal_runtime = optimal_schedule.getRuntime()
+
+        # This is only temporary to control the optimal schedule, remove it at some point
+        optimal_runtime_graph = run.pintGraph.longestPath()
+        if optimal_runtime != optimal_runtime_graph:
+            raise Exception('This should not happen')
 
         # TODO: How to get the runtime of time stepping?
         runtime_ts = N * 10
@@ -182,23 +191,24 @@ class BlockIteration(object):
             print(f'Block iteration: {self.name}')
             print(f'Update: {self.update}')
         print(f'Predictor: {self.predictor}')
-        print(f'N={N}, K={K}')
-        print(f'Theoretical lower runtime bound: {runtime}')
+        print(f'N={N}, K={K} \n')
+        print(f'Runtime of schedule={schedule.schedule_name} for nProc={nProc}: {runtime}')
         print(f'Runtime time-stepping: {runtime_ts} (This is currently not the correct value)')
+        print(f'Speedup of schedule={schedule.schedule_name} for nProc={nProc}: {(runtime_ts / runtime):.2f} \n')
+        print(f'Theoretical lower runtime bound: {optimal_runtime}')
         print(
-            f'Theoretical speedup compared to time stepping: {(runtime_ts / runtime):.2f} (This is currently not the correct value)')
+            f'Theoretical maximum speedup compared to time stepping: {(runtime_ts / optimal_runtime):.2f} (This is currently not the correct value)')
         print('=============================')
         return (runtime_ts / runtime)
 
     def plotGraph(self, N, K):
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
-        run.plotGraph(None if self.name is None else self.name+' (graph)')
+        run.plotGraph(None if self.name is None else self.name + ' (graph)')
 
-    def plotSchedule(self, N, K):
+    def plotSchedule(self, N, K, nProc, schedule_type='OPTIMAL'):
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
-        run.pintGraph.computeOptimalSchedule(
-            plot=True,
-            figName=None if self.name is None else self.name+' (schedule)')
+        schedule = getSchedule(graph=run.pintGraph, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
+        schedule.plot(figName=None if self.name is None else self.name + f' ({schedule.schedule_name} schedule)')
 
 
 # -----------------------------------------------------------------------------
@@ -211,9 +221,11 @@ def register(cls):
     ALGORITHMS[cls.__name__] = cls
     return cls
 
+
 DEFAULT_PROP = {
     True: 'phi**(-1)*chi',
     False: 'F'}
+
 
 @register
 class Parareal(BlockIteration):
