@@ -169,6 +169,7 @@ class BlockIteration(object):
             return u[:, 1:]
 
     def speedup(self, N, K, nProc, schedule_type='OPTIMAL'):
+        K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         schedule = getSchedule(graph=run.pintGraph, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
         runtime = schedule.getRuntime()
@@ -202,13 +203,23 @@ class BlockIteration(object):
         return (runtime_ts / runtime)
 
     def plotGraph(self, N, K):
+        K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         run.plotGraph(None if self.name is None else self.name + ' (graph)')
 
     def plotSchedule(self, N, K, nProc, schedule_type='OPTIMAL'):
+        K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         schedule = getSchedule(graph=run.pintGraph, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
         schedule.plot(figName=None if self.name is None else self.name + f' ({schedule.schedule_name} schedule)')
+
+    def checkK(self, N, K):
+        if isinstance(K, int):
+            return [0] + [K for _ in range(N)]
+        elif isinstance(K, list) and len(K) == N:
+            return [0] + K
+        else:
+            raise Exception('K must be a list of length N or an integer.')
 
 
 # -----------------------------------------------------------------------------

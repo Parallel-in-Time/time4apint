@@ -15,33 +15,33 @@ parareal = BlockIteration(
     propagator="F", predictor=predictor,
     F=F, G=G,
     name='Parareal')
-parareal.speedup(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='OPTIMAL')
-parareal.speedup(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
-#parareal.plotGraph(N=nBlocks, K=[0, 1, 2, 2, 2])
-parareal.plotSchedule(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='OPTIMAL')
-parareal.plotSchedule(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
+parareal.speedup(N=nBlocks, K=[1, 2, 2, 2], nProc=nBlocks, schedule_type='OPTIMAL')
+parareal.speedup(N=nBlocks, K=[1, 2, 2, 2], nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
+parareal.plotGraph(N=nBlocks, K=[1, 2, 2, 2])
+parareal.plotSchedule(N=nBlocks, K=[1, 2, 2, 2], nProc=nBlocks, schedule_type='OPTIMAL')
+parareal.plotSchedule(N=nBlocks, K=[1, 2, 2, 2], nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
 
 pararealSC = BlockIteration(
     "(F - P*G*R) u_{n}^k + P*G*R * u_{n}^{k+1}",
     propagator="F", predictor="P*G*R",
     rules=[(R * P, I)], F=F, G=G, R=R, P=P, I=I,
     name='PararealSC')
-pararealSC.speedup(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='OPTIMAL')
-pararealSC.speedup(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
-pararealSC.plotGraph(N=nBlocks, K=[0, 1, 2, 2, 2])
-pararealSC.plotSchedule(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='OPTIMAL')
-pararealSC.plotSchedule(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
+pararealSC.speedup(N=nBlocks, K=[1, 2, 2, 2], nProc=nBlocks, schedule_type='OPTIMAL')
+pararealSC.speedup(N=nBlocks, K=[1, 2, 2, 2], nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
+pararealSC.plotGraph(N=nBlocks, K=[1, 2, 2, 2])
+pararealSC.plotSchedule(N=nBlocks, K=[1, 2, 2, 2], nProc=nBlocks, schedule_type='OPTIMAL')
+pararealSC.plotSchedule(N=nBlocks, K=[1, 2, 2, 2], nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
 
 abj = BlockIteration(
     "G u_{n}^k + (I-G*F**(-1)) u_{n+1}^{k}",
     propagator="F", predictor=predictor,
     F=F, G=G, I=I,
     name='Approx. Block Jacobi')
-abj.speedup(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='OPTIMAL')
-abj.speedup(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
-abj.plotGraph(N=nBlocks, K=[0, 1, 2, 2, 2])
-abj.plotSchedule(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='OPTIMAL')
-abj.plotSchedule(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
+abj.speedup(N=nBlocks, K=[1, 2, 2, 2], nProc=nBlocks, schedule_type='OPTIMAL')
+abj.speedup(N=nBlocks, K=[1, 2, 2, 2], nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
+abj.plotGraph(N=nBlocks, K=[1, 2, 2, 2])
+abj.plotSchedule(N=nBlocks, K=[1, 2, 2, 2], nProc=nBlocks, schedule_type='OPTIMAL')
+abj.plotSchedule(N=nBlocks, K=[1, 2, 2, 2], nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
 
 
 abgs = BlockIteration(
@@ -49,9 +49,9 @@ abgs = BlockIteration(
     propagator="F", predictor=predictor,
     F=F, G=G, I=I,
     name='Approx. Block Gauss-Seidel')
-abgs.speedup(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='OPTIMAL')
-abgs.speedup(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
-abgs.plotGraph(N=nBlocks, K=[0, 1, 2, 2, 2])
-abgs.plotSchedule(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='OPTIMAL')
-abgs.plotSchedule(N=nBlocks, K=[0, 1, 2, 2, 2], nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
+abgs.speedup(N=nBlocks, K=2, nProc=nBlocks, schedule_type='OPTIMAL')
+abgs.speedup(N=nBlocks, K=2, nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
+abgs.plotGraph(N=nBlocks, K=2)
+abgs.plotSchedule(N=nBlocks, K=2, nProc=nBlocks, schedule_type='OPTIMAL')
+abgs.plotSchedule(N=nBlocks, K=2, nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
 

@@ -61,10 +61,8 @@ class Schedule:
                             fontsize=6, ha='center', va='center')
         ax.set_xlim(0, self.makespan)
         ax.set_ylim(0, self.nProc)
-        a = np.linspace(self.nProc - 1, 0, self.nProc) + 0.5
-        b = ['P' + str(i) for i in range(self.nProc - 1, -1, -1)]
-        ax.set_yticks(a)
-        ax.set_yticklabels(b)
+        ax.set_yticks(np.linspace(self.nProc - 1, 0, self.nProc) + 0.5)
+        ax.set_yticklabels(['P' + str(i) for i in range(self.nProc - 1, -1, -1)])
         plt.show()
 
 
