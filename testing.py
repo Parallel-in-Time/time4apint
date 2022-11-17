@@ -16,7 +16,7 @@ lam = 1j
 N = 8
 nStepsF = 50
 nStepsG = 3
-algoName = 'ABJ'
+algoName = 'Parareal'
 
 prob = BlockProblem(lam, tEnd, N, 1, 'BE', nStepPerNode=nStepsF)
 prob.setApprox('BE', nStepPerNode=nStepsG)

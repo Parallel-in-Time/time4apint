@@ -234,8 +234,8 @@ def register(cls):
 
 
 DEFAULT_PROP = {
-    True: 'phi**(-1)*chi',
-    False: 'F'}
+    'implicit': 'phi**(-1)*chi',
+    'explicit': 'F'}
 
 
 @register
@@ -251,7 +251,9 @@ class Parareal(BlockIteration):
             B01 = "G * u_{n}^{k+1}"
             predictor = "G" if coarsePred else None
         update = f"{B00} + {B01}"
-        super().__init__(update, DEFAULT_PROP[implicitForm], predictor,
+        propagator = DEFAULT_PROP['implicit'] if implicitForm \
+            else DEFAULT_PROP['explicit']
+        super().__init__(update, propagator, predictor,
                          rules=None, name='Parareal', **blockOps)
 
 
@@ -267,9 +269,11 @@ class ABJ(BlockIteration):
             B00 = "G * u_{n}^k"
             B10 = "(I-G*F**(-1)) * u_{n}^{k+1}"
             predictor = "G" if coarsePred else None
-        blockOps['I'] = I
         update = f"{B10} + {B00}"
-        super().__init__(update, DEFAULT_PROP[implicitForm], predictor,
+        blockOps['I'] = I
+        propagator = DEFAULT_PROP['implicit'] if implicitForm \
+            else DEFAULT_PROP['explicit']
+        super().__init__(update, propagator, predictor,
                          rules=None, name='ABJ', **blockOps)
 
 
@@ -287,5 +291,7 @@ class ABGS(BlockIteration):
             predictor = "G" if coarsePred else None
         update = f"{B10} + {B01}"
         blockOps['I'] = I
-        super().__init__(update, DEFAULT_PROP[implicitForm], predictor,
+        propagator = DEFAULT_PROP['implicit'] if implicitForm \
+            else DEFAULT_PROP['explicit']
+        super().__init__(update, propagator, predictor,
                          rules=None, name='ABGS', **blockOps)
