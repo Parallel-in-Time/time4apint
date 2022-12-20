@@ -6,8 +6,12 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
-#TODO
+# TODO
 # - Communication costs
+
+COLOR_LIST = ['#4c72b0', '#dd8452', '#55a868', '#c44e52', '#8172b3', '#937860', '#da8bc3', '#8c8c8c', '#ccb974',
+              '#64b5cd']
+
 
 class PintGraph:
     """DOCTODO"""
@@ -27,6 +31,8 @@ class PintGraph:
         self.maxK = maxK
         self.counter = 0
         self.lookup = {}
+        self.colorLookup = {}
+        self.colorCounter = 0
 
     def computeDependencies(self, pool):
         """Returns a restructured task pool for the creation of a plot"""
@@ -64,7 +70,8 @@ class PintGraph:
         # name = task["task"].name if (
         #            f'{task["task"].name}'.startswith('$') and f'{task["task"].name}'.endswith('$')) else f'${task["task"].name}$'
         self.graph.add_node(self.counter, pos=pos, name=name, cost=task['task'].cost, op=task['task'].op_latex,
-                            result=task['task'].result_latex, counter=self.counter, point=task['task'].time_point)
+                            result=task['task'].result_latex, counter=self.counter, point=task['task'].time_point,
+                            color=self.getColor(name))
         self.lookup[old_key] = self.counter
         for item in task['task'].dep:
             self.graph.add_edge(self.lookup[item.name], self.counter, cost=0)
@@ -85,7 +92,9 @@ class PintGraph:
         for n in range(self.nBlocks + 1):
             plt.axvline(x=n, color='gray', linestyle='-', alpha=0.3)
         pos = nx.get_node_attributes(self.graph, 'pos')
-        nx.draw(self.graph, pos, labels=nx.get_node_attributes(self.graph, 'name'), with_labels=True, ax=ax)
+        color = [node[1]['color'] for node in self.graph.nodes(data=True)]
+        nx.draw(self.graph, pos, labels=nx.get_node_attributes(self.graph, 'name'), with_labels=True, ax=ax,
+                node_color=color)
         limits = plt.axis('on')  # turns on axis
         ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         ax.set_xlim(left=-0.2, right=self.nBlocks + 0.2)
@@ -154,6 +163,20 @@ class PintGraph:
         fig.canvas.mpl_connect("motion_notify_event", hover)
 
         plt.show()
+
+    def getColor(self, name):
+        if re.match(r"\$u_\d\^\d|u\^\d_\d", name):
+            name = "u_*^*"
+        if name in self.colorLookup:
+            return self.colorLookup[name]
+        else:
+            color = 'gray'
+            if self.colorCounter < len(COLOR_LIST):
+                color = COLOR_LIST[self.colorCounter]
+                self.colorLookup[name] = color
+                self.colorCounter += 1
+            self.colorLookup[name] = color
+            return color
 
     def longestPath(self) -> float:
         """Computes longest path within the graph"""

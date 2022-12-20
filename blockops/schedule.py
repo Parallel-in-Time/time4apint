@@ -5,24 +5,28 @@ import numpy as np
 from matplotlib.patches import Rectangle
 from .graph import PintGraph
 
-SCHEDULE_TYPES = {'BLOCK-BY-BLOCK': lambda graph, nProc, nPoints: PinTBlockByBlock(graph=graph, nProc=nProc, nPoints=nPoints),
-                  'WINDOWING': lambda graph, nProc, nPoints: PinTWindowing(graph=graph, nProc=nProc, nPoints=nPoints),
-                  'OPTIMAL': lambda graph, nProc, nPoints: Optimal(graph=graph, nProc=nProc, nPoints=nPoints)}
+SCHEDULE_TYPES = {
+    'BLOCK-BY-BLOCK': lambda graph, nProc, nPoints: PinTBlockByBlock(graph=graph, nProc=nProc, nPoints=nPoints),
+    'WINDOWING': lambda graph, nProc, nPoints: PinTWindowing(graph=graph, nProc=nProc, nPoints=nPoints),
+    'OPTIMAL': lambda graph, nProc, nPoints: Optimal(graph=graph, nProc=nProc, nPoints=nPoints)}
 
-def getSchedule(graph : PintGraph, nProc : int, nPoints : int, schedule_type : str):
+
+def getSchedule(graph: PintGraph, nProc: int, nPoints: int, schedule_type: str):
     if schedule_type not in SCHEDULE_TYPES:
         raise Exception(f"Schedule {type} not implemented, must be in {list(SCHEDULE_TYPES.keys())}")
     else:
         schedule = SCHEDULE_TYPES[schedule_type](graph=graph.graph, nProc=nProc, nPoints=nPoints)
         return schedule
 
+
 class ScheduledTask():
 
-    def __init__(self, proc, start, end, name):
+    def __init__(self, proc, start, end, name, color='gray'):
         self.proc = proc
         self.start = start
         self.name = name
         self.end = end
+        self.color = color
 
 
 class Schedule:
@@ -51,8 +55,7 @@ class Schedule:
             time = value.end - value.start
             if time > 0:
                 operation = value.name
-                color = 'gray'  # get_color(operation=operation, model=True, level=level)
-                rec = Rectangle((value.start, value.proc + .225), time, .5, color='k', fc=color)
+                rec = Rectangle((value.start, value.proc + .225), time, .5, color='k', fc=value.color)
                 ax.add_patch(rec)
                 rx, ry = rec.get_xy()
                 cx = rx + rec.get_width() / 2.0
@@ -105,7 +108,8 @@ class PinTBlockByBlock(Schedule):
             self.schedule[item[0]] = ScheduledTask(proc=self.point_to_proc[item[1]['point']],
                                                    start=possible_start_time,
                                                    end=possible_start_time + item[1]['cost'],
-                                                   name=item[1]['name'])
+                                                   name=item[1]['name'],
+                                                   color=item[1]['color'])
 
             self.start_point_proc[self.point_to_proc[item[1]['point']]] = self.schedule[item[0]].end
             if self.schedule[item[0]].end > self.makespan:
@@ -143,7 +147,8 @@ class Optimal(Schedule):
                     self.schedule[item[0]] = ScheduledTask(proc=i,
                                                            start=minimal_start_time,
                                                            end=minimal_start_time + item[1]['cost'],
-                                                           name=item[1]['name'])
+                                                           name=item[1]['name'],
+                                                           color=item[1]['color'])
                     self.start_point_proc[i] = self.schedule[item[0]].end
                     break
             if self.schedule[item[0]].end > self.makespan:
