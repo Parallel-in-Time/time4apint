@@ -21,6 +21,9 @@ RK_METHODS = STABILITY_FUNCTION_RK.keys()
 
 def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
 
+    # Eventually generate matrices for several lamDt
+    lamDt = np.ravel(lamDt)[None, :]
+
     # Reduce M for collocation with exact end-point prolongation
     exactProlong = kwargs.get('exactProlong', False)
     if exactProlong and scheme == 'COLLOCATION':
@@ -40,6 +43,7 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
     M = len(nodes)
     deltas = np.array(
         [tauR-tauL for tauL, tauR in zip([0]+list(nodes)[:-1], list(nodes))])
+    deltas = deltas[:, None]
 
     # Node formulation
     if form is None:
@@ -60,10 +64,12 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
         R = STABILITY_FUNCTION_RK[scheme](z)**(-nStepPerNode)
 
         # Build phi and chi matrices
-        phi = np.diag(R)
+        phi = np.zeros_like(R, shape=(M,)+R.shape)
+        phi[np.diag_indices(M)] = R
         phi[1:,:-1][np.diag_indices(M-1)] = -1
-        chi = np.zeros((M, M))
+        chi = np.zeros_like(R, shape=(M, M))
         chi[0, -1] = 1
+        chi = chi[..., None]
 
         # Eventually switch to zero-to-node formulation
         if form == 'Z2N':
@@ -79,20 +85,24 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
         # Default zero-to-node formulation
         polyApprox = LagrangeApproximation(nodes)
         Q = polyApprox.getIntegrationMatrix([(0, tau) for tau in nodes])
+        Q = Q[..., None]
 
         if exactProlong:
             # Using exact prolongation
             nodes = np.array(nodes.tolist()+[1])
             weights = polyApprox.getIntegrationMatrix([(0, 1)]).ravel()
-            phi = np.zeros((M+1, M+1))*lamDt
-            phi[:-1, :-1] = np.eye(M) - lamDt*Q
+            weights = weights[:, None]
+            phi = np.zeros((M+1, M+1, lamDt.size))*lamDt
+            phi[:-1, :-1] = np.eye(M)[..., None] - lamDt*Q
             phi[-1, :-1] = -lamDt*weights
             phi[-1, -1] = 1
             chi = np.zeros((M+1, M+1))
             chi[:, -1] = 1
+            chi = chi[..., None]
         else:
-            phi = np.eye(M) - lamDt*Q
+            phi = np.eye(M)[..., None] - lamDt*Q
             chi = polyApprox.getInterpolationMatrix([1]).repeat(M, axis=0)
+            chi = chi[..., None]
 
         # Eventually switch to node-to-node formulation
         if form == 'N2N':
@@ -130,6 +140,13 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
 
     else:
         raise NotImplementedError(f'scheme = {scheme}')
+
+    # Transpose and eventually squeeze
+    phi = phi.transpose((2,0,1))
+    chi = chi.transpose((2,0,1))
+    if lamDt.size == 1:
+        phi = phi.squeeze(axis=0)
+        chi = chi.squeeze(axis=0)
 
     return phi, chi, nodes, cost, form
 

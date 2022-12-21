@@ -228,7 +228,7 @@ class BlockOperator(object):
         if self.invert is not None:
             u = np.linalg.solve(self.invert, u)
         if self.matrix is not None:
-            u = np.dot(self.matrix, u)
+            u = np.matmul(self.matrix, u[..., None]).squeeze(axis=-1)
         if self.isScalar:
             u = float(self.symbol)*u
         return u

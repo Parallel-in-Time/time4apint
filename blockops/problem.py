@@ -47,7 +47,13 @@ class BlockProblem(object):
         self.methodDeltaCoarse = None
 
         # Problem parameters
-        self.u0 = np.ones(M)*u0 + 0*lam
+        self.u0 = np.ones_like(u0*lam, shape=(1, M))
+        if np.size(lam) == 1:
+            self.u0 = self.u0.squeeze(axis=0)
+
+    @property
+    def nLam(self):
+        return np.size(self.lam)
 
     @property
     def times(self):
@@ -56,7 +62,10 @@ class BlockProblem(object):
 
     @property
     def uShape(self):
-        return (self.N, self.M)
+        if self.nLam == 1:
+            return (self.N, self.M)
+        else:
+            return (self.N, self.nLam, self.M)
 
     def setApprox(self, scheme, **schemeArgs):
         phi, _, _, cost, _ = getBlockMatrices(
@@ -81,7 +90,9 @@ class BlockProblem(object):
         u = [self.u0]
 
         if sType == 'exact':
-            uTh = np.exp(self.lam*self.times)*self.u0[0]
+            lamT = self.lam*self.times if self.nLam == 1 else \
+                self.lam[None, :, None] * self.times[:, None, :]
+            uTh = np.exp(lamT)*self.u0[0]
             if initSol:
                 return np.array(u + uTh.tolist())
             else:
@@ -91,6 +102,8 @@ class BlockProblem(object):
             prop = self.prop
         elif sType == 'approx':
             prop = self.propDelta
+        else:
+            raise NotImplementedError(f'sType={sType}')
         for i in range(self.N):
             u.append(prop(u[-1]))
 
