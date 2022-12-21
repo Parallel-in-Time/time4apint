@@ -6,26 +6,27 @@ import sympy as sy
 from .error import convergenceEstimator
 # BlockOps import
 from .graph import PintGraph
+from .taskpool import TaskPool
 
 
 class PintRun:
     def __init__(self, blockIteration, nBlocks, kMax):
         self.blockIteration = blockIteration
         self.nBlocks = nBlocks
-        self.taskPool = {}
+        self.taskPool = TaskPool()
         self.kMax = kMax
         self.pintGraph = PintGraph(nBlocks, max(self.kMax))
         self.null = 0 * sy.symbols('null', commutative=False)
-        self.approx_to_computation = {}
-        self.computation_to_approx = {}
+        self.approxToComputation = {}
+        self.computationToApprox = {}
         self.equBlockCoeff = {}
         self.subtasks = {}
         self.tasks = {}
         self.localsave = {}
 
-        self.taskPool[self.createSymbolForUnk(0, 0)] = Task(op=self.null,
-                                                            result=self.createSymbolForUnk(0, 0),
-                                                            cost=0)
+        self.taskPool.addTask(operation=self.null,
+                              result=self.createSymbolForUnk(0, 0),
+                              cost=0)
 
         self.createExpressions()
         self.pintGraph.generateGraphFromPool(pool=self.taskPool)
@@ -108,7 +109,7 @@ class PintRun:
                     for atoms in expr.atoms():
                         if hasattr(atoms, "name") and atoms.name in self.blockIteration.blockOps:
                             cost = self.blockIteration.blockOps[atoms.name].cost
-                    self.taskPool[key] = Task(op=expr, result=key, cost=cost)
+                    self.taskPool.addTask(operation=expr, result=key, cost=cost)
                 else:
                     self.localsave[key] = expr
 
@@ -122,29 +123,29 @@ class PintRun:
 
     def createPredictionRule(self, n):
         pred = self.blockIteration.predictor
-        predictorRule = pred.symbol * self.createSymbolForUnk(n=n-1, k=0)
+        predictorRule = pred.symbol * self.createSymbolForUnk(n=n - 1, k=0)
         predictorRule = predictorRule.simplify().expand()
         return predictorRule
 
     def substitute_and_simplify(self, expr):
-        expr = expr.subs(self.approx_to_computation).subs(self.blockIteration.rules)
-        expr = expr.subs(self.computation_to_approx).subs(self.blockIteration.rules)
+        expr = expr.subs(self.approxToComputation).subs(self.blockIteration.rules)
+        expr = expr.subs(self.computationToApprox).subs(self.blockIteration.rules)
         return expr.subs(self.equBlockCoeff).subs(self.blockIteration.rules)
 
     def createExpressions(self):
 
         for n in range(self.nBlocks):
             if self.blockIteration.predictor is None:
-                self.taskPool[self.createSymbolForUnk(n + 1, 0)] = Task(op=self.null,
-                                                                        result=self.createSymbolForUnk(n + 1, 0),
-                                                                        cost=0)
+                self.taskPool.addTask(operation=self.null,
+                                      result=self.createSymbolForUnk(n + 1, 0),
+                                      cost=0)
             else:
                 rule = self.substitute_and_simplify(self.createPredictionRule(n=n + 1))
                 res = self.createSymbolForUnk(n=n + 1, k=0)
                 self.taskGenerator(rule=rule, res=res)
                 if len(rule.args) > 0:
-                    self.approx_to_computation[res] = rule
-                    self.computation_to_approx[rule] = res
+                    self.approxToComputation[res] = rule
+                    self.computationToApprox[rule] = res
                 else:
                     self.equBlockCoeff[res] = rule
 
@@ -155,8 +156,8 @@ class PintRun:
                     res = self.createSymbolForUnk(n=n + 1, k=k + 1)
                     self.taskGenerator(rule=rule, res=res)
                     if len(rule.args) > 0:
-                        self.computation_to_approx[rule] = res
-                        self.approx_to_computation[res] = rule
+                        self.computationToApprox[rule] = res
+                        self.approxToComputation[res] = rule
                     else:
                         self.equBlockCoeff[res] = rule
 
@@ -183,95 +184,3 @@ class NameGenerator(object):
             name = sy.symbols(f'{self.prefix}', commutative=False)
         self.counter += 1
         return name
-
-
-class Task(object):
-    """Represents one task"""
-
-    def __init__(self, op, result, cost):
-        """
-        Creates a task based.
-
-        Parameters
-        ----------
-        op : TYPE
-            DESCRIPTION. Represents the expression that the task performs.
-        result : TYPE
-            DESCRIPTION. A representation for the result of the expression
-        cost : TYPE
-            DESCRIPTION. The cost of the task
-        """
-        self.op = op  # Operation (sympy expression)
-        self.result = result # Result (what is computed by this task)
-        self.cost = cost
-        self.result_latex = self.translate_to_latex(input=f'{result}')
-        if len(re.split('_|\^', result.name)) >= 3:
-            self.iteration = int(re.split('_|\^', result.name)[2])
-            self.time_point = int(re.split('_|\^', result.name)[1])
-        else:
-            self.iteration = 0
-            self.time_point = 0
-        if f'{op}' != '0':
-            self.op_latex = self.trans_latex_op(op=f'{op}')
-        else:
-            self.op_latex = 'initial condition'
-        self.dep = self.find_dependencies()  # Find dependencies based on op
-        # Set a name (only for visualization)
-        # TODO: Find a better way to set the name
-        if len(op.args) > 0:
-            if isinstance(op.args[0], sy.Symbol):
-                if len(re.split('u_|u\^', op.args[0].name)) > 1:
-                    self.name = re.sub('\$', '', f'{result}')
-                    self.name = f"${self.name}$"
-                else:
-                    self.name = re.sub('\$', '', f'{op.args[0]}')
-                    self.name = f"${self.name}$"
-            elif isinstance(op.args[0], sy.Integer):
-                func = op.func
-                if op.func.is_Mul:
-                    func = '*'
-                elif op.func.is_Add:
-                    func = '+'
-                else:
-                    raise Exception(f'Unknown func in {self.result}={self.op} with {type(op.func)}')
-                self.name = f'{op.args[0]}{func}'
-            elif isinstance(op.args[0], sy.Pow):
-                self.name = f'{op.args[0].args[0]}^{{{op.args[0].args[1]}}}'
-                self.name = re.sub('\$', '', f'{self.name}')
-                self.name = f"${self.name}$"
-            else:
-                raise Exception(f'Unknown operation in {self.result}={self.op} with {type(self.op.args[0])}')
-        else:
-            self.name = re.sub('\$', '', f'{result.name}')
-            self.name = f"${self.name}$"
-
-    def find_dependencies(self):
-        """
-        Gets the dependencies from the operation (expects dependencies to start with u)
-
-        :return: dependencies
-        """
-        return [item for item in self.op.atoms() if (isinstance(item, sy.Symbol) and item.name.startswith('u'))]
-
-    def translate_to_latex(self, input):
-        indices = re.split('_|\^', input)
-        st = ''
-        for i in range(3,len(indices)):
-            if i == 3:
-                st += f'{indices[i]}'
-            else:
-                st += f',{indices[i]}'
-        if len(indices) > 3:
-            new_string = f'${{{indices[0]}_{indices[1]}^{indices[2]}|}}_{{{st}}}$'
-        else:
-            new_string = f'${{{indices[0]}_{indices[1]}^{indices[2]}}}$'
-        return new_string
-
-    def trans_latex_op(self, op):
-        a=re.search('u_\d+\^\d+(_\d+)*', f'{op}')
-        u_part = self.translate_to_latex(input=a.group(0))
-        rest = re.sub('u_\d+\^\d+(_\d+)*', '', f'{op}')
-        rest += u_part
-        rest = re.sub('\$', '', f'{rest}')
-        rest = f'${rest}$'
-        return rest

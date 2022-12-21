@@ -1,19 +1,27 @@
 ## Task graphs
 
-A task graph with communication costs can be represented as a directed acyclic graph (DAG) $G=(V,E,\omega, c)$. Here $V = \{v_1, ..., v_n\}$ represent the set of tasks and the directed edges $E \subseteq V \times V$ represent the dependencies of the tasks. The weighting functions $\omega : V \rightarrow \mathbb{R}^+_0$ and $ c : E \rightarrow \mathbb{R}^+_0$ represent the cost of executing a task and the communication cost between two tasks, respectively.
-Let $P=\{p_1,\hdots, p_{N_P}\}$ be the set of $N_P$ available processors and $A:V \rightarrow P$ be an allocation function which assigns exactly one process to each task in $V$. A schedule of a task graph is a function $S:V \rightarrow \mathbb{R}^+_0$ which assigns a start time to each task based on an allocation, subject to the following two constraints:
+A task graph with communication costs can be represented as a directed acyclic graph (DAG) $G=(V,E,\omega, c)$. 
+Here $V = \{v_1, ..., v_n\}$ represent the set of tasks and the directed edges $E \subseteq V \times V$ represent the 
+dependencies of the tasks. The weighting functions $\omega : V \rightarrow \mathbb{R}^{+}_{0}$ and $ c : E \rightarrow 
+\mathbb{R}^{+}_{0}$ represent the cost of executing a task and the communication cost between two tasks, respectively.
 
-1) $\forall (v_i, v_j) \in E, S(v_j) \geq S(v_i) + \omega(v_i) + c(v_i, v_j) $
+An object of the `BlockIteration` class can automatically create the task graph for an explicit setting of the number
+of blocks and the number of iterations per block. This graph can be plotted using the `plotGraph` function. Note that
+the procedure described below works completely internally, so the user usually does not interact with the classes. 
+ 
+For each time $n=1,...,N$ and each iteration $k=1...,K$, i.e. specifically $u_{n}^{k}$, a rule is created based on the 
+block iteration and the initial guess $u_0^0$. This rule is simplified using existing rules and mathematical operations.
+The pseudocode for the optimization looks like this:
 
-2) $\forall v_i, v_j \in V, v_i \neq v_j, A(v_i) = A(v_j) \Rightarrow S(v_i) \geq S(v_j)+\omega(v_j) \lor S(v_j) \geq S(v_i)+\omega(v_i)$
 
-
-The first constraint means that a task cannot be started until all its dependencies have been scheduled and executed and the data has been communicated. The second constraint means that only one task can run on a process at a time. The runtime of a schedule can then be determined by
-
-```math
-max_{v\in V}(S(v)+\omega(v)).
+```python
+for all iterations k=1,...,K 
+    for all blocks n=1,...,N
+        Create rule to calculate $u_{n}^{k}$ based on $u_{0}^{0}$
+        Simplify the rule based on mathematical operations and existing rules
 ```
 
-Under the assumptions that all communication costs are zero and $N_P = \infty $ are available, the minimum runtime of a task graph can be determined by the longest path within a DAG. Note that these two assumptions do not occur in reality, yet they yield an interesting lower runtime time bound for a given task graph.
-
-TODO: Inclduing `TaskGraph` class
+The rule for a state $u_{n}^{k}$ consists similarly to a block iteration of block operators and previous states 
+$u_{x}^{y}, x \leq n, y \leq k$. Tasks including their dependencies are derived from these rules and collected in a
+`TaskPool. This TaskPool can be easily used to create the graph by iterating through all the tasks and adding a node 
+and edges for the dependencies for each task.

@@ -171,10 +171,10 @@ class BlockIteration(object):
     def speedup(self, N, K, nProc, schedule_type='OPTIMAL'):
         K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
-        schedule = getSchedule(graph=run.pintGraph, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
+        schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
         runtime = schedule.getRuntime()
 
-        optimal_schedule = getSchedule(graph=run.pintGraph, nProc=nProc, nPoints=N + 1, schedule_type='OPTIMAL')
+        optimal_schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type='OPTIMAL')
         optimal_runtime = optimal_schedule.getRuntime()
 
         # This is only temporary to control the optimal schedule, remove it at some point
@@ -210,7 +210,7 @@ class BlockIteration(object):
     def plotSchedule(self, N, K, nProc, schedule_type='OPTIMAL'):
         K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
-        schedule = getSchedule(graph=run.pintGraph, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
+        schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
         schedule.plot(figName=None if self.name is None else self.name + f' ({schedule.schedule_name} schedule)')
 
     def checkK(self, N, K):

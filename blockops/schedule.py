@@ -2,20 +2,22 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+from .taskpool import TaskPool
 from matplotlib.patches import Rectangle
-from .graph import PintGraph
 
 SCHEDULE_TYPES = {
-    'BLOCK-BY-BLOCK': lambda graph, nProc, nPoints: PinTBlockByBlock(graph=graph, nProc=nProc, nPoints=nPoints),
-    'WINDOWING': lambda graph, nProc, nPoints: PinTWindowing(graph=graph, nProc=nProc, nPoints=nPoints),
-    'OPTIMAL': lambda graph, nProc, nPoints: Optimal(graph=graph, nProc=nProc, nPoints=nPoints)}
+    'BLOCK-BY-BLOCK': lambda taskPool, nProc, nPoints: PinTBlockByBlock(taskPool=taskPool, nProc=nProc,
+                                                                        nPoints=nPoints),
+    'WINDOWING': lambda taskPool, nProc, nPoints: PinTWindowing(taskPool=taskPool, nProc=nProc, nPoints=nPoints),
+    'OPTIMAL': lambda taskPool, nProc, nPoints: Optimal(taskPool=taskPool, nProc=nProc, nPoints=nPoints)}
 
 
-def getSchedule(graph: PintGraph, nProc: int, nPoints: int, schedule_type: str):
+def getSchedule(taskPool: TaskPool, nProc: int, nPoints: int, schedule_type: str):
     if schedule_type not in SCHEDULE_TYPES:
         raise Exception(f"Schedule {type} not implemented, must be in {list(SCHEDULE_TYPES.keys())}")
     else:
-        schedule = SCHEDULE_TYPES[schedule_type](graph=graph.graph, nProc=nProc, nPoints=nPoints)
+        schedule = SCHEDULE_TYPES[schedule_type](taskPool=taskPool, nProc=nProc, nPoints=nPoints)
+        schedule.computeSchedule()
         return schedule
 
 
@@ -31,17 +33,14 @@ class ScheduledTask():
 
 class Schedule:
 
-    def __init__(self, graph, nProc, nPoints):
+    def __init__(self, taskPool, nProc, nPoints):
         self.schedule = {}
         self.schedule_name = ''
-        self.graph = graph
+        self.taskPool = taskPool
         self.makespan = 0
         self.nProc = nProc
-        self.start_point_proc = np.zeros(self.nProc)
-        self.nodes = list(graph.nodes(data=True))
+        self.startPointProc = np.zeros(self.nProc)
         self.nPoints = nPoints
-
-        self.computeSchedule()
 
     def computeSchedule(self):
         pass
@@ -74,9 +73,8 @@ class PinTBlockByBlock(Schedule):
     Computes standard schedule based on block-by-block basis
     """
 
-    def __init__(self, nPoints, nProc, *args: object, **kwargs: object):
-        self.nPoints = nPoints
-        self.nProc = nProc
+    def __init__(self, *args: object, **kwargs: object):
+        super().__init__(*args, **kwargs)
         self.distribution = np.array([int(self.nPoints / self.nProc + 1)] * (self.nPoints % self.nProc) +
                                      [int(self.nPoints / self.nProc)] * (self.nProc - self.nPoints % self.nProc))
         self.point_to_proc = {}
@@ -85,35 +83,72 @@ class PinTBlockByBlock(Schedule):
             for j in range(start, start + self.distribution[i]):
                 self.point_to_proc[j] = i
             start += self.distribution[i]
-        super().__init__(nPoints=nPoints, nProc=nProc, *args, **kwargs)
+        self.availableTasks = [key for key, value in self.taskPool.pool.items() if len(value.dep) == 0]
+        self.notAvailableTasks = [key for key, value in self.taskPool.pool.items() if len(value.dep) > 0]
+        self.finishedTasks = []
         self.schedule_name = '"PinT Block-by-Block"'
 
-    def computeSchedule(self):
-        counter = 0
-        for item in self.nodes:
-            possible_start_time = self.start_point_proc[self.point_to_proc[item[1]['point']]]
-            if len(self.graph.in_edges(item[0])) == 0:
-                possible_start_time = 0
-            tmp_commu = 0
-            for u, v, data in self.graph.in_edges(item[0], data=True):
-                if self.schedule[u].end + data['cost'] > possible_start_time:
-                    tmp_commu = data['cost']
-                    possible_start_time = self.schedule[u].end + data['cost']
-            # TODO add communication
-            # if tmp_commu > 0:
-            #    self.schedule['commu|' + str(counter)] = {'proc': self.point_to_proc[item[1]['point']],
-            #                                         'start': possible_start_time - tmp_commu,
-            #                                         'end': possible_start_time}
-            #    counter += 1
-            self.schedule[item[0]] = ScheduledTask(proc=self.point_to_proc[item[1]['point']],
-                                                   start=possible_start_time,
-                                                   end=possible_start_time + item[1]['cost'],
-                                                   name=item[1]['name'],
-                                                   color=item[1]['color'])
+    def pickTask(self):
+        taskName = self.availableTasks[0]
+        task = self.taskPool.getTask(name=taskName)
+        tmpIt = task.iteration
+        tmpB = task.block
+        for item in self.availableTasks:
+            tmp = self.taskPool.getTask(name=item)
+            if tmp.iteration < tmpIt:
+                taskName = item
+                task = tmp
+                tmpIt = task.iteration
+                tmpB = task.block
+            elif tmp.iteration == tmpIt:
+                if tmp.block > tmpB:
+                    taskName = item
+                    task = tmp
+                    tmpIt = task.iteration
+                    tmpB = task.block
+            else:
+                continue
+        return taskName
 
-            self.start_point_proc[self.point_to_proc[item[1]['point']]] = self.schedule[item[0]].end
-            if self.schedule[item[0]].end > self.makespan:
-                self.makespan = self.schedule[item[0]].end
+    def assignTask(self, taskName):
+        task = self.taskPool.getTask(taskName)
+        possibleStartTime = self.startPointProc[self.point_to_proc[task.block]]
+        tmp_commu = 0
+        for depTask in task.dep:
+            if self.schedule[depTask].end + tmp_commu > possibleStartTime:
+                possibleStartTime = self.schedule[depTask].end + tmp_commu
+
+        self.schedule[taskName] = ScheduledTask(proc=self.point_to_proc[task.block],
+                                                start=possibleStartTime,
+                                                end=possibleStartTime + task.cost,
+                                                name=task.name,
+                                                color=task.color)
+
+        self.startPointProc[self.point_to_proc[task.block]] = self.schedule[taskName].end
+        if self.schedule[taskName].end > self.makespan:
+            self.makespan = self.schedule[taskName].end
+
+    def updateLists(self, taskName):
+        # Remove task from available task and add to finished
+        self.finishedTasks += [taskName]
+        self.availableTasks = [item for item in self.availableTasks if item != taskName]
+        # Iterating on all following tasks
+        task = self.taskPool.getTask(name=taskName)
+        for item in task.followingTasks:
+            folTask = self.taskPool.getTask(name=item)
+            # Check if all dependencies are finished
+            if sum(el in self.finishedTasks for el in folTask.dep) == len(folTask.dep):
+                # Check if task is not already finished or available
+                if item not in self.finishedTasks and item not in self.availableTasks:
+                    # Add task to available tasks and remove from non available
+                    self.availableTasks.append(item)
+                    self.notAvailableTasks = [tmp for tmp in self.notAvailableTasks if tmp != item]
+
+    def computeSchedule(self):
+        while len(self.availableTasks) != 0:
+            taskName = self.pickTask()
+            self.assignTask(taskName=taskName)
+            self.updateLists(taskName=taskName)
 
 
 class PinTWindowing(Schedule):
@@ -124,7 +159,6 @@ class PinTWindowing(Schedule):
         self.schedule_name = '"PinTWindowing"'
 
 
-# TODO: This is a first version, requires improvement
 class Optimal(Schedule):
     """
     Calculates an optimal schedule using a simple greedy approach.
@@ -133,24 +167,51 @@ class Optimal(Schedule):
 
     def __init__(self, *args: object, **kwargs: object):
         super().__init__(*args, **kwargs)
+        self.availableTasks = [key for key, value in self.taskPool.pool.items() if len(value.dep) == 0]
+        self.notAvailableTasks = [key for key, value in self.taskPool.pool.items() if len(value.dep) > 0]
+        self.finishedTasks = []
         self.schedule_name = '"Optimal"'
+        self.startPointProc = np.zeros(20000000)
+
+    def pickTask(self):
+        # Choose the first task (not important here, because infinity processes)
+        return self.availableTasks[0]
+
+    def assignTask(self, taskName):
+        task = self.taskPool.getTask(taskName)
+        minimal_start_time = 0
+        for depTask in task.dep:
+            if self.schedule[depTask].end > minimal_start_time:
+                minimal_start_time = self.schedule[depTask].end
+        # Get the first process who is free for the minimal start time
+        proc = next(x[0] for x in enumerate(self.startPointProc) if x[1] <= minimal_start_time)
+        self.schedule[taskName] = ScheduledTask(proc=proc,
+                                                start=minimal_start_time,
+                                                end=minimal_start_time + task.cost,
+                                                name=task.name,
+                                                color=task.color)
+        self.startPointProc[proc] = self.schedule[taskName].end
+        if self.schedule[taskName].end > self.makespan:
+            self.makespan = self.schedule[taskName].end
+
+    def updateLists(self, taskName):
+        self.finishedTasks += [taskName]
+        self.availableTasks = [item for item in self.availableTasks if item != taskName]
+        # Iterating on all following tasks
+        task = self.taskPool.getTask(name=taskName)
+        for item in task.followingTasks:
+            folTask = self.taskPool.getTask(name=item)
+            # Check if all dependencies are finished
+            if sum(el in self.finishedTasks for el in folTask.dep) == len(folTask.dep):
+                # Check if task is not already finished or available
+                if item not in self.finishedTasks and item not in self.availableTasks:
+                    # Add task to available tasks and remove from non available
+                    self.availableTasks.append(item)
+                    self.notAvailableTasks = [tmp for tmp in self.notAvailableTasks if tmp != item]
 
     def computeSchedule(self):
-        self.start_point_proc = np.zeros(20000000)
-        for item in self.nodes:
-            minimal_start_time = 0
-            for u, v, data in self.graph.in_edges(item[0], data=True):
-                if self.schedule[u].end > minimal_start_time:
-                    minimal_start_time = self.schedule[u].end
-            for i in range(len(self.start_point_proc)):
-                if self.start_point_proc[i] <= minimal_start_time:
-                    self.schedule[item[0]] = ScheduledTask(proc=i,
-                                                           start=minimal_start_time,
-                                                           end=minimal_start_time + item[1]['cost'],
-                                                           name=item[1]['name'],
-                                                           color=item[1]['color'])
-                    self.start_point_proc[i] = self.schedule[item[0]].end
-                    break
-            if self.schedule[item[0]].end > self.makespan:
-                self.makespan = self.schedule[item[0]].end
-        self.nProc = len(np.where(self.start_point_proc != 0)[0])
+        while len(self.availableTasks) != 0:
+            taskName = self.pickTask()
+            self.assignTask(taskName=taskName)
+            self.updateLists(taskName=taskName)
+        self.nProc = len(np.where(self.startPointProc != 0)[0])
