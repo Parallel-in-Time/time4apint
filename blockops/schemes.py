@@ -25,15 +25,15 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
     lamDt = np.ravel(lamDt)[None, :]
 
     # Reduce M for collocation with exact end-point prolongation
-    exactProlong = kwargs.get('exactProlong', False)
+    exactProlong = kwargs.pop('exactProlong', False)
     if exactProlong and scheme == 'COLLOCATION':
         M -= 1
 
     # Time-points for the block discretization
-    nodes = kwargs.get('nodes',
+    nodes = kwargs.pop('nodes',
                        'LEGENDRE' if scheme=='COLLOCATION' else 'EQUID')
     if isinstance(nodes, str):
-        qType = kwargs.get('qType', 'RADAU-RIGHT')
+        qType = kwargs.pop('qType', 'RADAU-RIGHT')
         nodes = NodesGenerator(nodes, qType).getNodes(M)
         nodes += 1
         nodes /= 2
@@ -57,7 +57,7 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
     if scheme in RK_METHODS:
 
         # Default node-to-node formulation
-        nStepPerNode = kwargs.get('nStepPerNode', 1)
+        nStepPerNode = kwargs.pop('nStepPerNode', 1)
 
         # Compute amplification factor
         z = lamDt*deltas/nStepPerNode
@@ -140,6 +140,10 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
 
     else:
         raise NotImplementedError(f'scheme = {scheme}')
+
+    # Print warning for unused parameters
+    for key in kwargs:
+        print(f'WARNING : {key} was given to getBlockMatrices but not used')
 
     # Transpose and eventually squeeze
     phi = phi.transpose((2,0,1))

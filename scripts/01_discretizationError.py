@@ -13,14 +13,14 @@ from blockops import BlockProblem
 
 reLam = np.linspace(-4, 0.5, 500)
 imLam = np.linspace(-3, 3, 500)
-N = 1
-M = 5
+N = 10
+M = 4
 scheme = 'COLLOCATION'
 
 lam = reLam[:, None] + 1j*imLam[None, :]
 prob = BlockProblem(
-    lam.ravel(), N*M, N, M, scheme,
-    nodes='LEGENDRE', qType='RADAU-RIGHT', form='N2N')
+    lam.ravel(), N, N, M, scheme,
+    nodes='CHEBY-3', qType='RADAU-RIGHT')
 
 uExact = prob.getSolution('exact')
 uNum = prob.getSolution('fine')
