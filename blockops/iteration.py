@@ -77,6 +77,9 @@ class BlockIteration(object):
         # Saving update formula, just in case ...
         self.update = update
 
+        # Variable to store eventual associated problem
+        self.prob = None
+
     @property
     def coeffs(self):
         """Return an iterator on the (key, values) of blockCoeffs"""
@@ -84,20 +87,32 @@ class BlockIteration(object):
 
     @property
     def M(self):
-        return list(self.blockCoeffs.values())[0].M
+        return max(op.M for op in self.blockCoeffs.values())
 
-    def __call__(self, N, K, u0=None, initSol=False, predSol=None):
+    @property
+    def nLam(self):
+        return max(op.nLam for op in self.blockCoeffs.values())
+
+    @property
+    def N(self):
+        return np.inf if self.prob is None else self.prob.N
+
+    @property
+    def u0(self):
+        return None if self.prob is None else self.prob.u0
+
+    def __call__(self, K, N=None, u0=None, initSol=False, predSol=None):
         """
         Evaluate the block iteration from given initial solution, number of
         blocks and number of iteration.
 
         Parameters
         ----------
-        N : int
-            Number of blocks.
         K : int or N-sequence of int
             Number of iteration, for each block (if int) or each block
             separately.
+        N : int, optional
+            Number of blocks. The default take the N of the associated problem.
         u0 : M-sequence of floats or complex
             Initial solution used for numerical evaluation
             (not required if M==0).
@@ -115,6 +130,10 @@ class BlockIteration(object):
             includes the initial solution u0 and has size (K+1, N+1).
             If not, has size (K+1,N).
         """
+        N = self.N if N is None else N
+        if N == np.inf:
+            raise ValueError('Need to specify a number of blocks somewhere ...')
+
         if self.M == 0:
 
             # Symbolic evaluation
@@ -139,12 +158,17 @@ class BlockIteration(object):
         else:
 
             # Numerical evaluation
+            u0 = self.u0 if u0 is None else u0
             if u0 is None:
                 raise ValueError(
                     'u0 must be provided for numerical evaluation'
                     ' of a block iteration')
+
             u0 = np.asarray(u0)
-            u = np.zeros((K + 1, N + 1, u0.size), dtype=u0.dtype)
+            if self.nLam > 1:
+                u = np.zeros((K + 1, N + 1, self.nLam, self.M), dtype=u0.dtype)
+            else:
+                u = np.zeros((K + 1, N + 1, self.M), dtype=u0.dtype)
             u[:, 0] = u0
             # Prediction
             if self.predictor is not None:

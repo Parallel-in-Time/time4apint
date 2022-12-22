@@ -62,10 +62,22 @@ class BlockOperator(object):
     def M(self):
         M = 0
         if self.matrix is not None:
-            M = self.matrix.shape[0]
+            M = self.matrix.shape[-1]
         if self.invert is not None:
-            M = max(self.invert.shape[0], M)
+            M = max(self.invert.shape[-1], M)
         return M
+
+    @property
+    def nLam(self):
+        if self.isSymbolic:
+            return 0
+        nLam = 1
+        M = self.M
+        if self.matrix is not None:
+            nLam = self.matrix.size // (M**2)
+        if self.invert is not None:
+            nLam = max(self.invert.size // (M**2), nLam)
+        return nLam
 
     @property
     def isSymbolic(self):
@@ -110,7 +122,11 @@ class BlockOperator(object):
                 if not other.isSymbolic:
                     self.matrix = np.eye(other.M, dtype=other.matrix.dtype)
                     self.matrix *= float(self.symbol)
-                    self.matrix += other.matrix
+                    try:
+                        self.matrix += other.matrix
+                    except ValueError:
+                        # Different nLam for each block operators
+                        self.matrix = self.matrix + other.matrix
             elif not self.isSymbolic:
                 if other.isScalar:
                     matrix = np.eye(self.M, dtype=self.matrix.dtype)
@@ -137,7 +153,11 @@ class BlockOperator(object):
                 if not other.isSymbolic:
                     self.matrix = np.eye(other.M, dtype=other.matrix.dtype)
                     self.matrix *= float(self.symbol)
-                    self.matrix -= other.matrix
+                    try:
+                        self.matrix -= other.matrix
+                    except ValueError:
+                        # Different nLam for each block operators
+                        self.matrix = self.matrix - other.matrix
             elif not self.isSymbolic:
                 if other.isScalar:
                     matrix = np.eye(self.M, dtype=self.matrix.dtype)

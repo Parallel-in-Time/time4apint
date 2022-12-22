@@ -75,6 +75,13 @@ class BlockProblem(object):
         self.schemeDelta = scheme
         self.propDelta = self.phiDelta**(-1) * self.chi
 
+    @property
+    def approxSet(self):
+        for attr in ['phiDelta', 'schemeDelta', 'propDelta']:
+            if getattr(self, attr) is None:
+                return False
+        return True
+
     def setCoarseLevel(self, M):
         phi, chi, nodes, cost, _ = getBlockMatrices(
             self.lam*self.dt, M, self.method, form=self.form)
@@ -126,9 +133,11 @@ class BlockProblem(object):
     def getBlockIteration(self, algo):
         try:
             BlockIter = ALGORITHMS[algo]
+            if not self.approxSet:
+                raise ValueError('Approximation not set for the problem')
             blockIter = BlockIter(
                 phi=self.phi, phiDelta=self.phiDelta, chi=self.chi)
-            blockIter.problem = self
+            blockIter.prob = self
             return blockIter
         except KeyError:
             raise NotImplementedError(

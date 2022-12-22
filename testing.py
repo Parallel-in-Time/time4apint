@@ -33,7 +33,7 @@ plt.plot(uSeq.ravel().real, uSeq.ravel().imag, 'o-', label='Sequential', ms=10)
 
 algo = prob.getBlockIteration(algoName)
 
-uNum = algo(N, 4, u0=prob.u0, initSol=True)
+uNum = algo(K=4, initSol=True)
 
 print(f'max discretization error : {errDiscr.max()}')
 
