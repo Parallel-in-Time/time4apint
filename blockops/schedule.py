@@ -48,8 +48,8 @@ class Schedule:
     def getRuntime(self):
         return self.makespan
 
-    def plot(self, figName):
-        fig, ax = plt.subplots(1, 1, figsize=(8, 4.8), num=figName)
+    def plot(self, figName, figSize=(8, 4.8)):
+        fig, ax = plt.subplots(1, 1, figsize=figSize, num=figName)
         for key, value in self.schedule.items():
             time = value.end - value.start
             if time > 0:

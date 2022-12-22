@@ -14,7 +14,7 @@ block iteration and the initial guess $u_0^0$. This rule is simplified using exi
 The pseudocode for the optimization looks like this:
 
 
-```python
+```
 for all iterations k=1,...,K 
     for all blocks n=1,...,N
         Create rule to calculate $u_{n}^{k}$ based on $u_{0}^{0}$

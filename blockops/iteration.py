@@ -226,16 +226,17 @@ class BlockIteration(object):
         print('=============================')
         return (runtime_ts / runtime)
 
-    def plotGraph(self, N, K):
+    def plotGraph(self, N, K, figSize=(6.4, 4.8)):
         K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
-        run.plotGraph(None if self.name is None else self.name + ' (graph)')
+        run.plotGraph(figName=None if self.name is None else self.name + ' (graph)', figSize=figSize)
 
-    def plotSchedule(self, N, K, nProc, schedule_type='OPTIMAL'):
+    def plotSchedule(self, N, K, nProc, schedule_type='OPTIMAL', figSize=(8, 4.8)):
         K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
-        schedule.plot(figName=None if self.name is None else self.name + f' ({schedule.schedule_name} schedule)')
+        schedule.plot(figName=None if self.name is None else self.name + f' ({schedule.schedule_name} schedule)',
+                      figSize=figSize)
 
     def checkK(self, N, K):
         if isinstance(K, int):

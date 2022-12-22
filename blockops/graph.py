@@ -59,9 +59,9 @@ class PintGraph:
             if value.type == 'main':
                 self.addTaskToGraph(pos=(value.block, value.iteration), task=value)
 
-    def plotGraph(self, figName=None):
+    def plotGraph(self, figName=None, figSize=(6.4, 4.8)):
         """Plots the graph"""
-        fig, ax = plt.subplots(num=figName)
+        fig, ax = plt.subplots(num=figName, figsize=figSize)
         for k in range(self.maxK + 1):
             plt.axhline(y=k, color='gray', linestyle='-', alpha=0.3)
         for n in range(self.nBlocks + 1):

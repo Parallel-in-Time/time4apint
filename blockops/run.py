@@ -34,10 +34,13 @@ class PintRun:
     def getMinimalRuntime(self):
         return self.pintGraph.longestPath()
 
-    def plotGraph(self, figName=None):
-        return self.pintGraph.plotGraph(figName)
+    def plotGraph(self, figName=None, figSize=(6.4, 4.8)):
+        return self.pintGraph.plotGraph(figName,figSize=figSize)
 
     def createSymbolForUnk(self, n, k):
+        #TODO: Workaround to make FCF work. But maybe this is not the way to go
+        if n < 0:
+            n = 0
         if k > self.kMax[n]:
             return sy.symbols(f'u_{n}^{self.kMax[n]}', commutative=False)
         else:
@@ -116,8 +119,7 @@ class PintRun:
     def createIterationRule(self, n, k):
         iterationRule = self.null
         for (nMod, kMod), op in self.blockIteration.coeffs:
-            iterationRule += op.symbol * self.createSymbolForUnk(
-                n=n + nMod - 1, k=k + kMod - 1)
+            iterationRule += op.symbol * self.createSymbolForUnk(n=n + nMod - 1, k=k + kMod - 1)
         iterationRule = iterationRule.simplify().expand()
         return iterationRule
 
