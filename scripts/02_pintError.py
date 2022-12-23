@@ -18,7 +18,7 @@ M = 1
 scheme = 'RK4'
 nStepsF = 10
 nStepsG = 1
-algoName = 'ABJ'
+algoName = 'Parareal'
 
 lam = reLam[:, None] + 1j*imLam[None, :]
 prob = BlockProblem(
@@ -28,11 +28,11 @@ prob.setApprox(scheme, nStepPerNode=nStepsG)
 algo = prob.getBlockIteration(algoName)
 
 uNum = prob.getSolution('fine')
-uPar = algo(K=0)
+uPar = algo(K=2)
 
 err = np.abs(uNum-uPar)
 
-stab = np.abs(uPar)[-1, 0, :, -1].reshape(lam.shape)
+stab = np.abs(uPar)[-1, -1, :, -1].reshape(lam.shape)
 errEnd = err[-1, -1, :, -1].reshape(lam.shape)
 errMax = np.max(err[-1], axis=(0, -1)).reshape(lam.shape)
 
