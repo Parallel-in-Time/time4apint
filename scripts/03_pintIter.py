@@ -11,9 +11,9 @@ import matplotlib.pyplot as plt
 from blockops import BlockProblem
 from blockops.plots import plotAccuracyContour
 
-zoom = 2
-reLam = np.linspace(-4*zoom, 0.5*zoom, 501)
-imLam = np.linspace(-3*zoom, 3*zoom, 500)
+zoom = 1
+reLam = np.linspace(-4/zoom, 0.5/zoom, 501)
+imLam = np.linspace(-3/zoom, 3/zoom, 500)
 N = 10
 M = 4
 schemeF = 'COLLOCATION'
@@ -42,13 +42,13 @@ plotAccuracyContour(reLam, imLam, errDiscrMax, stab, figName='discrErr')
 
 # Compute approximate solution and error
 uApprox = prob.getSolution('approx')
-errApprox = np.abs(uExact-uApprox)
+errApprox = np.abs(uNum-uApprox)
 errApproxMax = np.max(errApprox, axis=(0, -1)).reshape(lam.shape)
 stab = np.abs(uApprox)[0, :, -1].reshape(lam.shape)
 plotAccuracyContour(reLam, imLam, errApproxMax, stab, figName='coarseErr')
 
 # Compute PinT solution and error
-nIterMax = 10
+nIterMax = N
 uPar = algo(K=nIterMax)
 errPinT = np.abs(uNum-uPar)
 errPinTMax = np.max(errPinT, axis=(1, -1)).reshape(
@@ -62,16 +62,15 @@ for err in errPinTMax[-1::-1]:
     nIter[err < errDiscrMax] = k
     k -= 1
 
-
-
-# %%
+# %% Plotting
 coords = np.meshgrid(reLam.ravel(), imLam.ravel(), indexing='ij')
 levels = np.arange(nIterMax+2)-1
 
 plt.figure('PinTIter')
 plt.contourf(*coords, nIter, levels=levels)
 plt.colorbar(ticks=levels[1:])
-plt.contour(*coords, nIter, levels=levels, colors='black', linestyles=':')
+plt.contour(*coords, nIter, levels=levels,
+            colors='black', linestyles='--', linewidths=0.75)
 plt.hlines(0, coords[0].min(), coords[0].max(),
            colors='black', linestyles='--')
 plt.vlines(0, coords[1].min(), coords[1].max(),

@@ -11,8 +11,8 @@ from blockops import BlockProblem
 from blockops.plots import plotAccuracyContour
 
 zoom = 1
-reLam = np.linspace(-4*zoom, 0.5*zoom, 501)
-imLam = np.linspace(-3*zoom, 3*zoom, 500)
+reLam = np.linspace(-4/zoom, 0.5/zoom, 501)
+imLam = np.linspace(-3/zoom, 3/zoom, 500)
 N = 10
 M = 1
 scheme = 'RK4'
@@ -28,7 +28,7 @@ prob.setApprox(scheme, nStepPerNode=nStepsG)
 algo = prob.getBlockIteration(algoName)
 
 uNum = prob.getSolution('fine')
-uPar = algo(K=2)
+uPar = algo(K=4)
 
 err = np.abs(uNum-uPar)
 
