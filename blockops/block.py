@@ -8,6 +8,8 @@ Created on Thu Sep 29 13:17:29 2022
 import sympy as sy
 import numpy as np
 
+from .vectorize import matVecMul, matVecInv
+
 # -----------------------------------------------------------------------------
 # Block Operator class & specific operators
 # -----------------------------------------------------------------------------
@@ -246,12 +248,9 @@ class BlockOperator(object):
 
     def __call__(self, u):
         if self.invert is not None:
-            try:
-                u = np.linalg.solve(self.invert, u)
-            except ValueError:
-                u = np.linalg.solve(self.invert[None, ...], u)
+            u = matVecInv(self.invert, u)
         if self.matrix is not None:
-            u = np.matmul(self.matrix, u[..., None]).squeeze(axis=-1)
+            u = matVecMul(self.matrix, u)
         if self.isScalar:
             u = float(self.symbol)*u
         return u

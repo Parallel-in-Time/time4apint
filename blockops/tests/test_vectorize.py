@@ -9,6 +9,7 @@ import numpy as np
 
 M, nDOF = 5, 100
 
+from ..vectorize import matVecMul, matVecInv, matMatMul
 
 def generate(M, nDOF):
     mat = np.random.rand(nDOF, M, M)
@@ -17,33 +18,9 @@ def generate(M, nDOF):
     u = np.squeeze(u)
     return mat, u
 
-# TODO : put the three following functions in one dedicated module and use them in blockops
-
-def matVecMul(mat, u):
-    """Used for blockOps matrix vector multiplication"""
-    return np.matmul(mat, u[..., None]).squeeze(axis=-1)
-
-
-def matVecInv(mat, u):
-    """Used for blockOps matrix vector inversion"""
-    try:
-        return np.linalg.solve(mat, u)
-    except ValueError:
-        return np.linalg.solve(mat[None, ...], u)
-
-
-def matMatMul(m1, m2):
-    """Used for Z2N / N2N formulation switch"""
-    return (m1 @ m2.transpose((1, 0, -1))).transpose((1,0,-1))
-
 
 def testMatVecMul():
-    """Test vectorized Matrix Vector Multiplication (matVecMul):
-
-    - matVecMul((nDOF, M, M), (nDOF, M)) -> (nDOF, M) <=> (M, M) @ (M,) for each nDOF
-    - matVecMul((M, M), (nDOF, M)) -> (nDOF, M) <=> (M, M) @ (M,) for each nDOF
-    - matVecMul((M, M), (M,)) -> (M,) <=> (M, M) @ (M,)
-    """
+    """Test vectorized Matrix Vector Multiplication (matVecMul)"""
     mat, u = generate(M, nDOF)
 
     out = matVecMul(mat, u)
@@ -62,12 +39,7 @@ def testMatVecMul():
 
 
 def testMatVecInv():
-    r"""Test vectorized Matrix Vector Inversion (matVecInv):
-
-    - matVecInv((nDOF, M, M), (nDOF, M)) -> (nDOF, M) <=> (M, M) \ (M,) for each nDOF
-    - matVecInv((M, M), (nDOF, M)) -> (nDOF, M) <=> (M, M) \ (M,) for each nDOF
-    - matVecInv((M, M), (M,)) -> (M,) <=> (M, M) \ (M,)
-    """
+    """Test vectorized Matrix Vector Inversion (matVecInv)"""
     mat, u = generate(M, nDOF)
 
     out = matVecInv(mat, u)
@@ -86,10 +58,7 @@ def testMatVecInv():
 
 
 def testMatMatMul():
-    """Test vectorized Matrix Matrix Multiplication (matMatMul):
-
-    - matMatMul((M, M), (M, M, nDOF)) -> (M, M, nDOF) <=> (M, M) @ (M, M) for each nDOF
-    """
+    """Test vectorized Matrix Matrix Multiplication (matMatMul)"""
     m1 = generate(M, 1)[0]
     m2 = generate(M, nDOF)[0].transpose((-2, -1, 0))
 

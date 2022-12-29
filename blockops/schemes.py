@@ -8,6 +8,8 @@ Created on Fri Nov  4 13:34:34 2022
 import numpy as np
 
 from .poly import NodesGenerator, LagrangeApproximation
+from .vectorize import matMatMul
+
 
 STABILITY_FUNCTION_RK = {
     'BE': lambda z: (1-z)**(-1),
@@ -74,8 +76,8 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
         # Eventually switch to zero-to-node formulation
         if form == 'Z2N':
             T = np.tril(np.ones((M, M)))
-            phi = (T @ phi.transpose((1, 0, -1))).transpose((1,0,-1))
-            chi = (T @ chi.transpose((1,0,-1))).transpose((1,0,-1))
+            phi = matMatMul(T, phi)
+            chi = matMatMul(T, chi)
 
         cost = nStepPerNode * M
 
@@ -108,8 +110,8 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
         if form == 'N2N':
             T = np.eye(phi.shape[0])
             T[1:,:-1][np.diag_indices(M-1)] = -1
-            phi = (T @ phi.transpose((1, 0, -1))).transpose((1,0,-1))
-            chi = (T @ chi.transpose((1,0,-1))).transpose((1,0,-1))
+            phi = matMatMul(T, phi)
+            chi = matMatMul(T, chi)
 
         # TODO : specific cost for collocation methods
         cost = 1
