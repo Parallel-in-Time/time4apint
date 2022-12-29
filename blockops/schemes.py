@@ -74,8 +74,8 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
         # Eventually switch to zero-to-node formulation
         if form == 'Z2N':
             T = np.tril(np.ones((M, M)))
-            phi = T @ phi
-            chi = T @ chi
+            phi = (T @ phi.transpose((1, 0, -1))).transpose((1,0,-1))
+            chi = (T @ chi.transpose((1,0,-1))).transpose((1,0,-1))
 
         cost = nStepPerNode * M
 
@@ -108,13 +108,15 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
         if form == 'N2N':
             T = np.eye(M)
             T[1:,:-1][np.diag_indices(M-1)] = -1
-            phi = T @ phi
-            chi = T @ chi
+            phi = (T @ phi.transpose((1, 0, -1))).transpose((1,0,-1))
+            chi = (T @ chi.transpose((1,0,-1))).transpose((1,0,-1))
 
         # TODO : specific cost for collocation methods
         cost = 1
 
     elif scheme == 'MULTISTEP':  # Adams-Bashforth method
+
+        raise NotImplementedError('Multistep scheme not vectorized yet ...')
 
         # Default node-to-node formulation
         a = (1+3/2*lamDt*deltas)

@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 from matplotlib import ticker
 
 def plotAccuracyContour(reLam, imLam, err, stab=None,
-                        eMin=-7, eMax=0, nLevels=22):
+                        eMin=-7, eMax=0, nLevels=22,
+                        figName=None):
     """
     2D contour plot of an error given in parameters for many complex values
 
@@ -30,6 +31,8 @@ def plotAccuracyContour(reLam, imLam, err, stab=None,
         Maximum exponent to be shown for the error. The default is 0.
     nLevels : int, optional
         Number of level to show on the contour plot. The default is 22.
+    figName : str, optional
+        Name for the generated figure. The default is None.
     """
     coords = np.meshgrid(reLam.ravel(), imLam.ravel(), indexing='ij')
     levels = np.logspace(eMin, eMax, num=nLevels)
@@ -37,7 +40,7 @@ def plotAccuracyContour(reLam, imLam, err, stab=None,
     err[err > 10**eMax] = 10**eMax
     ticks = [10**(i) for i in range(eMin, eMax+1)]
 
-    plt.figure()
+    plt.figure(figName)
     plt.contourf(*coords, err, levels=levels, locator=ticker.LogLocator())
     plt.colorbar(ticks=ticks, format=ticker.LogFormatter())
     plt.contour(*coords, err, levels=ticks,

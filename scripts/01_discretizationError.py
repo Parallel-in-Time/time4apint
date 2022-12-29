@@ -3,7 +3,7 @@
 """
 Created on Wed Dec 21 16:42:11 2022
 
-@author: cpf5546
+@author: tlunet
 """
 import numpy as np
 
@@ -13,13 +13,13 @@ from blockops.plots import plotAccuracyContour
 reLam = np.linspace(-4, 0.5, 501)
 imLam = np.linspace(-3, 3, 500)
 N = 10
-M = 1
-scheme = 'RK4'
+M = 4
+scheme = 'COLLOCATION'
 
 lam = reLam[:, None] + 1j*imLam[None, :]
 prob = BlockProblem(
     lam.ravel(), N, N, M, scheme,
-    nodes='LEGENDRE', qType='LOBATTO', nStepPerNode=1)
+    nodes='EQUID', qType='LOBATTO', nStepPerNode=1, form='Z2N')
 
 uExact = prob.getSolution('exact')
 uNum = prob.getSolution('fine')

@@ -246,7 +246,10 @@ class BlockOperator(object):
 
     def __call__(self, u):
         if self.invert is not None:
-            u = np.linalg.solve(self.invert, u)
+            try:
+                u = np.linalg.solve(self.invert, u)
+            except ValueError:
+                u = np.linalg.solve(self.invert[None, ...], u)
         if self.matrix is not None:
             u = np.matmul(self.matrix, u[..., None]).squeeze(axis=-1)
         if self.isScalar:
