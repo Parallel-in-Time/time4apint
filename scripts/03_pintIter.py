@@ -15,17 +15,17 @@ zoom = 2
 reLam = np.linspace(-4*zoom, 0.5*zoom, 501)
 imLam = np.linspace(-3*zoom, 3*zoom, 500)
 N = 10
-M = 2
+M = 4
 schemeF = 'COLLOCATION'
 nStepsF = 40
 schemeG = 'RK4'
 nStepsG = 1
-algoName = 'Parareal'
+algoName = 'ABGS'
 
 lam = reLam[:, None] + 1j*imLam[None, :]
 prob = BlockProblem(
     lam.ravel(), N, N, M, schemeF, nStepPerNode=nStepsF,
-    nodes='EQUID', quadType='LOBATTO', form='N2N')
+    nodes='LEGENDRE', quadType='LOBATTO', form='Z2N')
 prob.setApprox(schemeG, nStepPerNode=nStepsG)
 
 algo = prob.getBlockIteration(algoName)
@@ -54,8 +54,9 @@ errPinT = np.abs(uNum-uPar)
 errPinTMax = np.max(errPinT, axis=(1, -1)).reshape(
     (errPinT.shape[0],) + (lam.shape))
 
-# Compute required number of iteration to discretization error
+# Compute required number of iterations to discretization error
 nIter = -np.ones_like(errDiscrMax)
+nIter *= 2
 k = errPinT.shape[0]-1
 for err in errPinTMax[-1::-1]:
     nIter[err < errDiscrMax] = k
@@ -65,11 +66,12 @@ for err in errPinTMax[-1::-1]:
 
 # %%
 coords = np.meshgrid(reLam.ravel(), imLam.ravel(), indexing='ij')
-levels = np.arange(nIterMax+1)
+levels = np.arange(nIterMax+2)-1
 
 plt.figure('PinTIter')
 plt.contourf(*coords, nIter, levels=levels)
-plt.colorbar(ticks=levels)
+plt.colorbar(ticks=levels[1:])
+plt.contour(*coords, nIter, levels=levels, colors='black', linestyles=':')
 plt.hlines(0, coords[0].min(), coords[0].max(),
            colors='black', linestyles='--')
 plt.vlines(0, coords[1].min(), coords[1].max(),

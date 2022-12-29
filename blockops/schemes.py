@@ -33,8 +33,8 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
     nodes = kwargs.pop('nodes',
                        'LEGENDRE' if scheme=='COLLOCATION' else 'EQUID')
     if isinstance(nodes, str):
-        qType = kwargs.pop('qType', 'RADAU-RIGHT')
-        nodes = NodesGenerator(nodes, qType).getNodes(M)
+        quadType = kwargs.pop('quadType', 'RADAU-RIGHT')
+        nodes = NodesGenerator(nodes, quadType).getNodes(M)
         nodes += 1
         nodes /= 2
     nodes = np.around(np.ravel(nodes), 14)
@@ -106,7 +106,7 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
 
         # Eventually switch to node-to-node formulation
         if form == 'N2N':
-            T = np.eye(M)
+            T = np.eye(phi.shape[0])
             T[1:,:-1][np.diag_indices(M-1)] = -1
             phi = (T @ phi.transpose((1, 0, -1))).transpose((1,0,-1))
             chi = (T @ chi.transpose((1,0,-1))).transpose((1,0,-1))
@@ -144,8 +144,9 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
         raise NotImplementedError(f'scheme = {scheme}')
 
     # Print warning for unused parameters
-    for key in kwargs:
-        print(f'WARNING : {key} was given to getBlockMatrices but not used')
+    for key, val in kwargs.items():
+        print(f'WARNING : {key} ({val}) was given to getBlockMatrices'
+              ' but not used')
 
     # Transpose and eventually squeeze
     phi = phi.transpose((2,0,1))

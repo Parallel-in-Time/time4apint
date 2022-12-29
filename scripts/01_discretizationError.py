@@ -19,7 +19,8 @@ scheme = 'COLLOCATION'
 lam = reLam[:, None] + 1j*imLam[None, :]
 prob = BlockProblem(
     lam.ravel(), N, N, M, scheme,
-    nodes='EQUID', qType='LOBATTO', nStepPerNode=1, form='Z2N')
+    nodes='LEGENDRE', quadType='GAUSS', nStepPerNode=1, form='Z2N',
+    exactProlong=False)
 
 uExact = prob.getSolution('exact')
 uNum = prob.getSolution('fine')
