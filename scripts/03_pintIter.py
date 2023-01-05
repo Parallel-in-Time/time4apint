@@ -20,7 +20,7 @@ schemeF = 'COLLOCATION'
 nStepsF = 40
 schemeG = 'RK4'
 nStepsG = 1
-algoName = 'ABGS'
+algoName = 'Parareal'
 
 lam = reLam[:, None] + 1j*imLam[None, :]
 prob = BlockProblem(
