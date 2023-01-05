@@ -2,8 +2,9 @@
 
 A task graph with communication costs can be represented as a directed acyclic graph (DAG) $G=(V,E,\omega, c)$. 
 Here $V = \{v_1, ..., v_n\}$ represent the set of tasks and the directed edges $E \subseteq V \times V$ represent the 
-dependencies of the tasks. The weighting functions $\omega : V \rightarrow \mathbb{R}^{+}_{0}$ and $ c : E \rightarrow 
-\mathbb{R}^{+}_{0}$ represent the cost of executing a task and the communication cost between two tasks, respectively.
+dependencies of the tasks. The weighting functions 
+$\omega : V \mapsto \mathbb{R}_ {0}^{+}$ and $c : E \mapsto \mathbb{R}_ {0}^{+}$ 
+represent the cost of executing a task and the communication cost between two tasks, respectively.
 
 An object of the `BlockIteration` class can automatically create the task graph for an explicit setting of the number
 of blocks and the number of iterations per block. This graph can be plotted using the `plotGraph` function. Note that
