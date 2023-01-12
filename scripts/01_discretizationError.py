@@ -12,14 +12,14 @@ from blockops.plots import plotAccuracyContour
 
 reLam = np.linspace(-4, 0.5, 501)
 imLam = np.linspace(-3, 3, 500)
-N = 10
-M = 4
+N = 20
+M = 5
 scheme = 'COLLOCATION'
 
 lam = reLam[:, None] + 1j*imLam[None, :]
 prob = BlockProblem(
     lam.ravel(), N, N, M, scheme,
-    nodes='LEGENDRE', quadType='GAUSS', nStepPerNode=1, form='Z2N',
+    nodes='LEGENDRE', quadType='LOBATTO', nStepPerNode=1, form='Z2N',
     exactProlong=False)
 
 uExact = prob.getSolution('exact')
