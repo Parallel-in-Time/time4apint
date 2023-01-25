@@ -3,7 +3,6 @@ import re
 
 import sympy as sy
 
-from .error import convergenceEstimator
 # BlockOps import
 from .graph import PintGraph
 from .taskpool import TaskPool
