@@ -73,7 +73,7 @@ class Task(object):
             self.op_latex = 'initial condition'
         self.dep = self.findDependencies()  # Find dependencies based on op
         self.name = self.computeName()
-        pattern = re.compile(str(result).replace('^', '\^') + "_\d$")
+        pattern = re.compile(str(result).replace('^', '\^') + "_\d+$")
         self.subtasks = [key for key in taskpool.pool if pattern.match(str(key))]
         self.followingTasks = []
 
