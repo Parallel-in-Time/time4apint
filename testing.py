@@ -18,8 +18,8 @@ nStepsF = 50
 nStepsG = 3
 algoName = 'Parareal'
 
-prob = BlockProblem(lam, tEnd, N, 1, 'BE', nStepPerNode=nStepsF)
-prob.setApprox('BE', nStepPerNode=nStepsG)
+prob = BlockProblem(lam, tEnd, N, 1, 'BE', nStepsPerPoint=nStepsF)
+prob.setApprox('BE', nStepsPerPoint=nStepsG)
 
 
 uSeq = prob.getSolution('fine', initSol=True)

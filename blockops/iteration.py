@@ -268,9 +268,9 @@ class Parareal(BlockIteration):
 
     def __init__(self, implicitForm=True, coarsePred=True, **blockOps):
         if implicitForm:
-            B00 = "(phi**(-1)*chi-phiDelta**(-1)*chi) * u_{n}^k"
-            B01 = "phiDelta**(-1)*chi * u_{n}^{k+1}"
-            predictor = "phiDelta**(-1)*chi" if coarsePred else None
+            B00 = "(phi**(-1)*chi-phiApprox**(-1)*chi) * u_{n}^k"
+            B01 = "phiApprox**(-1)*chi * u_{n}^{k+1}"
+            predictor = "phiApprox**(-1)*chi" if coarsePred else None
         else:
             B00 = "(F-G) * u_{n}^k"
             B01 = "G * u_{n}^{k+1}"
@@ -287,9 +287,9 @@ class ABJ(BlockIteration):
 
     def __init__(self, implicitForm=True, coarsePred=True, **blockOps):
         if implicitForm:
-            B00 = "phiDelta**(-1)*chi * u_{n}^k"
-            B10 = "(I-phiDelta**-1 * phi) * u_{n+1}^{k}"
-            predictor = "phiDelta**(-1)*chi" if coarsePred else None
+            B00 = "phiApprox**(-1)*chi * u_{n}^k"
+            B10 = "(I-phiApprox**-1 * phi) * u_{n+1}^{k}"
+            predictor = "phiApprox**(-1)*chi" if coarsePred else None
         else:
             B00 = "G * u_{n}^k"
             B10 = "(I-G*F**(-1)) * u_{n}^{k+1}"
@@ -307,9 +307,9 @@ class ABGS(BlockIteration):
 
     def __init__(self, implicitForm=True, coarsePred=True, **blockOps):
         if implicitForm:
-            B01 = "phiDelta**(-1)*chi * u_{n}^{k+1}"
-            B10 = "(I-phiDelta**-1 * phi) * u_{n+1}^{k}"
-            predictor = "phiDelta**(-1)*chi" if coarsePred else None
+            B01 = "phiApprox**(-1)*chi * u_{n}^{k+1}"
+            B10 = "(I-phiApprox**-1 * phi) * u_{n+1}^{k}"
+            predictor = "phiApprox**(-1)*chi" if coarsePred else None
         else:
             B01 = "G * u_{n}^{k+1}"
             B10 = "(I-G*F**(-1)) * u_{n}^{k+1}"

@@ -27,27 +27,27 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
     lamDt = np.ravel(lamDt)[None, :]
 
     # Reduce M for collocation with exact end-point prolongation
-    exactProlong = kwargs.pop('exactProlong', False)
-    if exactProlong and scheme == 'COLLOCATION':
+    quadProlong = kwargs.pop('quadProlong', False)
+    if quadProlong and scheme == 'COLLOCATION':
         M -= 1
 
     # Time-points for the block discretization
-    nodes = kwargs.pop('nodes',
+    points = kwargs.pop('points',
                        'LEGENDRE' if scheme=='COLLOCATION' else 'EQUID')
-    if isinstance(nodes, str):
+    if isinstance(points, str):
         quadType = kwargs.pop('quadType', 'RADAU-RIGHT')
-        nodes = NodesGenerator(nodes, quadType).getNodes(M)
-        nodes += 1
-        nodes /= 2
-    nodes = np.around(np.ravel(nodes), 14)
-    if not ((min(nodes) >= 0) and (max(nodes) <= 1)):
-        raise ValueError(f'inconsistent nodes : {nodes}')
-    M = len(nodes)
+        points = NodesGenerator(points, quadType).getNodes(M)
+        points += 1
+        points /= 2
+    points = np.around(np.ravel(points), 14)
+    if not ((min(points) >= 0) and (max(points) <= 1)):
+        raise ValueError(f'inconsistent time points : {points}')
+    M = len(points)
     deltas = np.array(
-        [tauR-tauL for tauL, tauR in zip([0]+list(nodes)[:-1], list(nodes))])
+        [tauR-tauL for tauL, tauR in zip([0]+list(points)[:-1], list(points))])
     deltas = deltas[:, None]
 
-    # Node formulation
+    # Node formulation : node-to-node (N2N) or zero-to-nodes (Z2N)
     if form is None:
         form = 'Z2N' if scheme == 'COLLOCATION' else 'N2N'
     if form not in ['Z2N', 'N2N']:
@@ -59,11 +59,11 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
     if scheme in RK_METHODS:
 
         # Default node-to-node formulation
-        nStepPerNode = kwargs.pop('nStepPerNode', 1)
+        nStepsPerPoint = kwargs.pop('nStepsPerPoint', 1)
 
         # Compute amplification factor
-        z = lamDt*deltas/nStepPerNode
-        R = STABILITY_FUNCTION_RK[scheme](z)**(-nStepPerNode)
+        z = lamDt*deltas/nStepsPerPoint
+        R = STABILITY_FUNCTION_RK[scheme](z)**(-nStepsPerPoint)
 
         # Build phi and chi matrices
         phi = np.zeros_like(R, shape=(M,)+R.shape)
@@ -79,19 +79,19 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
             phi = matMatMul(T, phi)
             chi = matMatMul(T, chi)
 
-        cost = nStepPerNode * M
+        cost = nStepsPerPoint * M
 
     # Collocation methods
     elif scheme == 'COLLOCATION':
 
         # Default zero-to-node formulation
-        polyApprox = LagrangeApproximation(nodes)
-        Q = polyApprox.getIntegrationMatrix([(0, tau) for tau in nodes])
+        polyApprox = LagrangeApproximation(points)
+        Q = polyApprox.getIntegrationMatrix([(0, tau) for tau in points])
         Q = Q[..., None]
 
-        if exactProlong:
+        if quadProlong:
             # Using exact prolongation
-            nodes = np.array(nodes.tolist()+[1])
+            points = np.append(points, [1])
             weights = polyApprox.getIntegrationMatrix([(0, 1)]).ravel()
             weights = weights[:, None]
             phi = np.zeros((M+1, M+1, lamDt.size))*lamDt
@@ -157,7 +157,7 @@ def getBlockMatrices(lamDt, M, scheme, form=None, **kwargs):
         phi = phi.squeeze(axis=0)
         chi = chi.squeeze(axis=0)
 
-    return phi, chi, nodes, cost, form
+    return phi, chi, points, cost, form
 
 
 def getTransferMatrices(nodesFine, nodesCoarse):
