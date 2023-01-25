@@ -22,29 +22,29 @@ class BlockProblem(object):
         self.lam = lam
 
         # Set up bock operators and propagator of the sequential problem
-        phi, chi, nodes, cost, form = getBlockMatrices(
+        phi, chi, points, cost, form = getBlockMatrices(
             lam*self.dt, M, scheme, **schemeArgs)
         self.phi = BlockOperator(r'\phi', matrix=phi, cost=cost)
         self.chi = BlockOperator(r'\chi', matrix=chi, cost=0)
         self.prop = self.phi**(-1) * self.chi
-        self.nodes = nodes
+        self.points = points
         self.scheme = scheme
         self.form = form
 
         # Storage for approximate and coarse block operators
-        self.phiDelta = None
-        self.schemeDelta = None
-        self.propDelta = None
+        self.phiApprox= None
+        self.schemeApprox = None
+        self.propApprox = None
 
         self.phiCoarse = None
         self.chiCoarse = None
-        self.nodesCoarse = None
+        self.pointsCoarse = None
         self.TFtoC = None
         self.TCtoF = None
         self.deltaChi = None
 
-        self.phiDeltaCoarse = None
-        self.methodDeltaCoarse = None
+        self.phiApproxCoarse = None
+        self.methodApproxCoarse = None
 
         # Problem parameters
         self.u0 = np.ones_like(u0*lam, shape=(1, M))
@@ -57,7 +57,7 @@ class BlockProblem(object):
 
     @property
     def times(self):
-        return np.array([[(i+tau)*self.dt for tau in self.nodes]
+        return np.array([[(i+tau)*self.dt for tau in self.points]
                          for i in range(self.N)])
 
     @property
@@ -69,26 +69,26 @@ class BlockProblem(object):
 
     def setApprox(self, scheme, **schemeArgs):
         phi, _, _, cost, _ = getBlockMatrices(
-            self.lam*self.dt, self.M, scheme, nodes=self.nodes, form=self.form,
+            self.lam*self.dt, self.M, scheme, points=self.points, form=self.form,
             **schemeArgs)
-        self.phiDelta = BlockOperator(r'\phi_{Delta}', matrix=phi, cost=cost)
-        self.schemeDelta = scheme
-        self.propDelta = self.phiDelta**(-1) * self.chi
+        self.phiApprox = BlockOperator(r'\phi_{Delta}', matrix=phi, cost=cost)
+        self.schemeApprox = scheme
+        self.propApprox = self.phiApprox**(-1) * self.chi
 
     @property
     def approxSet(self):
-        for attr in ['phiDelta', 'schemeDelta', 'propDelta']:
+        for attr in ['phiApprox', 'schemeApprox', 'propApprox']:
             if getattr(self, attr) is None:
                 return False
         return True
 
     def setCoarseLevel(self, M):
-        phi, chi, nodes, cost, _ = getBlockMatrices(
+        phi, chi, points, cost, _ = getBlockMatrices(
             self.lam*self.dt, M, self.method, form=self.form)
-        self.nodesCoarse = nodes
+        self.pointsCoarse = points
         self.phiCoarse = BlockOperator(
             r'\tilde{\phi}', matrix=phi, cost=cost)
-        TFtoC, TCtoF = getTransferMatrices(self.nodes, self.nodesCoarse)
+        TFtoC, TCtoF = getTransferMatrices(self.points, self.pointsCoarse)
         self.TFtoC = BlockOperator('T_F^C', matrix=TFtoC, cost=0)
         self.TCtoF = BlockOperator('T_C^F', matrix=TCtoF, cost=0)
         # TODO : add deltaChi
@@ -108,7 +108,7 @@ class BlockProblem(object):
         if sType == 'fine':
             prop = self.prop
         elif sType == 'approx':
-            prop = self.propDelta
+            prop = self.propApprox
         else:
             raise NotImplementedError(f'sType={sType}')
         for i in range(self.N):
@@ -136,7 +136,7 @@ class BlockProblem(object):
             if not self.approxSet:
                 raise ValueError('Approximation not set for the problem')
             blockIter = BlockIter(
-                phi=self.phi, phiDelta=self.phiDelta, chi=self.chi)
+                phi=self.phi, phiApprox=self.phiApprox, chi=self.chi)
             blockIter.prob = self
             return blockIter
         except KeyError:

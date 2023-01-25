@@ -22,8 +22,8 @@ algoName = 'Parareal'
 
 lam = reLam[:, None] + 1j*imLam[None, :]
 prob = BlockProblem(
-    lam.ravel(), N, N, M, scheme, nStepPerNode=nStepsF)
-prob.setApprox(scheme, nStepPerNode=nStepsG)
+    lam.ravel(), N, N, M, scheme, nStepsPerPoint=nStepsF)
+prob.setApprox(scheme, nStepsPerPoint=nStepsG)
 
 algo = prob.getBlockIteration(algoName)
 
