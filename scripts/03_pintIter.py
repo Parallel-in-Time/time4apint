@@ -12,12 +12,12 @@ from blockops import BlockProblem
 from blockops.plots import plotAccuracyContour, plotContour
 
 zoom = 1
-reLam = np.linspace(-4 / zoom, 0.5 / zoom, 5)
-imLam = np.linspace(-3 / zoom, 3 / zoom, 5)
-N = 3
-M = 1
-schemeF = 'RK4'
-nStepsF = 2
+reLam = np.linspace(-4 / zoom, 0.5 / zoom, 501)
+imLam = np.linspace(-3 / zoom, 3 / zoom, 500)
+N = 10
+M = 4
+schemeF = 'COLLOCATION'
+nStepsF = 40
 schemeG = 'RK4'
 nStepsG = 1
 algoName = 'Parareal'
@@ -55,7 +55,7 @@ errPinTMax = np.max(errPinT, axis=(1, -1)).reshape(
     (errPinT.shape[0],) + (lam.shape))
 
 # Compute required number of iterations to discretization error
-nIter = -np.ones_like(errDiscrMax)
+nIter = -np.ones_like(errDiscrMax, dtype=int)
 nIter *= 2
 k = errPinT.shape[0] - 1
 for err in errPinTMax[-1::-1]:
@@ -65,21 +65,26 @@ for err in errPinTMax[-1::-1]:
 # %% Plotting
 plotContour(reLam=reLam, imLam=imLam, val=nIter, nLevels=nIterMax, figName='PinTIter')
 
-#Optimal scheduling
-runtimeOpt = np.zeros(N + 1)
-for k in range(1, N + 1):
-    runtimeOpt[k] = algo.getRuntime(N=N, K=k, nProc=N, schedule_type='OPTIMAL')
-nRuntime = runtimeOpt[nIter.astype(int)]
+#TODO: The following plots give an idea what we might want. But not 100% sure.
+if True:
+    #Optimal scheduling
+    reqIters = np.unique(nIter)
+    runtimeOpt = np.zeros(N + 1)
+    for k in range(1, N + 1):
+        if k in reqIters:
+            runtimeOpt[k] = algo.getRuntime(N=N, K=k, nProc=N, schedule_type='OPTIMAL')
+    nRuntime = runtimeOpt[nIter]
 
-# %% Plotting
-plotContour(reLam=reLam, imLam=imLam, val=nRuntime, figName='PinTRuntime Optimal Schedule')
+    # %% Plotting
+    plotContour(reLam=reLam, imLam=imLam, val=nRuntime, figName='PinTRuntime Optimal Schedule')
 
-#Block-by-Block scheduling
-runtimeBbB = np.zeros(N + 1)
-for k in range(1, N + 1):
-    runtimeBbB[k] = algo.getRuntime(N=N, K=k, nProc=N, schedule_type='BLOCK-BY-BLOCK')
-nRuntime = runtimeBbB[nIter.astype(int)]
+    #Block-by-Block scheduling
+    runtimeBbB = np.zeros(N + 1)
+    for k in range(1, N + 1):
+        if k in reqIters:
+            runtimeBbB[k] = algo.getRuntime(N=N, K=k, nProc=N, schedule_type='BLOCK-BY-BLOCK')
+    nRuntime = runtimeBbB[nIter]
 
-# %% Plotting
-plotContour(reLam=reLam, imLam=imLam, val=nRuntime, figName='PinTRuntime Block-by-Block Schedule')
+    # %% Plotting
+    plotContour(reLam=reLam, imLam=imLam, val=nRuntime, figName='PinTRuntime Block-by-Block Schedule')
 
