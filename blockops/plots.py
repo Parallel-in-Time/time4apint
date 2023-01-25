@@ -53,4 +53,5 @@ def plotAccuracyContour(reLam, imLam, err, stab=None,
     plt.gca().set_aspect('equal', 'box')
     plt.xlabel(r'$Re(\lambda\Delta{T})$')
     plt.ylabel(r'$Im(\lambda\Delta{T})$')
+    plt.title(figName)
     plt.tight_layout()

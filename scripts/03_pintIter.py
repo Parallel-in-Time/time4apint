@@ -67,6 +67,7 @@ coords = np.meshgrid(reLam.ravel(), imLam.ravel(), indexing='ij')
 levels = np.arange(nIterMax+2)-1
 
 plt.figure('PinTIter')
+plt.title('PinTIter')
 plt.contourf(*coords, nIter, levels=levels)
 plt.colorbar(ticks=levels[1:])
 plt.contour(*coords, nIter, levels=levels,

@@ -174,8 +174,9 @@ class Optimal(Schedule):
         self.startPointProc = np.zeros(20000000)
 
     def pickTask(self):
-        # Choose the first task (not important here, because infinity processes)
-        return self.availableTasks[0]
+        # Choose the cheapest task (Typically corresponds to coarse solves that often allow new tasks)
+        # Random choices are possible
+        return self.availableTasks[np.argmin([self.taskPool.getTask(item).cost for item in self.availableTasks])]
 
     def assignTask(self, taskName):
         task = self.taskPool.getTask(taskName)
