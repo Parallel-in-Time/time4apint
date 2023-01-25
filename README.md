@@ -1,5 +1,11 @@
 # Call of PinTy : BlockOps
 
+## Motivations
+
+Develop a python code based on a generic framework allowing to investigate and analyze the performance of iterative parallel-in-time (PinT) algorithms : [blockops](./blockops/)
+
+Implement a graphical user interface that could be exposed through a [demonstration website (web api)](./doc/website.md).
+
 ## Base convention
 
 Represent an iterative PinT algorithm with a **block iteration** of the form
