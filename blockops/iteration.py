@@ -192,6 +192,12 @@ class BlockIteration(object):
         else:
             return u[:, 1:]
 
+    def getRuntime(self, N, K, nProc, schedule_type='OPTIMAL'):
+        K = self.checkK(N=N, K=K)
+        run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
+        schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
+        return schedule.getRuntime()
+
     def speedup(self, N, K, nProc, schedule_type='OPTIMAL'):
         K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
