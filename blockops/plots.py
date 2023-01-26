@@ -56,6 +56,7 @@ def plotAccuracyContour(reLam, imLam, err, stab=None,
     plt.xlabel(r'$Re(\lambda\Delta{T})$')
     plt.ylabel(r'$Im(\lambda\Delta{T})$')
     plt.tight_layout()
+    plt.show()
 
 
 def plotContour(reLam, imLam, val, nLevels=-1, figName=None):
@@ -95,3 +96,4 @@ def plotContour(reLam, imLam, val, nLevels=-1, figName=None):
     plt.xlabel(r'$Re(\lambda)$')
     plt.ylabel(r'$Im(\lambda)$')
     plt.tight_layout()
+    plt.show()

@@ -23,7 +23,7 @@ class TaskPool:
         return self.pool[name]
 
     def getColor(self, name):
-        if re.match(r"\$u_\d\^\d|u\^\d_\d", name):
+        if re.match(r"\$u_{\d+}\^{\d+}|u\^{\d+}_{\d+}", name):
             name = "u_*^*"
         if name in self.colorLookup:
             return self.colorLookup[name]
@@ -35,6 +35,17 @@ class TaskPool:
                 self.colorCounter += 1
             self.colorLookup[name] = color
             return color
+
+    def __eq__(self, other):
+        if len(self.pool) != len(other.pool):
+            return False
+        shared_items = {k: self.pool[k] for k in self.pool if k in other.pool and self.pool[k] == other.pool[k]}
+        shared_items2 = {k: self.pool[k] for k in self.pool if k not in other.pool or self.pool[k] != other.pool[k]}
+        shared_items3 = {k: other.pool[k] for k in other.pool if k not in self.pool or other.pool[k] != self.pool[k]}
+        if len(self.pool) == len(shared_items):
+            return True
+        else:
+            return False
 
 
 class Task(object):
@@ -55,27 +66,29 @@ class Task(object):
         """
         self.op = op  # Operation (sympy expression)
         self.result = result  # Result (what is computed by this task)
-        self.cost = cost
-        self.color = "gray"
-        self.result_latex = self.translateToLatex(input=f'{result}')
-        if len(re.split('_|\^', result.name)) == 3:
+        self.cost = cost  # Costs
+        self.color = "gray"  # Default color
+        self.dep = self.findDependencies()  # Find dependencies based on op
+        self.name = self.computeName()  # Compute name
+        self.subtasks = self.findSubtasks(taskpool=taskpool)
+        self.followingTasks = []
+
+        tmp_split = re.split('_|\^', result.name)
+        if len(tmp_split) <= 2:
+            raise Exception('This should not happen')
+
+        self.iteration = int(tmp_split[2])
+        self.block = int(tmp_split[1])
+
+        if len(tmp_split) == 3:
             self.type = 'main'
         else:
             self.type = 'sub'
-        if len(re.split('_|\^', result.name)) >= 3:
-            self.iteration = int(re.split('_|\^', result.name)[2])
-            self.block = int(re.split('_|\^', result.name)[1])
-        else:
-            raise Exception("This should not happen")
-        if f'{op}' != '0':
-            self.op_latex = self.translateLatexOp(op=f'{op}')
-        else:
-            self.op_latex = 'initial condition'
-        self.dep = self.findDependencies()  # Find dependencies based on op
-        self.name = self.computeName()
-        pattern = re.compile(str(result).replace('^', '\^') + "_\d+$")
-        self.subtasks = [key for key in taskpool.pool if pattern.match(str(key))]
-        self.followingTasks = []
+
+    def findSubtasks(self, taskpool):
+        tmpRegex = self.translateSymbolString(self.result) + ("_{\d+}$")
+        tmpRegex = tmpRegex.replace('^', '\^').replace('}', '\}').replace('{', '\{')
+        return [key for key in taskpool.pool if re.compile(tmpRegex).match(self.translateSymbolString(key))]
 
     def findDependencies(self):
         """
@@ -88,17 +101,13 @@ class Task(object):
 
     # TODO: Find a better way to set the name
     def computeName(self):
-        name = ''
         if len(self.op.args) > 0:
             if isinstance(self.op.args[0], sy.Symbol):
                 if len(re.split('u_|u\^', self.op.args[0].name)) > 1:
-                    name = re.sub('\$', '', f'{self.result}')
-                    name = f"${name}$"
+                    name = self.translateSymbolString(symbol=self.result)
                 else:
-                    name = re.sub('\$', '', f'{self.op.args[0]}')
-                    name = f"${name}$"
+                    name = f"{self.op.args[0]}"
             elif isinstance(self.op.args[0], sy.Integer):
-                func = self.op.func
                 if self.op.func.is_Mul:
                     func = '*'
                 elif self.op.func.is_Add:
@@ -108,34 +117,19 @@ class Task(object):
                 name = f'{self.op.args[0]}{func}'
             elif isinstance(self.op.args[0], sy.Pow):
                 name = f'{self.op.args[0].args[0]}^{{{self.op.args[0].args[1]}}}'
-                name = re.sub('\$', '', f'{name}')
-                name = f"${name}$"
             else:
                 raise Exception(f'Unknown operation in {self.result}={self.op} with {type(self.op.args[0])}')
         else:
-            name = re.sub('\$', '', f'{self.result.name}')
-            name = f"${name}$"
-        return name
+            name = self.translateSymbolString(symbol=self.result)
 
-    def translateToLatex(self, input):
-        indices = re.split('_|\^', input)
-        st = ''
-        for i in range(3, len(indices)):
-            if i == 3:
-                st += f'{indices[i]}'
-            else:
-                st += f',{indices[i]}'
-        if len(indices) > 3:
-            new_string = f'${{{indices[0]}_{indices[1]}^{indices[2]}|}}_{{{st}}}$'
+        return f"${name}$"
+
+    def translateSymbolString(self, symbol):
+        return re.compile(r'(\d+)').sub(r'{\1}', str(symbol))
+
+    def __eq__(self, other):
+        if (self.op == other.op and self.result == other.result and self.iteration == other.iteration and
+                self.block == other.block and self.name == other.name):
+            return True
         else:
-            new_string = f'${{{indices[0]}_{indices[1]}^{indices[2]}}}$'
-        return new_string
-
-    def translateLatexOp(self, op):
-        a = re.search('u_\d+\^\d+(_\d+)*', f'{op}')
-        u_part = self.translateToLatex(input=a.group(0))
-        rest = re.sub('u_\d+\^\d+(_\d+)*', '', f'{op}')
-        rest += u_part
-        rest = re.sub('\$', '', f'{rest}')
-        rest = f'${rest}$'
-        return rest
+            return False

@@ -2,13 +2,14 @@
 import re
 
 import sympy as sy
+import time
 
 # BlockOps import
 from .graph import PintGraph
 from .taskpool import TaskPool
 
 
-class PintRun:
+class PintRun2:
     def __init__(self, blockIteration, nBlocks, kMax):
         self.blockIteration = blockIteration
         self.nBlocks = nBlocks
@@ -128,17 +129,25 @@ class PintRun:
         predictorRule = predictorRule.simplify().expand()
         return predictorRule
 
+    def getReducedDict(self, expr, direct):
+        keys = [atoms for atoms in expr.atoms() if str(atoms).startswith('u')]
+        if direct == 'appCo':
+            short = {key: self.approxToComputation[key] for key in keys if key in self.approxToComputation}
+        elif direct == 'coApp':
+            short = {key: self.computationToApprox[key] for key in keys if key in self.computationToApprox}
+        else:
+            raise Exception('Unknown direction')
+        return short
+
     def substitute_and_simplify(self, expr):
-        expr = expr.subs(self.approxToComputation)
-        # for key, value in self.approxToComputation.items():
-        #     expr = expr.subs({key: self.approxToComputation[key]})
-        expr = expr.subs(self.blockIteration.rules)
-        expr = expr.subs(self.computationToApprox)
-        # for key, value in self.computationToApprox.items():
-        #     expr = expr.subs({key: self.computationToApprox[key]})
-        expr = expr.subs(self.blockIteration.rules)
-        expr = expr.subs(self.equBlockCoeff)
-        expr = expr.subs(self.blockIteration.rules)
+        short = self.getReducedDict(expr=expr, direct='appCo')
+        expr = expr.subs(self.approxToComputation,simultaneous=True)
+        expr = expr.subs(self.blockIteration.rules,simultaneous=True)
+        short = self.getReducedDict(expr=expr, direct='coApp')
+        expr = expr.subs(self.computationToApprox,simultaneous=True)
+        expr = expr.subs(self.blockIteration.rules,simultaneous=True)
+        expr = expr.subs(self.equBlockCoeff,simultaneous=True)
+        expr = expr.subs(self.blockIteration.rules,simultaneous=True)
         return expr
 
     def createExpressions(self):
