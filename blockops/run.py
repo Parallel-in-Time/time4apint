@@ -6,7 +6,7 @@ import sympy as sy
 # BlockOps import
 from .graph import PintGraph
 from .taskpool import TaskPool
-
+import time
 
 class PintRun:
     def __init__(self, blockIteration, nBlocks, kMax):
@@ -34,10 +34,10 @@ class PintRun:
         return self.pintGraph.longestPath()
 
     def plotGraph(self, figName=None, figSize=(6.4, 4.8)):
-        return self.pintGraph.plotGraph(figName,figSize=figSize)
+        return self.pintGraph.plotGraph(figName, figSize=figSize)
 
     def createSymbolForUnk(self, n, k):
-        #TODO: Workaround to make FCF work. But maybe this is not the way to go
+        # TODO: Workaround to make FCF work. But maybe this is not the way to go
         if n < 0:
             n = 0
         if k > self.kMax[n]:
@@ -128,17 +128,23 @@ class PintRun:
         predictorRule = predictorRule.simplify().expand()
         return predictorRule
 
-    def substitute_and_simplify(self, expr):
-        expr = expr.subs(self.approxToComputation)
-        # for key, value in self.approxToComputation.items():
-        #     expr = expr.subs({key: self.approxToComputation[key]})
-        expr = expr.subs(self.blockIteration.rules)
-        expr = expr.subs(self.computationToApprox)
-        # for key, value in self.computationToApprox.items():
-        #     expr = expr.subs({key: self.computationToApprox[key]})
-        expr = expr.subs(self.blockIteration.rules)
-        expr = expr.subs(self.equBlockCoeff)
-        expr = expr.subs(self.blockIteration.rules)
+    def substitute_and_simplify(self, expr, res):
+        ruleSimplifaction = len(self.blockIteration.rules) > 0
+        expr = expr.subs({key: self.approxToComputation[key] for key in
+                          [atoms for atoms in expr.atoms() if str(atoms).startswith('u')] if
+                          key in self.approxToComputation})
+        if ruleSimplifaction:
+            expr = expr.subs(self.blockIteration.rules)
+        for key, value in self.computationToApprox.items():
+            expr = expr.subs({key: self.computationToApprox[key]})
+        tmp = expr
+        if ruleSimplifaction:
+            tmp = tmp.subs(self.blockIteration.rules)
+        expr = tmp.subs(self.equBlockCoeff)
+        if tmp != expr:
+            expr = expr.subs(self.computationToApprox)
+            if ruleSimplifaction:
+                expr = expr.subs(self.blockIteration.rules)
         return expr
 
     def createExpressions(self):
@@ -149,8 +155,8 @@ class PintRun:
                                       result=self.createSymbolForUnk(n + 1, 0),
                                       cost=0)
             else:
-                rule = self.substitute_and_simplify(self.createPredictionRule(n=n + 1))
                 res = self.createSymbolForUnk(n=n + 1, k=0)
+                rule = self.substitute_and_simplify(self.createPredictionRule(n=n + 1), res)
                 self.taskGenerator(rule=rule, res=res)
                 if len(rule.args) > 0:
                     self.approxToComputation[res] = rule
@@ -161,8 +167,8 @@ class PintRun:
         for k in range(max(self.kMax)):
             for n in range(self.nBlocks):
                 if k < self.kMax[n + 1]:
-                    rule = self.substitute_and_simplify(self.createIterationRule(n=n + 1, k=k + 1))
                     res = self.createSymbolForUnk(n=n + 1, k=k + 1)
+                    rule = self.substitute_and_simplify(self.createIterationRule(n=n + 1, k=k + 1), res)
                     self.taskGenerator(rule=rule, res=res)
                     if len(rule.args) > 0:
                         self.computationToApprox[rule] = res
