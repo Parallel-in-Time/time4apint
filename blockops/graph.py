@@ -1,7 +1,7 @@
 # Python import
 import copy
 import re
-
+from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -46,7 +46,7 @@ class PintGraph:
         for i in range(len(task.subtasks)):
             self.addTaskToGraph(pos=self.computePos(pos=pos, i=i, size=len(task.subtasks)),
                                 task=self.pool.getTask(task.subtasks[i]))
-        self.graph.add_node(self.counter, pos=pos, task=task, name=task.name)
+        self.graph.add_node(self.counter, pos=pos, task=task, name=task.name, res=task.resultString)
         self.lookup[task.result] = self.counter
         for item in task.dep:
             self.graph.add_edge(self.lookup[self.pool.getTask(item).result], self.counter, cost=0)
@@ -68,8 +68,10 @@ class PintGraph:
             plt.axvline(x=n, color='gray', linestyle='-', alpha=0.3)
         pos = nx.get_node_attributes(self.graph, 'pos')
         color = [node[1]['task'].color for node in self.graph.nodes(data=True)]
-        nx.draw(self.graph, pos, labels=nx.get_node_attributes(self.graph, 'name'), with_labels=True, ax=ax,
+        nx.draw(self.graph, pos, labels=nx.get_node_attributes(self.graph, 'res'), with_labels=True, ax=ax,
                 node_color=color)
+        leg = [Line2D([0], [0], marker='o', color='w', label=key,
+                            markerfacecolor=value, markersize=15) for key, value in self.pool.colorLookup.items()]
         limits = plt.axis('on')  # turns on axis
         ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         ax.set_xlim(left=-0.2, right=self.nBlocks + 0.2)
@@ -80,6 +82,8 @@ class PintGraph:
         ax.set_xticklabels(labels=np.arange(0, self.nBlocks + 1))
         ax.set_yticks(ticks=np.arange(0, self.maxK + 1))
         ax.set_yticklabels(labels=np.arange(0, self.maxK + 1))
+        plt.legend(handles=leg, title='Task description',loc='upper center', bbox_to_anchor=(0.5, 1.17),
+          ncol=5, fancybox=True, shadow=True, numpoints = 1)
         plt.show()
 
     def longestPath(self) -> float:

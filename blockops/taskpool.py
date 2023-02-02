@@ -9,39 +9,35 @@ COLOR_LIST = ['#4c72b0', '#dd8452', '#55a868', '#c44e52', '#8172b3', '#937860', 
 class TaskPool:
     def __init__(self):
         self.pool = {}
-        self.colorLookup = {}
+        self.colorLookup = {'$IC$': 'lightgrey'}
         self.colorCounter = 0
 
     def addTask(self, operation, result, cost):
         tmp = Task(op=operation, result=result, cost=cost, taskpool=self)
         for item in tmp.dep:
             self.pool[item].followingTasks.append(result)
-        tmp.color = self.getColor(name=tmp.name)
+        tmp.color = self.getColor(type=tmp.opType)
         self.pool[result] = tmp
 
     def getTask(self, name):
         return self.pool[name]
 
-    def getColor(self, name):
-        if re.match(r"\$u_{\d+}\^{\d+}|u\^{\d+}_{\d+}", name):
-            name = "u_*^*"
-        if name in self.colorLookup:
-            return self.colorLookup[name]
+    def getColor(self, type):
+        if type in self.colorLookup:
+            return self.colorLookup[type]
         else:
             color = 'gray'
             if self.colorCounter < len(COLOR_LIST):
                 color = COLOR_LIST[self.colorCounter]
-                self.colorLookup[name] = color
+                self.colorLookup[type] = color
                 self.colorCounter += 1
-            self.colorLookup[name] = color
+            self.colorLookup[type] = color
             return color
 
     def __eq__(self, other):
         if len(self.pool) != len(other.pool):
             return False
         shared_items = {k: self.pool[k] for k in self.pool if k in other.pool and self.pool[k] == other.pool[k]}
-        shared_items2 = {k: self.pool[k] for k in self.pool if k not in other.pool or self.pool[k] != other.pool[k]}
-        shared_items3 = {k: other.pool[k] for k in other.pool if k not in self.pool or other.pool[k] != self.pool[k]}
         if len(self.pool) == len(shared_items):
             return True
         else:
@@ -85,6 +81,17 @@ class Task(object):
         else:
             self.type = 'sub'
 
+        self.resultString = self.getResultString()
+        self.opType = self.typeOfOperation()
+
+    def getResultString(self):
+        tmp = self.translateSymbolString(self.result)
+        if re.match(r"u_{\d+}\^{\d+}$", tmp):
+            name = f'${tmp}$'
+        else:
+            name = f'$\\overline{{u}}_{{{self.block}}}^{{{self.iteration}}}$'
+        return name
+
     def findSubtasks(self, taskpool):
         tmpRegex = self.translateSymbolString(self.result) + ("_{\d+}$")
         tmpRegex = tmpRegex.replace('^', '\^').replace('}', '\}').replace('{', '\{')
@@ -98,6 +105,34 @@ class Task(object):
         """
         tmp = [item for item in self.op.atoms() if (isinstance(item, sy.Symbol) and item.name.startswith('u'))]
         return tmp
+
+    def typeOfOperation(self):
+        if len(self.op.args) > 0:
+            if isinstance(self.op.args[0], sy.Symbol):
+                if len(re.split('u_|u\^', self.op.args[0].name)) > 1:
+                    if self.op.is_Add:
+                        type = '+'
+                    else:
+                        raise Exception('Does this exists?')
+                else:
+                    type = f"{self.op.args[0]}"
+            elif isinstance(self.op.args[0], sy.Integer):
+                if self.op.func.is_Mul:
+                    func = '*'
+                elif self.op.func.is_Add:
+                    func = '+'
+                else:
+                    raise Exception(f'Unknown func in {self.result}={self.op} with {type(self.op.func)}')
+                type = f'{self.op.args[0]}{func}'
+            elif isinstance(self.op.args[0], sy.Pow):
+                type = f'{self.op.args[0].args[0]}^{{{self.op.args[0].args[1]}}}'
+            else:
+                raise Exception(f'Unknown operation in {self.result}={self.op} with {type(self.op.args[0])}')
+        else:
+            type = 'IC'
+
+        return f'${type}$'
+
 
     # TODO: Find a better way to set the name
     def computeName(self):
