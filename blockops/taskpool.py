@@ -88,7 +88,7 @@ class Task(object):
         if re.match(r"u_{\d+}\^{\d+}$", tmp):
             name = f'${tmp}$'
         else:
-            name = f'$\\overline{{u}}_{{{self.block}}}^{{{self.iteration}}}$'
+            name = f''
         return name
 
     def findSubtasks(self, taskpool):

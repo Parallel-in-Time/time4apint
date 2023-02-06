@@ -15,9 +15,9 @@ zoom = 1
 reLam = np.linspace(-4 / zoom, 0.5 / zoom, 501)
 imLam = np.linspace(-3 / zoom, 3 / zoom, 500)
 N = 10
-M = 4
-schemeF = 'COLLOCATION'
-nStepsF = 40
+M = 1
+schemeF = 'RK4'
+nStepsF = 20
 schemeG = 'RK4'
 nStepsG = 1
 algoName = 'Parareal'
@@ -84,7 +84,7 @@ plotContour(reLam=reLam, imLam=imLam, val=nEffiencency, figName='Efficiency Lowe
 speedupBbB = np.zeros(N + 1)
 for k in range(1, N + 1):
     if k in reqIters:
-        speedupBbB[k] = algo.getRuntime(N=N, K=k, nProc=N, schedule_type='BLOCK-BY-BLOCK')
+        speedupBbB[k] = algo.speedup(N=N, K=k, nProc=N, schedule_type='BLOCK-BY-BLOCK')
         efficiencyLCF[k] = algo.efficiency(N=N, K=k, nProc=N, schedule_type='BLOCK-BY-BLOCK', speedup=speedupBbB[k])
 
 nSpeedup = speedupBbB[nIter]
