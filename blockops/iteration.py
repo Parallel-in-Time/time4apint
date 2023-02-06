@@ -192,44 +192,58 @@ class BlockIteration(object):
         else:
             return u[:, 1:]
 
-    def getRuntime(self, N, K, nProc, schedule_type='OPTIMAL'):
+    def getRuntime(self, N, K, nProc, schedule_type='BLOCK-BY-BLOCK'):
         K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
         return schedule.getRuntime()
 
-    def speedup(self, N, K, nProc, schedule_type='OPTIMAL'):
+    def efficiency(self, N, K, nProc, schedule_type='BLOCK-BY-BLOCK', speedup=None):
+        if speedup is None:
+            K = self.checkK(N=N, K=K)
+            run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
+            schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
+            runtime = schedule.getRuntime()
+
+            if '\\phi' in self.blockOps:
+                runtime_ts = N * self.blockOps['\\phi'].cost
+            else:
+                raise Exception('Currently \\phi is required for measuring time of timestepping')
+
+            speedup = (runtime_ts / runtime)
+        return speedup/nProc
+
+
+
+    def speedup(self, N, K, nProc, schedule_type='BLOCK-BY-BLOCK', verbose=False):
         K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
         runtime = schedule.getRuntime()
 
-        optimal_schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type='OPTIMAL')
-        optimal_runtime = optimal_schedule.getRuntime()
+        optimal_runtime = run.pintGraph.longestPath()
 
-        # This is only temporary to control the optimal schedule, remove it at some point
-        optimal_runtime_graph = run.pintGraph.longestPath()
-        if optimal_runtime != optimal_runtime_graph:
-            raise Exception('This should not happen')
-
-        # TODO: How to get the runtime of time stepping?
-        runtime_ts = N * 10
-
-        print('=============================')
-        if self.name is None:
-            print(f'Block iteration: {self.update}')
+        if '\\phi' in self.blockOps:
+            runtime_ts = N * self.blockOps['\\phi'].cost
         else:
-            print(f'Block iteration: {self.name}')
-            print(f'Update: {self.update}')
-        print(f'Predictor: {self.predictor}')
-        print(f'N={N}, K={K} \n')
-        print(f'Runtime of schedule={schedule.schedule_name} for nProc={nProc}: {runtime}')
-        print(f'Runtime time-stepping: {runtime_ts} (This is currently not the correct value)')
-        print(f'Speedup of schedule={schedule.schedule_name} for nProc={nProc}: {(runtime_ts / runtime):.2f} \n')
-        print(f'Theoretical lower runtime bound: {optimal_runtime}')
-        print(
-            f'Theoretical maximum speedup compared to time stepping: {(runtime_ts / optimal_runtime):.2f} (This is currently not the correct value)')
-        print('=============================')
+            runtime_ts = N * 10
+
+        if verbose:
+            print('=============================')
+            if self.name is None:
+                print(f'Block iteration: {self.update}')
+            else:
+                print(f'Block iteration: {self.name}')
+                print(f'Update: {self.update}')
+            print(f'Predictor: {self.predictor}')
+            print(f'N={N}, K={K} \n')
+            print(f'Runtime of schedule={schedule.schedule_name} for nProc={nProc}: {runtime}')
+            print(f'Runtime time-stepping: {runtime_ts} (This is currently not the correct value)')
+            print(f'Speedup of schedule={schedule.schedule_name} for nProc={nProc}: {(runtime_ts / runtime):.2f} \n')
+            print(f'Theoretical lower runtime bound: {optimal_runtime}')
+            print(
+                f'Theoretical maximum speedup compared to time stepping: {(runtime_ts / optimal_runtime):.2f} (This is currently not the correct value)')
+            print('=============================')
         return (runtime_ts / runtime)
 
     def plotGraph(self, N, K, figSize=(6.4, 4.8)):
@@ -237,7 +251,7 @@ class BlockIteration(object):
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         run.plotGraph(figName=None if self.name is None else self.name + ' (graph)', figSize=figSize)
 
-    def plotSchedule(self, N, K, nProc, schedule_type='OPTIMAL', figSize=(8, 4.8)):
+    def plotSchedule(self, N, K, nProc, schedule_type='BLOCK-BY-BLOCK', figSize=(8, 4.8)):
         K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)

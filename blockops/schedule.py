@@ -9,7 +9,9 @@ SCHEDULE_TYPES = {
     'BLOCK-BY-BLOCK': lambda taskPool, nProc, nPoints: PinTBlockByBlock(taskPool=taskPool, nProc=nProc,
                                                                         nPoints=nPoints),
     'WINDOWING': lambda taskPool, nProc, nPoints: PinTWindowing(taskPool=taskPool, nProc=nProc, nPoints=nPoints),
-    'OPTIMAL': lambda taskPool, nProc, nPoints: Optimal(taskPool=taskPool, nProc=nProc, nPoints=nPoints)}
+    'OPTIMAL': lambda taskPool, nProc, nPoints: Optimal(taskPool=taskPool, nProc=nProc, nPoints=nPoints),
+    'LCF' : lambda taskPool, nProc, nPoints: LowestCostFirst(taskPool=taskPool, nProc=nProc, nPoints=nPoints),
+}
 
 
 def getSchedule(taskPool: TaskPool, nProc: int, nPoints: int, schedule_type: str):
@@ -121,7 +123,7 @@ class PinTBlockByBlock(Schedule):
         self.schedule[taskName] = ScheduledTask(proc=self.point_to_proc[task.block],
                                                 start=possibleStartTime,
                                                 end=possibleStartTime + task.cost,
-                                                name=task.name,
+                                                name=task.opType,
                                                 color=task.color)
 
         self.startPointProc[self.point_to_proc[task.block]] = self.schedule[taskName].end
@@ -158,6 +160,65 @@ class PinTWindowing(Schedule):
         super().__init__(*args, **kwargs)
         self.schedule_name = '"PinTWindowing"'
 
+class LowestCostFirst(Schedule):
+    """
+    Calculates an schedule using a list approach where the task with lowest cost is schedules first. This assumes
+    that the cheapest tasks corresponds to lower lever tasks which helps most to enable new computations.
+    """
+
+    def __init__(self, *args: object, **kwargs: object):
+        super().__init__(*args, **kwargs)
+        self.availableTasks = [key for key, value in self.taskPool.pool.items() if len(value.dep) == 0]
+        self.notAvailableTasks = [key for key, value in self.taskPool.pool.items() if len(value.dep) > 0]
+        self.finishedTasks = []
+        self.schedule_name = '"LowestCostFirst"'
+
+    def pickTask(self):
+        return self.availableTasks[np.argmin([self.taskPool.getTask(item).cost for item in self.availableTasks])]
+
+    def assignTask(self, taskName):
+        task = self.taskPool.getTask(taskName)
+        minimal_start_time = 0
+        for depTask in task.dep:
+            if self.schedule[depTask].end > minimal_start_time:
+                minimal_start_time = self.schedule[depTask].end
+        # Get the first process who is free for the minimal start time
+        tmp = np.where(self.startPointProc <= minimal_start_time)[0]
+        if len(tmp) > 0:
+            proc = tmp[0]
+        else:
+            proc = np.argmin(self.startPointProc)
+            minimal_start_time = self.startPointProc[proc]
+        self.schedule[taskName] = ScheduledTask(proc=proc,
+                                                start=minimal_start_time,
+                                                end=minimal_start_time + task.cost,
+                                                name=task.opType,
+                                                color=task.color)
+        self.startPointProc[proc] = self.schedule[taskName].end
+        if self.schedule[taskName].end > self.makespan:
+            self.makespan = self.schedule[taskName].end
+
+    def updateLists(self, taskName):
+        self.finishedTasks += [taskName]
+        self.availableTasks = [item for item in self.availableTasks if item != taskName]
+        # Iterating on all following tasks
+        task = self.taskPool.getTask(name=taskName)
+        for item in task.followingTasks:
+            folTask = self.taskPool.getTask(name=item)
+            # Check if all dependencies are finished
+            if sum(el in self.finishedTasks for el in folTask.dep) == len(folTask.dep):
+                # Check if task is not already finished or available
+                if item not in self.finishedTasks and item not in self.availableTasks:
+                    # Add task to available tasks and remove from non available
+                    self.availableTasks.append(item)
+                    self.notAvailableTasks = [tmp for tmp in self.notAvailableTasks if tmp != item]
+
+    def computeSchedule(self):
+        while len(self.availableTasks) != 0:
+            taskName = self.pickTask()
+            self.assignTask(taskName=taskName)
+            self.updateLists(taskName=taskName)
+        self.nProc = len(np.where(self.startPointProc != 0)[0])
 
 class Optimal(Schedule):
     """

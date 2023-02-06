@@ -65,26 +65,31 @@ for err in errPinTMax[-1::-1]:
 # %% Plotting
 plotContour(reLam=reLam, imLam=imLam, val=nIter, nLevels=nIterMax, figName='PinTIter')
 
-#TODO: The following plots give an idea what we might want. But not 100% sure.
-if True:
-    #Optimal scheduling
-    reqIters = np.unique(nIter)
-    runtimeOpt = np.zeros(N + 1)
-    for k in range(1, N + 1):
-        if k in reqIters:
-            runtimeOpt[k] = algo.getRuntime(N=N, K=k, nProc=N, schedule_type='OPTIMAL')
-    nRuntime = runtimeOpt[nIter]
+# Lowest cost first scheduling
+reqIters = np.unique(nIter)
+speedupLCF = np.zeros(N + 1)
+efficiencyLCF = np.zeros(N + 1)
+for k in range(1, N + 1):
+    if k in reqIters:
+        speedupLCF[k] = algo.speedup(N=N, K=k, nProc=N + 1, schedule_type='LCF')
+        efficiencyLCF[k] = algo.efficiency(N=N, K=k, nProc=N + 1, schedule_type='LCF', speedup=speedupLCF[k])
+nSpeedup = speedupLCF[nIter]
+nEffiencency = efficiencyLCF[nIter]
 
-    # %% Plotting
-    plotContour(reLam=reLam, imLam=imLam, val=nRuntime, figName='PinTRuntime Optimal Schedule')
+# %% Plotting
+plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, figName='Speedup Lowest Cost First Schedule')
+plotContour(reLam=reLam, imLam=imLam, val=nEffiencency, figName='Efficiency Lowest Cost First Schedule')
 
-    #Block-by-Block scheduling
-    runtimeBbB = np.zeros(N + 1)
-    for k in range(1, N + 1):
-        if k in reqIters:
-            runtimeBbB[k] = algo.getRuntime(N=N, K=k, nProc=N, schedule_type='BLOCK-BY-BLOCK')
-    nRuntime = runtimeBbB[nIter]
+# Block-by-Block scheduling
+speedupBbB = np.zeros(N + 1)
+for k in range(1, N + 1):
+    if k in reqIters:
+        speedupBbB[k] = algo.getRuntime(N=N, K=k, nProc=N, schedule_type='BLOCK-BY-BLOCK')
+        efficiencyLCF[k] = algo.efficiency(N=N, K=k, nProc=N, schedule_type='BLOCK-BY-BLOCK', speedup=speedupBbB[k])
 
-    # %% Plotting
-    plotContour(reLam=reLam, imLam=imLam, val=nRuntime, figName='PinTRuntime Block-by-Block Schedule')
+nSpeedup = speedupBbB[nIter]
+nEffiencency = efficiencyLCF[nIter]
 
+# %% Plotting
+plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, figName='Speedup Block-by-Block Schedule')
+plotContour(reLam=reLam, imLam=imLam, val=nEffiencency, figName='Efficiency Block-by-Block Schedule')
