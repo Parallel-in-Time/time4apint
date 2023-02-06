@@ -13,13 +13,14 @@ from blockops.problem import BlockProblem
 
 tEnd = 2*np.pi-0.2
 lam = 1j
-nBlocks = 8
-nStepsF = 50
-nStepsG = 3
-algoName = 'Parareal'
+nBlocks = 3
+nStepsF = 5
+nStepsG = 1
+algoName = 'PFASST'
 
-prob = BlockProblem(lam, tEnd, nBlocks, 1, 'BE', nStepsPerPoint=nStepsF)
+prob = BlockProblem(lam, tEnd, nBlocks, 5, 'COLLOCATION', quadType='LOBATTO')
 prob.setApprox('BE', nStepsPerPoint=nStepsG)
+prob.setCoarseLevel(3)
 
 
 uSeq = prob.getSolution('fine', initSol=True)
@@ -29,7 +30,7 @@ errDiscr = prob.getError('fine', 'exact')
 
 plt.figure(algoName)
 plt.plot(uExact.ravel().real, uExact.ravel().imag, '^-', label='Exact')
-plt.plot(uSeq.ravel().real, uSeq.ravel().imag, 'o-', label='Sequential', ms=10)
+plt.plot(uSeq.ravel().real, uSeq.ravel().imag, 's-', label='Sequential', ms=12)
 
 algo = prob.getBlockIteration(algoName)
 

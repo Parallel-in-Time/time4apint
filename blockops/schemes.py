@@ -44,7 +44,7 @@ STABILITY_FUNCTION_RK = {
 RK_METHODS = STABILITY_FUNCTION_RK.keys()
 
 
-def getBlockMatrices(lamDt, nPoints, scheme, form=None, **kwargs):
+def getBlockMatrices(lamDt, nPoints, scheme, **kwargs):
 
     # To store and return method and points parameters
     params = {'scheme': scheme}
@@ -79,9 +79,8 @@ def getBlockMatrices(lamDt, nPoints, scheme, form=None, **kwargs):
         [tauR-tauL for tauL, tauR in zip([0]+list(points)[:-1], list(points))])
     deltas = deltas[:, None]
 
-    # Node formulation : node-to-node (N2N) or zero-to-nodes (Z2N)
-    if form is None:
-        form = 'Z2N' if scheme == 'COLLOCATION' else 'N2N'
+    # Node formulation : zero-to-nodes (Z2N, default) or node-to-node (N2N)
+    form = kwargs.pop('form', 'Z2N')
     if form not in ['Z2N', 'N2N']:
         raise ValueError('form argument can only be '
                          'N2N (node-to-node) or Z2N (zero-to-node), '

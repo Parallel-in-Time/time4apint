@@ -20,6 +20,9 @@ from .utils import getCoeffsFromFormula
 class BlockIteration(object):
     """DOCTODO"""
 
+    needApprox = False
+    needCoarse = False
+
     def __init__(self, update, propagator,
                  predictor=None, rules=None, name=None, **blockOps):
         """
@@ -287,15 +290,17 @@ DEFAULT_PROP = {
 @register
 class Parareal(BlockIteration):
 
-    def __init__(self, implicitForm=True, coarsePred=True, **blockOps):
+    needApprox = True
+
+    def __init__(self, implicitForm=True, approxPred=True, **blockOps):
         if implicitForm:
             B00 = "(phi**(-1)*chi-phiApprox**(-1)*chi) * u_{n}^k"
             B01 = "phiApprox**(-1)*chi * u_{n}^{k+1}"
-            predictor = "phiApprox**(-1)*chi" if coarsePred else None
+            predictor = "phiApprox**(-1)*chi" if approxPred else None
         else:
             B00 = "(F-G) * u_{n}^k"
             B01 = "G * u_{n}^{k+1}"
-            predictor = "G" if coarsePred else None
+            predictor = "G" if approxPred else None
         update = f"{B00} + {B01}"
         propagator = DEFAULT_PROP['implicit'] if implicitForm \
             else DEFAULT_PROP['explicit']
@@ -306,15 +311,17 @@ class Parareal(BlockIteration):
 @register
 class ABJ(BlockIteration):
 
-    def __init__(self, implicitForm=True, coarsePred=True, **blockOps):
+    needApprox = True
+
+    def __init__(self, implicitForm=True, approxPred=True, **blockOps):
         if implicitForm:
             B00 = "phiApprox**(-1)*chi * u_{n}^k"
             B10 = "(I-phiApprox**-1 * phi) * u_{n+1}^{k}"
-            predictor = "phiApprox**(-1)*chi" if coarsePred else None
+            predictor = "phiApprox**(-1)*chi" if approxPred else None
         else:
             B00 = "G * u_{n}^k"
             B10 = "(I-G*F**(-1)) * u_{n}^{k+1}"
-            predictor = "G" if coarsePred else None
+            predictor = "G" if approxPred else None
         update = f"{B10} + {B00}"
         blockOps['I'] = I
         propagator = DEFAULT_PROP['implicit'] if implicitForm \
@@ -326,18 +333,58 @@ class ABJ(BlockIteration):
 @register
 class ABGS(BlockIteration):
 
-    def __init__(self, implicitForm=True, coarsePred=True, **blockOps):
+    needApprox = True
+
+    def __init__(self, implicitForm=True, approxPred=True, **blockOps):
         if implicitForm:
             B01 = "phiApprox**(-1)*chi * u_{n}^{k+1}"
             B10 = "(I-phiApprox**-1 * phi) * u_{n+1}^{k}"
-            predictor = "phiApprox**(-1)*chi" if coarsePred else None
+            predictor = "phiApprox**(-1)*chi" if approxPred else None
         else:
             B01 = "G * u_{n}^{k+1}"
             B10 = "(I-G*F**(-1)) * u_{n}^{k+1}"
-            predictor = "G" if coarsePred else None
+            predictor = "G" if approxPred else None
         update = f"{B10} + {B01}"
         blockOps['I'] = I
         propagator = DEFAULT_PROP['implicit'] if implicitForm \
             else DEFAULT_PROP['explicit']
         super().__init__(update, propagator, predictor,
                          rules=None, name='ABGS', **blockOps)
+
+@register
+class TMG(BlockIteration):
+
+    needCoarse = True
+
+    def __init__(self, coarsePred=True, **blockOps):
+        omega = blockOps.get('omega', 1)
+        blockOps.update({'omega': omega})
+        phiC = "TCtoF * phiCoarse**(-1) * TFtoC"
+        B01 = f"{phiC}*chi"" * u_{n}^{k+1}"
+        B00 = f"omega*(phi**(-1)*chi - {phiC}*chi)"" * u_{n}^{k}"
+        B10 = f"(1-omega)*(I-{phiC}*phi)"" * u_{n+1}^{k}"
+        predictor = f"{phiC}*chi" if coarsePred else None
+        update = f"{B10} + {B01} + {B00}"
+        blockOps['I'] = I
+        propagator = DEFAULT_PROP['implicit']
+        super().__init__(update, propagator, predictor,
+                         rules=None, name='TMG', **blockOps)
+        self.omega = omega
+
+@register
+class PFASST(BlockIteration):
+
+    needApprox = True
+    needCoarse = True
+
+    def __init__(self, coarsePred=True, **blockOps):
+        phiC = "TCtoF * phiCoarseApprox**(-1) * TFtoC"
+        B01 = f"{phiC}*chi"" * u_{n}^{k+1}"
+        B00 = f"(phiApprox**(-1)*chi - {phiC}*phi*phiApprox**(-1)*chi)"" * u_{n}^{k}"
+        B10 = f"(I-{phiC}*phi)*(I-phiApprox**(-1)*phi)"" * u_{n+1}^{k}"
+        predictor = f"{phiC}*chi" if coarsePred else None
+        update = f"{B10} + {B01} + {B00}"
+        blockOps['I'] = I
+        propagator = DEFAULT_PROP['implicit']
+        super().__init__(update, propagator, predictor,
+                         rules=None, name='PFASST', **blockOps)

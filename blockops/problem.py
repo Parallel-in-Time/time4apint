@@ -90,6 +90,10 @@ class BlockProblem(object):
         self.phiApprox = BlockOperator(r'\tilde{\phi}', matrix=phi, cost=cost)
         self.paramsApprox = params
         self.propApprox = self.phiApprox**(-1) * self.chi
+        try:
+            self.setCoarseApprox()
+        except ProblemError:
+            pass
 
     @property
     def approxIsSet(self):
@@ -116,6 +120,10 @@ class BlockProblem(object):
         self.TFtoC = BlockOperator('T_F^C', matrix=TFtoC, cost=0)
         self.TCtoF = BlockOperator('T_C^F', matrix=TCtoF, cost=0)
         self.deltaChi = self.TFtoC * self.chi - self.chiCoarse * self.TFtoC
+        try:
+            self.setCoarseApprox()
+        except ProblemError:
+            pass
 
     @property
     def coarseIsSet(self):
@@ -150,7 +158,7 @@ class BlockProblem(object):
         localParams.update(params)
         phi, _, _, cost, params, _ = getBlockMatrices(
             self.lam*self.dt, None, points=self.pointsCoarse, **localParams)
-        self.phiCoarseApprox = phi
+        self.phiCoarseApprox = BlockOperator(r'\tilde{\phi}_C', matrix=phi, cost=cost)
         self.paramsCoarseApprox = params
 
     def getSolution(self, sType='fine', initSol=False):
@@ -193,10 +201,15 @@ class BlockProblem(object):
     def getBlockIteration(self, algo):
         try:
             BlockIter = ALGORITHMS[algo]
-            if not self.approxIsSet:
-                raise ValueError('Approximation not set for the problem')
+            if BlockIter.needApprox and not self.approxIsSet:
+                raise ValueError(f'{algo} need an approximate block operator')
+            if BlockIter.needCoarse and not self.coarseIsSet:
+                raise ValueError(f'{algo} need a coarse block operator')
             blockIter = BlockIter(
-                phi=self.phi, phiApprox=self.phiApprox, chi=self.chi)
+                phi=self.phi, phiApprox=self.phiApprox, chi=self.chi,
+                phiCoarse=self.phiCoarse, chiCoarse=self.chiCoarse,
+                TFtoC=self.TFtoC, TCtoF=self.TCtoF,
+                phiCoarseApprox=self.phiCoarseApprox)
             blockIter.prob = self
             return blockIter
         except KeyError:
