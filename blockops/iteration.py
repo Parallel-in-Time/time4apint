@@ -94,25 +94,26 @@ class BlockIteration(object):
         return max(op.nLam for op in self.blockCoeffs.values())
 
     @property
-    def N(self):
-        return np.inf if self.prob is None else self.prob.N
+    def nBlocks(self):
+        return np.inf if self.prob is None else self.prob.nBlocks
 
     @property
     def u0(self):
         return None if self.prob is None else self.prob.u0
 
-    def __call__(self, K, N=None, u0=None, initSol=False, predSol=None):
+    def __call__(self, nIter, nBlocks=None, u0=None, initSol=False, predSol=None):
         """
         Evaluate the block iteration from given initial solution, number of
         blocks and number of iteration.
 
         Parameters
         ----------
-        K : int or N-sequence of int
+        nIter : int or N-sequence of int
             Number of iteration, for each block (if int) or each block
             separately.
-        N : int, optional
-            Number of blocks. The default take the N of the associated problem.
+        nBlocks : int, optional
+            Number of blocks. The default takes the nBlocks value of the
+            associated problem.
         u0 : M-sequence of floats or complex
             Initial solution used for numerical evaluation
             (not required if M==0).
@@ -125,32 +126,32 @@ class BlockIteration(object):
 
         Returns
         -------
-        np.array of size (K+1, N or N+1)
+        np.array of size (nIter+1, nBlocks or nBlocks+1)
             The solution fo each block and each iteration. If initSol==True,
-            includes the initial solution u0 and has size (K+1, N+1).
-            If not, has size (K+1,N).
+            includes the initial solution u0 and has size (nIter+1, nBlocks+1).
+            If not, has size (nIter+1, nBlocks).
         """
-        N = self.N if N is None else N
-        if N == np.inf:
-            raise ValueError('Need to specify a number of blocks somewhere ...')
+        nBlocks = self.nBlocks if nBlocks is None else nBlocks
+        if nBlocks == np.inf:
+            raise ValueError('need to specify a number of blocks somehow')
 
         if self.M == 0:
 
             # Symbolic evaluation
             u0 = sy.symbols('u0', commutative=False)
-            u = np.zeros((K + 1, N + 1), dtype=sy.Expr)
+            u = np.zeros((nIter + 1, nBlocks + 1), dtype=sy.Expr)
             u[:, 0] = u0
             # Prediction
             if len(self.predCoeffs) != 0:
                 pred = self.predictor
-                for n in range(N):
+                for n in range(nBlocks):
                     u[0, n + 1] = pred.symbol * u[0, n]
             else:
                 u[0, 1:] = [sy.symbols(f'u_{n + 1}^0', commutative=False)
-                            for n in range(N)]
+                            for n in range(nBlocks)]
             # Iterations
-            for k in range(K):
-                for n in range(N):
+            for k in range(nIter):
+                for n in range(nBlocks):
                     for (nMod, kMod), b in self.coeffs:
                         u[k + 1, n + 1] += b.symbol * u[k + kMod, n + nMod]
                     u[k + 1, n + 1] = u[k + 1, n + 1].simplify()
@@ -166,24 +167,24 @@ class BlockIteration(object):
 
             u0 = np.asarray(u0)
             if self.nLam > 1:
-                u = np.zeros((K + 1, N + 1, self.nLam, self.M), dtype=u0.dtype)
+                u = np.zeros((nIter + 1, nBlocks + 1, self.nLam, self.M), dtype=u0.dtype)
             else:
-                u = np.zeros((K + 1, N + 1, self.M), dtype=u0.dtype)
+                u = np.zeros((nIter + 1, nBlocks + 1, self.M), dtype=u0.dtype)
             u[:, 0] = u0
             # Prediction
             if self.predictor is not None:
-                for n in range(N):
+                for n in range(nBlocks):
                     u[0, n + 1] = self.predictor(u[0, n])
             else:
                 if predSol is None:
                     raise ValueError(
                         'evaluating block iteration without prediction rule'
                         ' requires predSol list given as argument')
-                for n in range(N):
+                for n in range(nBlocks):
                     u[0, n + 1] = predSol[n]
             # Iterations
-            for k in range(K):
-                for n in range(N):
+            for k in range(nIter):
+                for n in range(nBlocks):
                     for (nMod, kMod), blockOp in self.coeffs:
                         u[k + 1, n + 1] += blockOp(u[k + kMod, n + nMod])
 

@@ -12,30 +12,34 @@ from .block import BlockOperator
 from .iteration import ALGORITHMS
 
 
+class ProblemError(Exception):
+    pass
+
 class BlockProblem(object):
 
-    def __init__(self, lam, tEnd, N, M, scheme, u0=1, **schemeArgs):
+    def __init__(self, lam, tEnd, nBlocks, nPoints, scheme, u0=1,
+                 **schemeArgs):
 
         # Block sizes and problem settings
-        self.N, self.M = N, M
-        self.dt = tEnd/N
+        self.nBlocks = nBlocks
+        self.dt = tEnd/nBlocks
         self.lam = lam
 
         # Set up bock operators and propagator of the sequential problem
-        phi, chi, points, cost, form = getBlockMatrices(
-            lam*self.dt, M, scheme, **schemeArgs)
+        phi, chi, points, cost, params, paramsPoints = getBlockMatrices(
+            lam*self.dt, nPoints, scheme, **schemeArgs)
         self.phi = BlockOperator(r'\phi', matrix=phi, cost=cost)
         self.chi = BlockOperator(r'\chi', matrix=chi, cost=0)
-        self.prop = self.phi**(-1) * self.chi
+
         self.points = points
-        self.scheme = scheme
-        self.form = form
+        self.paramsPoints = paramsPoints
+        self.params = params
 
-        # Storage for approximate and coarse block operators
+        # Storage for approximate operator and parameters
         self.phiApprox= None
-        self.schemeApprox = None
-        self.propApprox = None
+        self.paramsApprox = None
 
+        # Storage for coarse operators
         self.phiCoarse = None
         self.chiCoarse = None
         self.pointsCoarse = None
@@ -43,11 +47,19 @@ class BlockProblem(object):
         self.TCtoF = None
         self.deltaChi = None
 
-        self.phiApproxCoarse = None
-        self.methodApproxCoarse = None
+        # Storage for coarse approximate operator and parameters
+        self.phiCoarseApprox = None
+        self.paramsCoarseApprox = None
+        self.paramsCoarsePoints = None
+
+        # Additional storage for propagators
+        self.prop = self.phi**(-1) * self.chi
+        self.propApprox = None
+        self.propCoarse = None
+        self.propCoarseApprox = None
 
         # Problem parameters
-        self.u0 = np.ones_like(u0*lam, shape=(1, M))
+        self.u0 = np.ones_like(u0*lam, shape=(1, nPoints))
         if np.size(lam) == 1:
             self.u0 = self.u0.squeeze(axis=0)
 
@@ -56,42 +68,90 @@ class BlockProblem(object):
         return np.size(self.lam)
 
     @property
+    def nPoints(self):
+        return np.size(self.points)
+
+    @property
     def times(self):
         return np.array([[(i+tau)*self.dt for tau in self.points]
-                         for i in range(self.N)])
+                         for i in range(self.nBlocks)])
 
     @property
     def uShape(self):
         if self.nLam == 1:
-            return (self.N, self.M)
+            return (self.nBlocks, self.nPoints)
         else:
-            return (self.N, self.nLam, self.M)
+            return (self.nBlocks, self.nLam, self.nPoints)
 
     def setApprox(self, scheme, **schemeArgs):
-        phi, _, _, cost, _ = getBlockMatrices(
-            self.lam*self.dt, self.M, scheme, points=self.points, form=self.form,
-            **schemeArgs)
-        self.phiApprox = BlockOperator(r'\phi_{Delta}', matrix=phi, cost=cost)
-        self.schemeApprox = scheme
+        phi, _, _, cost, params, _ = getBlockMatrices(
+            self.lam*self.dt, None, scheme, points=self.points,
+            form=self.params['form'], **schemeArgs)
+        self.phiApprox = BlockOperator(r'\tilde{\phi}', matrix=phi, cost=cost)
+        self.paramsApprox = params
         self.propApprox = self.phiApprox**(-1) * self.chi
 
     @property
-    def approxSet(self):
-        for attr in ['phiApprox', 'schemeApprox', 'propApprox']:
+    def approxIsSet(self):
+        for attr in ['phiApprox', 'propApprox', 'paramsApprox']:
             if getattr(self, attr) is None:
                 return False
         return True
 
-    def setCoarseLevel(self, M):
-        phi, chi, points, cost, _ = getBlockMatrices(
-            self.lam*self.dt, M, self.method, form=self.form)
+    def setCoarseLevel(self, points, **paramsPoints):
+        localParams = self.paramsPoints.copy()
+        localParams.update(paramsPoints)
+        if isinstance(points, int):
+            grid = {'nPoints': points, **localParams}
+        else:
+            grid = {'nPoints': len(points), 'points': points}
+        phi, chi, points, cost, _, paramsPoints = getBlockMatrices(
+            self.lam*self.dt, **grid, **self.params)
         self.pointsCoarse = points
-        self.phiCoarse = BlockOperator(
-            r'\tilde{\phi}', matrix=phi, cost=cost)
+        self.paramsCoarsePoints = paramsPoints
+        self.phiCoarse = BlockOperator(r'\phi_C', matrix=phi, cost=cost)
+        self.chiCoarse = BlockOperator(r'\chi_C', matrix=chi, cost=0)
+
         TFtoC, TCtoF = getTransferMatrices(self.points, self.pointsCoarse)
         self.TFtoC = BlockOperator('T_F^C', matrix=TFtoC, cost=0)
         self.TCtoF = BlockOperator('T_C^F', matrix=TCtoF, cost=0)
-        # TODO : add deltaChi
+        self.deltaChi = self.TFtoC * self.chi - self.chiCoarse * self.TFtoC
+
+    @property
+    def coarseIsSet(self):
+        for attr in ['pointsCoarse', 'phiCoarse', 'chiCoarse',
+                     'TFtoC', 'TCtoF', 'deltaChi']:
+            if getattr(self, attr) is None:
+                return False
+        return True
+
+    @property
+    def noDeltaChi(self):
+        if self.coarseIsSet:
+            return np.linalg.norm(self.deltaChi.matrix, ord=np.inf) < 1e-14
+
+    @property
+    def nPointsCoarse(self):
+        if self.coarseIsSet:
+            return np.size(self.pointsCoarse)
+
+    @property
+    def invariantCoarseProlong(self):
+        if self.coarseIsSet:
+            transfer = (self.TFtoC * self.TCtoF).matrix
+            return np.allclose(transfer, np.eye(self.nPointsCoarse))
+
+    def setCoarseApprox(self, **params):
+        if not (self.coarseIsSet and self.approxIsSet):
+            raise ProblemError(
+                'cannot set coarse approximate operators before both coarse'
+                ' level and approximation are set')
+        localParams = self.paramsApprox.copy()
+        localParams.update(params)
+        phi, _, _, cost, params, _ = getBlockMatrices(
+            self.lam*self.dt, None, points=self.pointsCoarse, **localParams)
+        self.phiCoarseApprox = phi
+        self.paramsCoarseApprox = params
 
     def getSolution(self, sType='fine', initSol=False):
         u = [self.u0]
@@ -111,7 +171,7 @@ class BlockProblem(object):
             prop = self.propApprox
         else:
             raise NotImplementedError(f'sType={sType}')
-        for i in range(self.N):
+        for i in range(self.nBlocks):
             u.append(prop(u[-1]))
 
         if initSol:
@@ -133,7 +193,7 @@ class BlockProblem(object):
     def getBlockIteration(self, algo):
         try:
             BlockIter = ALGORITHMS[algo]
-            if not self.approxSet:
+            if not self.approxIsSet:
                 raise ValueError('Approximation not set for the problem')
             blockIter = BlockIter(
                 phi=self.phi, phiApprox=self.phiApprox, chi=self.chi)

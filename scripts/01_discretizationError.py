@@ -10,15 +10,15 @@ import numpy as np
 from blockops import BlockProblem
 from blockops.plots import plotAccuracyContour
 
-reLam = np.linspace(-4, 0.5, 501)
-imLam = np.linspace(-3, 3, 500)
-N = 20
-M = 5
+reLam = np.linspace(-4, 0.5, 128)
+imLam = np.linspace(-3, 3, 128)
+nBlocks = 20
+nPoints = 5
 scheme = 'COLLOCATION'
 
 lam = reLam[:, None] + 1j*imLam[None, :]
 prob = BlockProblem(
-    lam.ravel(), N, N, M, scheme,
+    lam.ravel(), tEnd=nBlocks, nBlocks=nBlocks, nPoints=nPoints, scheme=scheme,
     points='LEGENDRE', quadType='LOBATTO', nStepsPerPoint=1, form='Z2N',
     exactProlong=False)
 

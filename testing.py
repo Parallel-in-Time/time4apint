@@ -13,12 +13,12 @@ from blockops.problem import BlockProblem
 
 tEnd = 2*np.pi-0.2
 lam = 1j
-N = 8
+nBlocks = 8
 nStepsF = 50
 nStepsG = 3
 algoName = 'Parareal'
 
-prob = BlockProblem(lam, tEnd, N, 1, 'BE', nStepsPerPoint=nStepsF)
+prob = BlockProblem(lam, tEnd, nBlocks, 1, 'BE', nStepsPerPoint=nStepsF)
 prob.setApprox('BE', nStepsPerPoint=nStepsG)
 
 
@@ -33,7 +33,7 @@ plt.plot(uSeq.ravel().real, uSeq.ravel().imag, 'o-', label='Sequential', ms=10)
 
 algo = prob.getBlockIteration(algoName)
 
-uNum = algo(K=4, initSol=True)
+uNum = algo(nIter=4, initSol=True)
 
 print(f'max discretization error : {errDiscr.max()}')
 

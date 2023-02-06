@@ -6,26 +6,25 @@ Created on Fri Dec 23 10:06:40 2022
 @author: telu
 """
 import numpy as np
-import matplotlib.pyplot as plt
 
 from blockops import BlockProblem
 from blockops.plots import plotAccuracyContour, plotContour
 
 zoom = 1
-reLam = np.linspace(-4 / zoom, 0.5 / zoom, 501)
-imLam = np.linspace(-3 / zoom, 3 / zoom, 500)
-N = 10
-M = 4
-schemeF = 'COLLOCATION'
-nStepsF = 40
+reLam = np.linspace(-4 / zoom, 0.5 / zoom, 128)
+imLam = np.linspace(-3 / zoom, 3 / zoom, 128)
+nBlocks = 10
+nPoints = 1
+schemeF = 'RK4'
+nStepsF = 20
 schemeG = 'RK4'
 nStepsG = 1
 algoName = 'Parareal'
 
 lam = reLam[:, None] + 1j * imLam[None, :]
 prob = BlockProblem(
-    lam.ravel(), N, N, M, schemeF, nStepsPerPoint=nStepsF,
-    points='LEGENDRE', quadType='LOBATTO', form='Z2N')
+    lam.ravel(), tEnd=nBlocks, nBlocks=nBlocks, nPoints=nPoints, scheme=schemeF,
+    nStepsPerPoint=nStepsF, points='LEGENDRE', quadType='LOBATTO', form='Z2N')
 prob.setApprox(schemeG, nStepsPerPoint=nStepsG)
 
 algo = prob.getBlockIteration(algoName)
@@ -48,8 +47,8 @@ stab = np.abs(uApprox)[0, :, -1].reshape(lam.shape)
 plotAccuracyContour(reLam, imLam, errApproxMax, stab, figName='coarseErr')
 
 # Compute PinT solution and error
-nIterMax = N
-uPar = algo(K=nIterMax)
+nIterMax = nBlocks
+uPar = algo(nIter=nIterMax)
 errPinT = np.abs(uNum - uPar)
 errPinTMax = np.max(errPinT, axis=(1, -1)).reshape(
     (errPinT.shape[0],) + (lam.shape))
@@ -67,12 +66,12 @@ plotContour(reLam=reLam, imLam=imLam, val=nIter, nLevels=nIterMax, figName='PinT
 
 # Lowest cost first scheduling
 reqIters = np.unique(nIter)
-speedupLCF = np.zeros(N + 1)
-efficiencyLCF = np.zeros(N + 1)
-for k in range(1, N + 1):
+speedupLCF = np.zeros(nBlocks + 1)
+efficiencyLCF = np.zeros(nBlocks + 1)
+for k in range(1, nBlocks + 1):
     if k in reqIters:
-        speedupLCF[k] = algo.speedup(N=N, K=k, nProc=N + 1, schedule_type='LCF')
-        efficiencyLCF[k] = algo.efficiency(N=N, K=k, nProc=N + 1, schedule_type='LCF', speedup=speedupLCF[k])
+        speedupLCF[k] = algo.speedup(N=nBlocks, K=k, nProc=nBlocks + 1, schedule_type='LCF')
+        efficiencyLCF[k] = algo.efficiency(N=nBlocks, K=k, nProc=nBlocks + 1, schedule_type='LCF', speedup=speedupLCF[k])
 nSpeedup = speedupLCF[nIter]
 nEffiencency = efficiencyLCF[nIter]
 
@@ -81,11 +80,11 @@ plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, figName='Speedup Lowest Cost
 plotContour(reLam=reLam, imLam=imLam, val=nEffiencency, figName='Efficiency Lowest Cost First Schedule')
 
 # Block-by-Block scheduling
-speedupBbB = np.zeros(N + 1)
-for k in range(1, N + 1):
+speedupBbB = np.zeros(nBlocks + 1)
+for k in range(1, nBlocks + 1):
     if k in reqIters:
-        speedupBbB[k] = algo.getRuntime(N=N, K=k, nProc=N, schedule_type='BLOCK-BY-BLOCK')
-        efficiencyLCF[k] = algo.efficiency(N=N, K=k, nProc=N, schedule_type='BLOCK-BY-BLOCK', speedup=speedupBbB[k])
+        speedupBbB[k] = algo.getRuntime(N=nBlocks, K=k, nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
+        efficiencyLCF[k] = algo.efficiency(N=nBlocks, K=k, nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK', speedup=speedupBbB[k])
 
 nSpeedup = speedupBbB[nIter]
 nEffiencency = efficiencyLCF[nIter]
