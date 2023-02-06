@@ -10,7 +10,6 @@ import sympy as sy
 
 from .block import BlockOperator, I
 from .run import PintRun
-from .run2 import PintRun2
 from .schedule import getSchedule
 from .utils import getCoeffsFromFormula
 
@@ -197,13 +196,7 @@ class BlockIteration(object):
         K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
-        return schedule.getRuntime(), run
-
-    def getRuntime2(self, N, K, nProc, schedule_type='OPTIMAL'):
-        K = self.checkK(N=N, K=K)
-        run = PintRun2(blockIteration=self, nBlocks=N, kMax=K)
-        schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
-        return schedule.getRuntime(), run
+        return schedule.getRuntime()
 
     def speedup(self, N, K, nProc, schedule_type='OPTIMAL'):
         K = self.checkK(N=N, K=K)

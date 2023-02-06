@@ -46,7 +46,7 @@ class PintGraph:
         for i in range(len(task.subtasks)):
             self.addTaskToGraph(pos=self.computePos(pos=pos, i=i, size=len(task.subtasks)),
                                 task=self.pool.getTask(task.subtasks[i]))
-        self.graph.add_node(self.counter, pos=pos, task=task, name=task.name, res=task.resultString)
+        self.graph.add_node(self.counter, pos=pos, task=task, res=task.resultString)
         self.lookup[task.result] = self.counter
         for item in task.dep:
             self.graph.add_edge(self.lookup[self.pool.getTask(item).result], self.counter, cost=0)

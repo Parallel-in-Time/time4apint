@@ -65,7 +65,6 @@ class Task(object):
         self.cost = cost  # Costs
         self.color = "gray"  # Default color
         self.dep = self.findDependencies()  # Find dependencies based on op
-        self.name = self.computeName()  # Compute name
         self.subtasks = self.findSubtasks(taskpool=taskpool)
         self.followingTasks = []
 
@@ -133,38 +132,12 @@ class Task(object):
 
         return f'${type}$'
 
-
-    # TODO: Find a better way to set the name
-    def computeName(self):
-        if len(self.op.args) > 0:
-            if isinstance(self.op.args[0], sy.Symbol):
-                if len(re.split('u_|u\^', self.op.args[0].name)) > 1:
-                    name = self.translateSymbolString(symbol=self.result)
-                else:
-                    name = f"{self.op.args[0]}"
-            elif isinstance(self.op.args[0], sy.Integer):
-                if self.op.func.is_Mul:
-                    func = '*'
-                elif self.op.func.is_Add:
-                    func = '+'
-                else:
-                    raise Exception(f'Unknown func in {self.result}={self.op} with {type(self.op.func)}')
-                name = f'{self.op.args[0]}{func}'
-            elif isinstance(self.op.args[0], sy.Pow):
-                name = f'{self.op.args[0].args[0]}^{{{self.op.args[0].args[1]}}}'
-            else:
-                raise Exception(f'Unknown operation in {self.result}={self.op} with {type(self.op.args[0])}')
-        else:
-            name = self.translateSymbolString(symbol=self.result)
-
-        return f"${name}$"
-
     def translateSymbolString(self, symbol):
         return re.compile(r'(\d+)').sub(r'{\1}', str(symbol))
 
     def __eq__(self, other):
         if (self.op == other.op and self.result == other.result and self.iteration == other.iteration and
-                self.block == other.block and self.name == other.name):
+                self.block == other.block and self.opType == other.opType):
             return True
         else:
             return False

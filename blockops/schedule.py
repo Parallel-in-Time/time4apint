@@ -171,7 +171,7 @@ class Optimal(Schedule):
         self.notAvailableTasks = [key for key, value in self.taskPool.pool.items() if len(value.dep) > 0]
         self.finishedTasks = []
         self.schedule_name = '"Optimal"'
-        self.startPointProc = np.zeros(20000000)
+        self.startPointProc = np.zeros(20000)
 
     def pickTask(self):
         # Choose the cheapest task (Typically corresponds to coarse solves that often allow new tasks)
@@ -189,7 +189,7 @@ class Optimal(Schedule):
         self.schedule[taskName] = ScheduledTask(proc=proc,
                                                 start=minimal_start_time,
                                                 end=minimal_start_time + task.cost,
-                                                name=task.name,
+                                                name=task.opType,
                                                 color=task.color)
         self.startPointProc[proc] = self.schedule[taskName].end
         if self.schedule[taskName].end > self.makespan:

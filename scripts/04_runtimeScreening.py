@@ -29,35 +29,15 @@ abgs = BlockIteration(
     F=F, G=G, I=I,
     name='Approx. Block Gauss-Seidel')
 
-ns = [12]
+ns = [14]
+K=5
 for item in ns:
     start = time.time()
-    a, run = pararealSC.getRuntime(N=item, K=3, nProc=nBlocks, schedule_type='OPTIMAL')
-    print(f'1:{time.time()-start}')
+    a = pararealSC.getRuntime(N=item, K=5, nProc=nBlocks, schedule_type='OPTIMAL')
+    print(f'Parareal SC runtime for N={ns}, K={K}: {time.time()-start}')
     start = time.time()
-    a, run2 = pararealSC.getRuntime2(N=item, K=3, nProc=nBlocks, schedule_type='OPTIMAL')
-    print(f'2:{time.time()-start}')
-    print(f'Compare between 1 and 2: {run.taskPool == run2.taskPool}')
-    run.plotGraph()
-    run2.plotGraph()
+    a = abj.getRuntime(N=item, K=K, nProc=nBlocks, schedule_type='OPTIMAL')
+    print(f'ABJ runtime for N={ns}, K={K}: {time.time()-start}')
     start = time.time()
-    a, run = abj.getRuntime(N=item, K=3, nProc=nBlocks, schedule_type='OPTIMAL')
-    print(f'1:{time.time()-start}')
-    start = time.time()
-    a, run2 = abj.getRuntime2(N=item, K=3, nProc=nBlocks, schedule_type='OPTIMAL')
-    print(f'Compare between 1 and 2: {run.taskPool == run2.taskPool}')
-    print(f'2:{time.time()-start}')
-    start = time.time()
-    run.plotGraph()
-    run2.plotGraph()
-    start = time.time()
-    a, run = abgs.getRuntime(N=item, K=3, nProc=nBlocks, schedule_type='OPTIMAL')
-    print(f'1:{time.time()-start}')
-    start = time.time()
-    a, run2 = abgs.getRuntime2(N=item, K=3, nProc=nBlocks, schedule_type='OPTIMAL')
-    print(f'2:{time.time()-start}')
-    print(f'Compare between 1 and 2: {run.taskPool == run2.taskPool}')
-    run.plotGraph()
-    run2.plotGraph()
-
-a = 2
+    a = abgs.getRuntime(N=item, K=3, nProc=nBlocks, schedule_type='OPTIMAL')
+    print(f'abgs runtime for N={ns}, K={K}: {time.time()-start}')

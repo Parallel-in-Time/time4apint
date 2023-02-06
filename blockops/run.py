@@ -8,6 +8,48 @@ from .graph import PintGraph
 from .taskpool import TaskPool
 import time
 
+
+class Generator:
+    def __init__(self, k, checks=2):
+        self.k = k
+        self.mode = 0
+        self.his = []
+        self.checks = checks
+        self.generater = ''
+        self.translate = {}
+
+    def check(self, expr, n):
+        expr_str = f'{expr}'
+        unknowns = list(set(re.findall(re.compile('u_\d+\^\d+'), expr_str)))
+        tmpWildcard = {}
+        for i in range(len(unknowns)):
+            tmp_split = re.split('_|\^', unknowns[i])
+            iteration = int(tmp_split[2])
+            block = int(tmp_split[1])
+            tmp_block = f'n-{n - int(block)}' if n - int(block) != 0 else 'n'
+            tmp_iter = f'k-{self.k - iteration}' if self.k - iteration != 0 else f'k'
+            tmp_str = f'u_{tmp_block}^{tmp_iter}'
+            expr_str = expr_str.replace(unknowns[i], tmp_str)
+            tmpWildcard[f'x{i}'] = unknowns[i].replace('^', '\^')
+            self.translate[f'x{i}'] = [n - int(block), self.k - iteration]
+        self.his.append(expr_str)
+
+        if len(self.his) >= self.checks:
+            if len(set(self.his[-self.checks:])) == 1:
+                self.mode = 1
+                self.generater = expr
+                for key, val in tmpWildcard.items():
+                    self.generater = self.generater.replace(lambda expr: re.match(val, str(expr)),
+                                                            lambda expr: sy.Symbol(key, commutative=False))
+
+    def generatingExpr(self, n):
+        tmp = self.generater
+        for key, val in self.translate.items():
+            tmp = tmp.replace(lambda expr: re.match(key, str(expr)),
+                              lambda expr: sy.symbols(f'u_{n - val[0]}^{self.k - val[1]}', commutative=False))
+        return tmp
+
+
 class PintRun:
     def __init__(self, blockIteration, nBlocks, kMax):
         self.blockIteration = blockIteration
@@ -22,6 +64,7 @@ class PintRun:
         self.subtasks = {}
         self.tasks = {}
         self.localsave = {}
+        self.generator = [Generator(i) for i in range(max(kMax) + 1)]
 
         self.taskPool.addTask(operation=self.null,
                               result=self.createSymbolForUnk(0, 0),
@@ -140,11 +183,14 @@ class PintRun:
         tmp = expr
         if ruleSimplifaction:
             tmp = tmp.subs(self.blockIteration.rules)
-        expr = tmp.subs(self.equBlockCoeff)
-        if tmp != expr:
-            expr = expr.subs(self.computationToApprox)
-            if ruleSimplifaction:
-                expr = expr.subs(self.blockIteration.rules)
+        if len(self.equBlockCoeff) > 0:
+            expr = tmp.subs(self.equBlockCoeff)
+            if tmp != expr:
+                expr = expr.subs(self.computationToApprox)
+                if ruleSimplifaction:
+                    expr = expr.subs(self.blockIteration.rules)
+        else:
+            expr = tmp
         return expr
 
     def createExpressions(self):
@@ -156,7 +202,11 @@ class PintRun:
                                       cost=0)
             else:
                 res = self.createSymbolForUnk(n=n + 1, k=0)
-                rule = self.substitute_and_simplify(self.createPredictionRule(n=n + 1), res)
+                if self.generator[0].mode == 0:
+                    rule = self.substitute_and_simplify(self.createPredictionRule(n=n + 1), res)
+                    self.generator[0].check(rule, n + 1)
+                else:
+                    rule = self.generator[0].generatingExpr(n=n + 1)
                 self.taskGenerator(rule=rule, res=res)
                 if len(rule.args) > 0:
                     self.approxToComputation[res] = rule
@@ -168,7 +218,11 @@ class PintRun:
             for n in range(self.nBlocks):
                 if k < self.kMax[n + 1]:
                     res = self.createSymbolForUnk(n=n + 1, k=k + 1)
-                    rule = self.substitute_and_simplify(self.createIterationRule(n=n + 1, k=k + 1), res)
+                    if self.generator[k + 1].mode == 0:
+                        rule = self.substitute_and_simplify(self.createIterationRule(n=n + 1, k=k + 1), res)
+                        self.generator[k + 1].check(rule, n + 1)
+                    else:
+                        rule = self.generator[k + 1].generatingExpr(n=n + 1)
                     self.taskGenerator(rule=rule, res=res)
                     if len(rule.args) > 0:
                         self.computationToApprox[rule] = res
