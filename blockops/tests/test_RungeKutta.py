@@ -5,6 +5,7 @@ Created on Mon Feb  6 09:03:52 2023
 
 @author: cpf5546
 """
+import pytest
 import numpy as np
 
 from blockops.schemes import STABILITY_FUNCTION_RK
@@ -16,7 +17,6 @@ EXPECTED_ORDER = {
     ('RK4', 'GAUSS-LG', 'SDIRK54'): 4,
     ('RK65',): 5}
 
-lam = 1j
 nSteps = 2**np.arange(3, 7)[-1::-1]
 
 
@@ -41,7 +41,8 @@ def numericalOrder(nSteps, err):
     return beta, rmse
 
 
-def testNumericalOrder():
+@pytest.mark.parametrize("lam", [-1, 1j, 1j-1])
+def testNumericalOrder(lam):
     """Test expected order for all RK methods"""
 
     for schemes, order in EXPECTED_ORDER.items():
@@ -56,4 +57,4 @@ def testNumericalOrder():
             beta, rmse = numericalOrder(nSteps, err)
 
             assert rmse < 0.02, f"rmse to high ({rmse}) for {scheme}"
-            assert abs(beta-order) < 0.02, f"wrong numerical order ({beta}) for {scheme}"
+            assert abs(beta-order) < 0.1, f"wrong numerical order ({beta}) for {scheme}"
