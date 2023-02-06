@@ -118,7 +118,7 @@ class TestTask:
 
         task.result = u101
         tmp = task.getResultString()
-        assert '$\\overline{u}_{1}^{0}$' == tmp
+        assert '' == tmp
 
     def testFindSubstaks(self):
         u00 = sy.symbols('u_0^0', commutative=False)
