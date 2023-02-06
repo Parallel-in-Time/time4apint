@@ -63,13 +63,6 @@ class TestRun:
         }
         assert res == pool
 
-    def testTaskGenerator(self):
-        #TODO
-        pass
-
-    def testCreateIterationRule(self):
-        pass
-
 
 
 class TestNameGenerator:
