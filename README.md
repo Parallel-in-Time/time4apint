@@ -42,7 +42,7 @@ Any combination of block operators can be seen as a unique block operator, hence
 
 Those shows from basic to complexe usage example of the library. It uses relative symbolic link to the [blockops](./blockops/) directory, directly integrated in the following subdirectory, to avoid any modification of the local `PYTHONPATH` or else.
 
-> :warning: This works for Unix-based systems (Linux, MacOS), but probably not for Windows. For the latter case, you probably have to 
+> :warning: This works for Unix-based systems (Linux, MacOS), but probably not for Windows. For the latter case, you probably have to set your local `PYTHONPATH` accordingly.
 
 - [notebook](./notebook/) : sub-directory for Jupyter Notebook. Those are basic examples that can be used for starters.
 - [scripts](./scripts/) : sub-directory for Python scripts. Those are more complex examples of use, with less documentation, mostly developped when a new functionnality is added to the `blockops` library.
