@@ -29,8 +29,33 @@ Hence, $B_1^0$ is the block coefficient for the $u_{n+1}^{k+0}$ term, and the bl
 
 Any combination of block operators can be seen as a unique block operator, hence a block coefficient is itself a combination of block operators and also a block operator. This aspect is fully used in the framework implementation.
 
+## Project structure
+
+### Base library :
+
+- [blockops](./blockops/) : the main library developped for this project
+- [old](./old/) : some previous implementations (:ghost: to be integrated/removed later in the current code ...)
+
+:bell: based on Python 3.10, check [requirements.txt](./requirements.txt) for packages dependencies
+
+### Scripts and notebook
+
+Those shows from basic to complexe usage example of the library. It uses relative symbolic link to the [blockops](./blockops/) directory, directly integrated in the following subdirectory, to avoid any modification of the local `PYTHONPATH` or else.
+
+> :warning: This works for Unix-based systems (Linux, MacOS), but probably not for Windows. For the latter case, you probably have to 
+
+- [notebook](./notebook/) : sub-directory for Jupyter Notebook. Those are basic examples that can be used for starters.
+- [scripts](./scripts/) : sub-directory for Python scripts. Those are more complex examples of use, with less documentation, mostly developped when a new functionnality is added to the `blockops` library.
+
+Additional scripts :
+
+- [main.py](./main.py) : some classical Block Iterations and their representation (:ghost: to be removed ...)
+- [testing.py](./testing.py) : some basic testing of the framework with Parareal (:ghost: to be removed ...)
+- [test_FCF.py](./test_FCF.py) : some basic testing of the framework with FCF relaxation (:ghost: to be removed ...)
 
 ## Code core concepts
+
+> :warning: As this project is currently in continuous development, this part may be partially incomplete or outdated. Don't hesitate to use the project's [Discussions Forum](https://github.com/Parallel-in-Time/time4apint/discussions) to ask for more details.
 
 1. [BlockOperator :](./doc/blockOperator.md) base object, used to represents, manipulate and evaluate block operators and block coefficients. Implemented [here](./blockops/block.py), with some documentation details provided [here](./doc/blockOperator.md).
 2. [BlockIteration :](./doc/blockIteration.md) object implementing a block iteration (_i.e_ one given algorithm), using a given set of block coefficients.
@@ -41,22 +66,11 @@ Implemented [here](./blockops/problem.py), with some documentation details provi
 5. [Schedule:](./doc/schedules.md) TODO
 
 
-**Important notes** :
+**:scroll: Important notes** :
 
 - `BlockOperator` objects can be either symbolic or numerical block operator. Symbolic block operator only have a given cost and symbol, and can be used for speedup analysis. Numerical block operator have a cost and a matrix representation (more details [here](./doc/blockOperator.md#numerical-representation-and-evaluation)), and can be used for error and speedup analysis.
 - `BlockIteration` objects depend only on `BlockOperator` objects, and are enough alone o define and analyse the speedup of a given block iteration (if relying only on symbolic `BlockOperator`)
 - `BlockProblem` represent the time-integration of a Dahlquist problem on a given time interval with a given number of blocks. It defines the appropriate numerical `BlockOperator`, and can be used to generate some classical `BlockIteration` objects.
-
-## Current testing and tutorials
-
-- [main.py](./main.py) : some classical Block Iterations and their representation
-- [testing.py](./testing.py) : some basic testing of the framework with Parareal
-
-1. [Basic example with Parareal](./notebook/01_baseTuto.ipynb)
-2. [Playing with Approximate Block Jacobi](./notebook/02_ApproximateBlockJacobi.ipynb)
-3. [PLaying with Parareal, ABJ and ABGS](./notebook/03_PrimaryBlockIteration.ipynb)
-
-See also the [scripts](./scripts/) folder for application examples.
 
 ## Acknowledgements
 
