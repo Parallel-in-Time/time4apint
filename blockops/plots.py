@@ -80,7 +80,7 @@ def plotContour(reLam, imLam, val, nLevels=-1, figName=None):
     """
     coords = np.meshgrid(reLam.ravel(), imLam.ravel(), indexing='ij')
     if nLevels == -1:
-        levels = np.arange(np.max(val) + 2) - 1
+        levels = np.linspace(np.min(val), np.max(val), num=21)
     else:
         levels = np.arange(nLevels + 2) - 1
 

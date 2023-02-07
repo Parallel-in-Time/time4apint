@@ -20,7 +20,7 @@ lam = reLam[:, None] + 1j*imLam[None, :]
 prob = BlockProblem(
     lam.ravel(), tEnd=nBlocks, nBlocks=nBlocks, nPoints=nPoints, scheme=scheme,
     points='LEGENDRE', quadType='LOBATTO', nStepsPerPoint=1, form='Z2N',
-    exactProlong=False)
+    quadProlong=False)
 
 uExact = prob.getSolution('exact')
 uNum = prob.getSolution('fine')

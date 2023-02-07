@@ -73,22 +73,23 @@ for k in range(1, nBlocks + 1):
         speedupLCF[k] = algo.speedup(N=nBlocks, K=k, nProc=nBlocks + 1, schedule_type='LCF')
         efficiencyLCF[k] = algo.efficiency(N=nBlocks, K=k, nProc=nBlocks + 1, schedule_type='LCF', speedup=speedupLCF[k])
 nSpeedup = speedupLCF[nIter]
-nEffiencency = efficiencyLCF[nIter]
+nEfficiency = efficiencyLCF[nIter]
 
 # %% Plotting
 plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, figName='Speedup Lowest Cost First Schedule')
-plotContour(reLam=reLam, imLam=imLam, val=nEffiencency, figName='Efficiency Lowest Cost First Schedule')
+plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, figName='Efficiency Lowest Cost First Schedule')
 
 # Block-by-Block scheduling
 speedupBbB = np.zeros(nBlocks + 1)
+efficiencyBbB = np.zeros(nBlocks + 1)
 for k in range(1, nBlocks + 1):
     if k in reqIters:
         speedupBbB[k] = algo.getRuntime(N=nBlocks, K=k, nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
-        efficiencyLCF[k] = algo.efficiency(N=nBlocks, K=k, nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK', speedup=speedupBbB[k])
+        efficiencyBbB[k] = algo.efficiency(N=nBlocks, K=k, nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK', speedup=speedupBbB[k])
 
 nSpeedup = speedupBbB[nIter]
-nEffiencency = efficiencyLCF[nIter]
+nEfficiency = efficiencyBbB[nIter]
 
 # %% Plotting
 plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, figName='Speedup Block-by-Block Schedule')
-plotContour(reLam=reLam, imLam=imLam, val=nEffiencency, figName='Efficiency Block-by-Block Schedule')
+plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, figName='Efficiency Block-by-Block Schedule')
