@@ -9,7 +9,7 @@ import numpy as np
 
 from .schemes import getBlockMatrices, getTransferMatrices
 from .block import BlockOperator
-from .iteration import ALGORITHMS
+from .iteration import ALGORITHMS, BlockIteration
 
 
 class ProblemError(Exception):
@@ -198,7 +198,7 @@ class BlockProblem(object):
                 uNum = self.getSolution('fine')
         return np.abs(uNum - uRef)
 
-    def getBlockIteration(self, algo):
+    def getBlockIteration(self, algo: str) -> BlockIteration:
         try:
             BlockIter = ALGORITHMS[algo]
             if BlockIter.needApprox and not self.approxIsSet:

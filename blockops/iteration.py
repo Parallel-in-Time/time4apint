@@ -274,18 +274,15 @@ class BlockIteration(object):
 # -----------------------------------------------------------------------------
 # Inherited specialized class
 # -----------------------------------------------------------------------------
-ALGORITHMS = {}
-
+ALGORITHMS: dict[str, BlockIteration] = {}
 
 def register(cls):
     ALGORITHMS[cls.__name__] = cls
     return cls
 
-
 DEFAULT_PROP = {
     'implicit': 'phi**(-1)*chi',
     'explicit': 'F'}
-
 
 @register
 class Parareal(BlockIteration):
@@ -307,7 +304,6 @@ class Parareal(BlockIteration):
         super().__init__(update, propagator, predictor,
                          rules=None, name='Parareal', **blockOps)
 
-
 @register
 class ABJ(BlockIteration):
 
@@ -328,7 +324,6 @@ class ABJ(BlockIteration):
             else DEFAULT_PROP['explicit']
         super().__init__(update, propagator, predictor,
                          rules=None, name='ABJ', **blockOps)
-
 
 @register
 class ABGS(BlockIteration):
