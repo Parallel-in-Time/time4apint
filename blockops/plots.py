@@ -9,6 +9,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 
+from .problem import BlockProblem
+
 
 def plotAccuracyContour(reLam, imLam, err, stab=None,
                         eMin=-7, eMax=0, nLevels=22,
@@ -97,3 +99,32 @@ def plotContour(reLam, imLam, val, nLevels=-1, figName=None):
     plt.ylabel(r'$Im(\lambda)$')
     plt.tight_layout()
     plt.show()
+    
+    
+def plotIterations2D(prob: BlockProblem, algoName: str, nIter=4, figName=None):
+    """Plot the 2D solution for a PinT algorithm applied on one given problem"""
+    
+    # Compute sequential and exact solution
+    uSeq = prob.getSolution('fine', initSol=True)
+    uExact = prob.getSolution('exact', initSol=True)
+    
+    # Compute discretization error (for printing in console)
+    errDiscr = prob.getError('fine', 'exact')
+    
+    # Plot exact and sequential solution
+    plt.figure(figName)
+    plt.plot(uExact.ravel().real, uExact.ravel().imag, '^-', label='Exact')
+    plt.plot(uSeq.ravel().real, uSeq.ravel().imag, 's-', label='Sequential', ms=12)
+    
+    algo = prob.getBlockIteration(algoName)
+    
+    uNum = algo(nIter=4, initSol=True)
+    
+    print(f'max discretization error : {errDiscr.max()}')
+    
+    for k in range(4):
+        plt.plot(uNum[k].ravel().real, uNum[k].ravel().imag, 'o-',
+                  label=f'Iter{k}')
+        err = prob.getError(uNum[k][1:], 'fine')
+        print(f'iter {k}, max PinT error : {err.max()}')
+    plt.legend()

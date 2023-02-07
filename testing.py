@@ -13,14 +13,16 @@ from blockops.problem import BlockProblem
 
 tEnd = 2*np.pi-0.2
 lam = 1j
-nBlocks = 3
-nStepsF = 5
+nBlocks = 4
+nStepsF = 20
 nStepsG = 1
-algoName = 'PFASST'
+nPoints = 1
+nPointsCoarse = 1
+algoName = 'Parareal'
 
-prob = BlockProblem(lam, tEnd, nBlocks, 5, 'COLLOCATION', quadType='LOBATTO')
+prob = BlockProblem(lam, tEnd, nBlocks, nPoints, 'BE', nStepsPerPoint=nStepsF)
 prob.setApprox('BE', nStepsPerPoint=nStepsG)
-prob.setCoarseLevel(3)
+prob.setCoarseLevel(nPointsCoarse)
 
 
 uSeq = prob.getSolution('fine', initSol=True)
