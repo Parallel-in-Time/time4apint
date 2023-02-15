@@ -176,8 +176,10 @@ class LowestCostFirst(Schedule):
         self.schedule_name = '"LowestCostFirst"'
 
     def pickTask(self):
-        tmp = [[self.taskPool.getTask(item).cost, item] for item in self.availableTasks]
-        return min(tmp, key=lambda x: x[0])[1]
+        tmp = [[self.taskPool.getTask(item).cost,
+                self.taskPool.getTask(item).iteration,
+                self.taskPool.getTask(item).block, item] for item in self.availableTasks]
+        return min(tmp, key=lambda x: (x[0], x[1], x[2]))[3]
 
     def assignTask(self, taskName):
         task = self.taskPool.getTask(taskName)

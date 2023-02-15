@@ -6,7 +6,6 @@ import sympy as sy
 # BlockOps import
 from .graph import PintGraph
 from .taskpool import TaskPool
-import time
 
 
 class Generator:
@@ -171,15 +170,28 @@ class PintRun:
         predictorRule = predictorRule.simplify().expand()
         return predictorRule
 
-    def substitute_and_simplify(self, expr, res):
+    def substitute_and_simplify(self, expr, iter):
         ruleSimplifaction = len(self.blockIteration.rules) > 0
         expr = expr.subs({key: self.approxToComputation[key] for key in
                           [atoms for atoms in expr.atoms() if str(atoms).startswith('u')] if
                           key in self.approxToComputation})
         if ruleSimplifaction:
             expr = expr.subs(self.blockIteration.rules)
-        for key, value in self.computationToApprox.items():
-            expr = expr.subs({key: self.computationToApprox[key]})
+
+        # The saver way is to use the first if case, where all entries of computationToApprox are used.
+        # However, this is also quite expensive. Therefore, we only use this strategy
+        # for the first two iterations. For these iterations it is necessary, since everything can go
+        # back to the initial condition. Afterwards, we use a reduced version of computationToApprox
+        # where we only consider entries that contain an u_x^y present in the expr.
+        if iter in [0,1]:
+            for key, value in self.computationToApprox.items():
+                expr = expr.subs({key: self.computationToApprox[key]})
+        else:
+            reducedCompuToApprox = {item2[1]: self.computationToApprox[item2[1]] for item2 in
+                  [[key.atoms(), key] for key, value in self.computationToApprox.items()] if
+                  set(item2[0]).intersection(set([atoms for atoms in expr.atoms() if str(atoms).startswith('u')]))}
+            for key, value in reducedCompuToApprox.items():
+                expr = expr.subs({key: value})
         tmp = expr
         if ruleSimplifaction:
             tmp = tmp.subs(self.blockIteration.rules)
@@ -203,7 +215,7 @@ class PintRun:
             else:
                 res = self.createSymbolForUnk(n=n + 1, k=0)
                 if self.generator[0].mode == 0:
-                    rule = self.substitute_and_simplify(self.createPredictionRule(n=n + 1), res)
+                    rule = self.substitute_and_simplify(self.createPredictionRule(n=n + 1), 0)
                     self.generator[0].check(rule, n + 1)
                 else:
                     rule = self.generator[0].generatingExpr(n=n + 1)
@@ -219,7 +231,7 @@ class PintRun:
                 if k < self.kMax[n + 1]:
                     res = self.createSymbolForUnk(n=n + 1, k=k + 1)
                     if self.generator[k + 1].mode == 0:
-                        rule = self.substitute_and_simplify(self.createIterationRule(n=n + 1, k=k + 1), res)
+                        rule = self.substitute_and_simplify(self.createIterationRule(n=n + 1, k=k + 1), k + 1)
                         self.generator[k + 1].check(rule, n + 1)
                     else:
                         rule = self.generator[k + 1].generatingExpr(n=n + 1)
