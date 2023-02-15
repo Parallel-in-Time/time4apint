@@ -11,6 +11,7 @@ class TaskPool:
         self.pool = {}
         self.colorLookup = {'$IC$': 'lightgrey'}
         self.colorCounter = 0
+        self.unassignedSubtasks = []
 
     def addTask(self, operation, result, cost):
         tmp = Task(op=operation, result=result, cost=cost, taskpool=self)
@@ -79,6 +80,7 @@ class Task(object):
             self.type = 'main'
         else:
             self.type = 'sub'
+            taskpool.unassignedSubtasks.append(result)
 
         self.resultString = self.getResultString()
         self.opType = self.typeOfOperation()
@@ -94,7 +96,10 @@ class Task(object):
     def findSubtasks(self, taskpool):
         tmpRegex = self.translateSymbolString(self.result) + ("_{\d+}$")
         tmpRegex = tmpRegex.replace('^', '\^').replace('}', '\}').replace('{', '\{')
-        return [key for key in taskpool.pool if re.compile(tmpRegex).match(self.translateSymbolString(key))]
+        tmp = [key for key in taskpool.unassignedSubtasks if
+               re.compile(tmpRegex).match(self.translateSymbolString(key))]
+        taskpool.unassignedSubtasks = [item for item in taskpool.unassignedSubtasks if item not in tmp]
+        return tmp
 
     def findDependencies(self):
         """
