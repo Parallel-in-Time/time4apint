@@ -138,8 +138,13 @@ class TestTask:
 
         task = Task(op=u00 + u10, result=u10, cost=5, taskpool=taskpool)
 
+        taskpool.unassignedSubtasks = [u101,
+                                       u102,
+                                       sy.symbols('u_3^0_2', commutative=False)]
         tmp = task.findSubtasks(taskpool=taskpool)
         assert [u101, u102] == tmp
+
+        assert taskpool.unassignedSubtasks == [sy.symbols('u_3^0_2', commutative=False)]
 
     def testFindDependencies(self):
         u00 = sy.symbols('u_0^0', commutative=False)
