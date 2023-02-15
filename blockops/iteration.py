@@ -7,6 +7,7 @@ Created on Mon Nov  7 15:40:41 2022
 """
 import numpy as np
 import sympy as sy
+from typing import Dict
 
 from .block import BlockOperator, I
 from .run import PintRun
@@ -274,7 +275,7 @@ class BlockIteration(object):
 # -----------------------------------------------------------------------------
 # Inherited specialized class
 # -----------------------------------------------------------------------------
-ALGORITHMS: dict[str, BlockIteration] = {}
+ALGORITHMS: Dict[str, BlockIteration] = {}
 
 def register(cls):
     ALGORITHMS[cls.__name__] = cls

@@ -4,13 +4,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from .taskpool import TaskPool
 from matplotlib.patches import Rectangle
+import time
 
 SCHEDULE_TYPES = {
     'BLOCK-BY-BLOCK': lambda taskPool, nProc, nPoints: PinTBlockByBlock(taskPool=taskPool, nProc=nProc,
                                                                         nPoints=nPoints),
     'WINDOWING': lambda taskPool, nProc, nPoints: PinTWindowing(taskPool=taskPool, nProc=nProc, nPoints=nPoints),
     'OPTIMAL': lambda taskPool, nProc, nPoints: Optimal(taskPool=taskPool, nProc=nProc, nPoints=nPoints),
-    'LCF' : lambda taskPool, nProc, nPoints: LowestCostFirst(taskPool=taskPool, nProc=nProc, nPoints=nPoints),
+    'LCF': lambda taskPool, nProc, nPoints: LowestCostFirst(taskPool=taskPool, nProc=nProc, nPoints=nPoints),
 }
 
 
@@ -85,13 +86,13 @@ class PinTBlockByBlock(Schedule):
             for j in range(start, start + self.distribution[i]):
                 self.point_to_proc[j] = i
             start += self.distribution[i]
-        self.availableTasks = [key for key, value in self.taskPool.pool.items() if len(value.dep) == 0]
-        self.notAvailableTasks = [key for key, value in self.taskPool.pool.items() if len(value.dep) > 0]
-        self.finishedTasks = []
+        self.availableTasks = set([key for key, value in self.taskPool.pool.items() if len(value.dep) == 0])
+        self.notAvailableTasks = set([key for key, value in self.taskPool.pool.items() if len(value.dep) > 0])
+        self.finishedTasks = set([])
         self.schedule_name = '"PinT Block-by-Block"'
 
     def pickTask(self):
-        taskName = self.availableTasks[0]
+        taskName = next(iter(self.availableTasks))
         task = self.taskPool.getTask(name=taskName)
         tmpIt = task.iteration
         tmpB = task.block
@@ -132,8 +133,8 @@ class PinTBlockByBlock(Schedule):
 
     def updateLists(self, taskName):
         # Remove task from available task and add to finished
-        self.finishedTasks += [taskName]
-        self.availableTasks = [item for item in self.availableTasks if item != taskName]
+        self.finishedTasks.add(taskName)
+        self.availableTasks.remove(taskName)
         # Iterating on all following tasks
         task = self.taskPool.getTask(name=taskName)
         for item in task.followingTasks:
@@ -143,8 +144,8 @@ class PinTBlockByBlock(Schedule):
                 # Check if task is not already finished or available
                 if item not in self.finishedTasks and item not in self.availableTasks:
                     # Add task to available tasks and remove from non available
-                    self.availableTasks.append(item)
-                    self.notAvailableTasks = [tmp for tmp in self.notAvailableTasks if tmp != item]
+                    self.availableTasks.add(item)
+                    self.notAvailableTasks.remove(item)
 
     def computeSchedule(self):
         while len(self.availableTasks) != 0:
@@ -160,6 +161,7 @@ class PinTWindowing(Schedule):
         super().__init__(*args, **kwargs)
         self.schedule_name = '"PinTWindowing"'
 
+
 class LowestCostFirst(Schedule):
     """
     Calculates an schedule using a list approach where the task with lowest cost is schedules first. This assumes
@@ -168,13 +170,14 @@ class LowestCostFirst(Schedule):
 
     def __init__(self, *args: object, **kwargs: object):
         super().__init__(*args, **kwargs)
-        self.availableTasks = [key for key, value in self.taskPool.pool.items() if len(value.dep) == 0]
-        self.notAvailableTasks = [key for key, value in self.taskPool.pool.items() if len(value.dep) > 0]
-        self.finishedTasks = []
+        self.availableTasks = set([key for key, value in self.taskPool.pool.items() if len(value.dep) == 0])
+        self.notAvailableTasks = set([key for key, value in self.taskPool.pool.items() if len(value.dep) > 0])
+        self.finishedTasks = set([])
         self.schedule_name = '"LowestCostFirst"'
 
     def pickTask(self):
-        return self.availableTasks[np.argmin([self.taskPool.getTask(item).cost for item in self.availableTasks])]
+        tmp = [[self.taskPool.getTask(item).cost, item] for item in self.availableTasks]
+        return min(tmp, key=lambda x: x[0])[1]
 
     def assignTask(self, taskName):
         task = self.taskPool.getTask(taskName)
@@ -199,8 +202,8 @@ class LowestCostFirst(Schedule):
             self.makespan = self.schedule[taskName].end
 
     def updateLists(self, taskName):
-        self.finishedTasks += [taskName]
-        self.availableTasks = [item for item in self.availableTasks if item != taskName]
+        self.finishedTasks.add(taskName)
+        self.availableTasks.remove(taskName)
         # Iterating on all following tasks
         task = self.taskPool.getTask(name=taskName)
         for item in task.followingTasks:
@@ -210,8 +213,8 @@ class LowestCostFirst(Schedule):
                 # Check if task is not already finished or available
                 if item not in self.finishedTasks and item not in self.availableTasks:
                     # Add task to available tasks and remove from non available
-                    self.availableTasks.append(item)
-                    self.notAvailableTasks = [tmp for tmp in self.notAvailableTasks if tmp != item]
+                    self.availableTasks.add(item)
+                    self.notAvailableTasks.remove(item)
 
     def computeSchedule(self):
         while len(self.availableTasks) != 0:
@@ -219,6 +222,7 @@ class LowestCostFirst(Schedule):
             self.assignTask(taskName=taskName)
             self.updateLists(taskName=taskName)
         self.nProc = len(np.where(self.startPointProc != 0)[0])
+
 
 class Optimal(Schedule):
     """
@@ -228,16 +232,17 @@ class Optimal(Schedule):
 
     def __init__(self, *args: object, **kwargs: object):
         super().__init__(*args, **kwargs)
-        self.availableTasks = [key for key, value in self.taskPool.pool.items() if len(value.dep) == 0]
-        self.notAvailableTasks = [key for key, value in self.taskPool.pool.items() if len(value.dep) > 0]
-        self.finishedTasks = []
+        self.availableTasks = set([key for key, value in self.taskPool.pool.items() if len(value.dep) == 0])
+        self.notAvailableTasks = set([key for key, value in self.taskPool.pool.items() if len(value.dep) > 0])
+        self.finishedTasks = set([])
         self.schedule_name = '"Optimal"'
         self.startPointProc = np.zeros(20000)
 
     def pickTask(self):
         # Choose the cheapest task (Typically corresponds to coarse solves that often allow new tasks)
         # Random choices are possible
-        return self.availableTasks[np.argmin([self.taskPool.getTask(item).cost for item in self.availableTasks])]
+        tmp = [[self.taskPool.getTask(item).cost, item] for item in self.availableTasks]
+        return min(tmp, key=lambda x: x[0])[1]
 
     def assignTask(self, taskName):
         task = self.taskPool.getTask(taskName)
@@ -257,8 +262,8 @@ class Optimal(Schedule):
             self.makespan = self.schedule[taskName].end
 
     def updateLists(self, taskName):
-        self.finishedTasks += [taskName]
-        self.availableTasks = [item for item in self.availableTasks if item != taskName]
+        self.finishedTasks.add(taskName)
+        self.availableTasks.remove(taskName)
         # Iterating on all following tasks
         task = self.taskPool.getTask(name=taskName)
         for item in task.followingTasks:
@@ -268,8 +273,8 @@ class Optimal(Schedule):
                 # Check if task is not already finished or available
                 if item not in self.finishedTasks and item not in self.availableTasks:
                     # Add task to available tasks and remove from non available
-                    self.availableTasks.append(item)
-                    self.notAvailableTasks = [tmp for tmp in self.notAvailableTasks if tmp != item]
+                    self.availableTasks.add(item)
+                    self.notAvailableTasks.remove(item)
 
     def computeSchedule(self):
         while len(self.availableTasks) != 0:

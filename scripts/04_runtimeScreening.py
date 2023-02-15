@@ -2,14 +2,18 @@ import time
 
 from blockops import BlockOperator, BlockIteration, I
 
-nBlocks = 10
-
 G = BlockOperator('G', cost=1)
 F = BlockOperator('F', cost=10)
 R = BlockOperator('R', cost=0.2)
 P = BlockOperator('P', cost=0.2)
 
 predictor = "G"
+
+parareal = BlockIteration(
+    "(F - G) u_{n}^k + G * u_{n}^{k+1}",
+    propagator="F", predictor="G",
+    rules=[(R * P, I)], F=F, G=G, I=I,
+    name='Parareal')
 
 pararealSC = BlockIteration(
     "(F - P*G*R) u_{n}^k + P*G*R * u_{n}^{k+1}",
@@ -29,15 +33,11 @@ abgs = BlockIteration(
     F=F, G=G, I=I,
     name='Approx. Block Gauss-Seidel')
 
-ns = [14]
-K=5
-for item in ns:
-    start = time.time()
-    a = pararealSC.getRuntime(N=item, K=5, nProc=nBlocks, schedule_type='OPTIMAL')
-    print(f'Parareal SC runtime for N={ns}, K={K}: {time.time()-start}')
-    start = time.time()
-    a = abj.getRuntime(N=item, K=K, nProc=nBlocks, schedule_type='OPTIMAL')
-    print(f'ABJ runtime for N={ns}, K={K}: {time.time()-start}')
-    start = time.time()
-    a = abgs.getRuntime(N=item, K=3, nProc=nBlocks, schedule_type='OPTIMAL')
-    print(f'abgs runtime for N={ns}, K={K}: {time.time()-start}')
+for nBlocks in [50]:
+    for k in [5]:
+        for method in ['LCF', 'BLOCK-BY-BLOCK', 'OPTIMAL']:
+            for blockIter in [parareal,pararealSC,abj, abgs]:
+                print(f'N: {nBlocks}, K: {k}, method: {method}, blockIter {blockIter.name}')
+                start = time.time()
+                a = blockIter.getRuntime(N=nBlocks, K=k, nProc=nBlocks, schedule_type=method)
+                print(f'{blockIter.name} runtime for N={nBlocks}, K={k}: {time.time()-start}, {a}')
