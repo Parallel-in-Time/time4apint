@@ -1,27 +1,8 @@
 # Python import
-
 import matplotlib.pyplot as plt
 import numpy as np
 from .taskpool import TaskPool
 from matplotlib.patches import Rectangle
-import time
-
-SCHEDULE_TYPES = {
-    'BLOCK-BY-BLOCK': lambda taskPool, nProc, nPoints: PinTBlockByBlock(taskPool=taskPool, nProc=nProc,
-                                                                        nPoints=nPoints),
-    'WINDOWING': lambda taskPool, nProc, nPoints: PinTWindowing(taskPool=taskPool, nProc=nProc, nPoints=nPoints),
-    'OPTIMAL': lambda taskPool, nProc, nPoints: Optimal(taskPool=taskPool, nProc=nProc, nPoints=nPoints),
-    'LCF': lambda taskPool, nProc, nPoints: LowestCostFirst(taskPool=taskPool, nProc=nProc, nPoints=nPoints),
-}
-
-
-def getSchedule(taskPool: TaskPool, nProc: int, nPoints: int, schedule_type: str):
-    if schedule_type not in SCHEDULE_TYPES:
-        raise Exception(f"Schedule {type} not implemented, must be in {list(SCHEDULE_TYPES.keys())}")
-    else:
-        schedule = SCHEDULE_TYPES[schedule_type](taskPool=taskPool, nProc=nProc, nPoints=nPoints)
-        schedule.computeSchedule()
-        return schedule
 
 
 class ScheduledTask():
@@ -35,10 +16,12 @@ class ScheduledTask():
 
 
 class Schedule:
+    
+    NAME = None  # unique name for the schedule
+    IDS = set()  # list of ids that can be used for usage of this schedule
 
     def __init__(self, taskPool, nProc, nPoints):
         self.schedule = {}
-        self.schedule_name = ''
         self.taskPool = taskPool
         self.makespan = 0
         self.nProc = nProc
@@ -46,7 +29,13 @@ class Schedule:
         self.nPoints = nPoints
 
     def computeSchedule(self):
-        pass
+        raise NotImplementedError(
+            'abstract method, should be implemented in children class')
+        
+    @staticmethod
+    def getDefaultNProc(N):
+        """Return a default number of processors for a given number of block"""
+        return None
 
     def getRuntime(self):
         return self.makespan
@@ -71,10 +60,22 @@ class Schedule:
         plt.show()
 
 
+SCHEDULE_TYPES: dict[str, Schedule] = {}
+
+def register(cls: Schedule) -> Schedule:
+    for stringID in cls.IDS:
+        SCHEDULE_TYPES[stringID] = cls
+    return cls
+
+
+@register
 class PinTBlockByBlock(Schedule):
     """
     Computes standard schedule based on block-by-block basis
     """
+    
+    NAME = "PinT Block-by-Block"
+    IDS = {'BLOCK-BY-BLOCK', 'BbB'}
 
     def __init__(self, *args: object, **kwargs: object):
         super().__init__(*args, **kwargs)
@@ -89,7 +90,6 @@ class PinTBlockByBlock(Schedule):
         self.availableTasks = set([key for key, value in self.taskPool.pool.items() if len(value.dep) == 0])
         self.notAvailableTasks = set([key for key, value in self.taskPool.pool.items() if len(value.dep) > 0])
         self.finishedTasks = set([])
-        self.schedule_name = '"PinT Block-by-Block"'
 
     def pickTask(self):
         taskName = next(iter(self.availableTasks))
@@ -152,28 +152,37 @@ class PinTBlockByBlock(Schedule):
             taskName = self.pickTask()
             self.assignTask(taskName=taskName)
             self.updateLists(taskName=taskName)
+              
+    @staticmethod
+    def getDefaultNProc(N):
+        return N
 
 
+@register
 class PinTWindowing(Schedule):
+    
+    NAME = "PinTWindowing"
+    IDS = {'WINDOWING'}
 
     def __init__(self, *args: object, **kwargs: object):
-        raise Exception('not implemented')
+        raise NotImplementedError()
         super().__init__(*args, **kwargs)
-        self.schedule_name = '"PinTWindowing"'
 
 
+@register
 class LowestCostFirst(Schedule):
     """
     Calculates an schedule using a list approach where the task with lowest cost is schedules first. This assumes
     that the cheapest tasks corresponds to lower lever tasks which helps most to enable new computations.
     """
+    NAME = "LowestCostFirst"
+    IDS = {"LOWEST-COST-FIRST", "LCF"}
 
     def __init__(self, *args: object, **kwargs: object):
         super().__init__(*args, **kwargs)
         self.availableTasks = set([key for key, value in self.taskPool.pool.items() if len(value.dep) == 0])
         self.notAvailableTasks = set([key for key, value in self.taskPool.pool.items() if len(value.dep) > 0])
         self.finishedTasks = set([])
-        self.schedule_name = '"LowestCostFirst"'
 
     def pickTask(self):
         tmp = [[self.taskPool.getTask(item).cost,
@@ -226,18 +235,20 @@ class LowestCostFirst(Schedule):
         self.nProc = len(np.where(self.startPointProc != 0)[0])
 
 
+@register
 class Optimal(Schedule):
     """
     Calculates an optimal schedule using a simple greedy approach.
     Assumes unlimited processes and does not minimize the number of processes.
     """
+    NAME = "Optimal"
+    IDS = {"OPTIMAL", "OPT"}
 
     def __init__(self, *args: object, **kwargs: object):
         super().__init__(*args, **kwargs)
         self.availableTasks = set([key for key, value in self.taskPool.pool.items() if len(value.dep) == 0])
         self.notAvailableTasks = set([key for key, value in self.taskPool.pool.items() if len(value.dep) > 0])
         self.finishedTasks = set([])
-        self.schedule_name = '"Optimal"'
         self.startPointProc = np.zeros(20000)
 
     def pickTask(self):
@@ -284,3 +295,15 @@ class Optimal(Schedule):
             self.assignTask(taskName=taskName)
             self.updateLists(taskName=taskName)
         self.nProc = len(np.where(self.startPointProc != 0)[0])
+    
+        
+def getSchedule(taskPool: TaskPool, nProc: int, nPoints: int, schedule_type: str
+                ) -> Schedule:
+    if schedule_type not in SCHEDULE_TYPES:
+        raise Exception(f"Schedule {type} not implemented, must be in {list(SCHEDULE_TYPES.keys())}")
+    else:
+        ScheduleClass = SCHEDULE_TYPES[schedule_type]
+        nProc = ScheduleClass.getDefaultNProc(nPoints-1) if nProc is None else nProc
+        schedule = ScheduleClass(taskPool=taskPool, nProc=nProc, nPoints=nPoints)
+        schedule.computeSchedule()
+        return schedule

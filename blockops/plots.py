@@ -61,7 +61,7 @@ def plotAccuracyContour(reLam, imLam, err, stab=None,
     plt.show()
 
 
-def plotContour(reLam, imLam, val, nLevels=-1, figName=None):
+def plotContour(reLam, imLam, val, nLevels=21, figName=None):
     """
     Individual 2D contour plot
 
@@ -79,10 +79,10 @@ def plotContour(reLam, imLam, val, nLevels=-1, figName=None):
         Name for the generated figure. The default is None.
     """
     coords = np.meshgrid(reLam.ravel(), imLam.ravel(), indexing='ij')
-    if nLevels == -1:
-        levels = np.linspace(np.min(val), np.max(val), num=21)
+    if nLevels is None:
+        levels = np.unique(val)
     else:
-        levels = np.arange(nLevels + 2) - 1
+        levels = np.linspace(np.min(val), np.max(val), num=nLevels)
 
     plt.figure(figName)
     plt.title(figName)

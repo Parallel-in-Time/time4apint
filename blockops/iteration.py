@@ -7,7 +7,6 @@ Created on Mon Nov  7 15:40:41 2022
 """
 import numpy as np
 import sympy as sy
-from typing import Dict
 
 from .block import BlockOperator, I
 from .run import PintRun
@@ -203,37 +202,28 @@ class BlockIteration(object):
         schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
         return schedule.getRuntime()
 
-    def efficiency(self, N, K, nProc, schedule_type='BLOCK-BY-BLOCK', speedup=None):
-        if speedup is None:
-            K = self.checkK(N=N, K=K)
-            run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
-            schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
-            runtime = schedule.getRuntime()
-
-            if '\\phi' in self.blockOps:
-                runtime_ts = N * self.blockOps['\\phi'].cost
-            else:
-                raise Exception('Currently \\phi is required for measuring time of timestepping')
-
-            speedup = (runtime_ts / runtime)
-        return speedup/nProc
-
-
-
-    def speedup(self, N, K, nProc, schedule_type='BLOCK-BY-BLOCK', verbose=False):
+    def getPerformances(
+            self, N, K, nProc=None, schedule_type='BLOCK-BY-BLOCK', verbose=False):
+        
+        seqPropCost = self.propagator.cost
+        if (seqPropCost is None) or (seqPropCost == 0):
+            raise ValueError(
+                'no cost given for fine propagator,'
+                ' cannot measure performances')
+        runtime_ts =  seqPropCost * N
+        
         K = self.checkK(N=N, K=K)
+        print(f' -- computing {schedule_type} cost for K={K}')
+            
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
-        schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
+        schedule = getSchedule(
+            taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, 
+            schedule_type=schedule_type)
         runtime = schedule.getRuntime()
-
-        optimal_runtime = run.pintGraph.longestPath()
-
-        if '\\phi' in self.blockOps:
-            runtime_ts = N * self.blockOps['\\phi'].cost
-        else:
-            runtime_ts = N * 10
+        nProc = schedule.nProc
 
         if verbose:
+            optimal_runtime = run.pintGraph.longestPath()
             print('=============================')
             if self.name is None:
                 print(f'Block iteration: {self.update}')
@@ -249,7 +239,10 @@ class BlockIteration(object):
             print(
                 f'Theoretical maximum speedup compared to time stepping: {(runtime_ts / optimal_runtime):.2f} (This is currently not the correct value)')
             print('=============================')
-        return (runtime_ts / runtime)
+        
+        speedup = runtime_ts / runtime
+        efficiency = speedup / nProc
+        return speedup, efficiency, nProc
 
     def plotGraph(self, N, K, figSize=(6.4, 4.8)):
         K = self.checkK(N=N, K=K)
@@ -275,7 +268,7 @@ class BlockIteration(object):
 # -----------------------------------------------------------------------------
 # Inherited specialized class
 # -----------------------------------------------------------------------------
-ALGORITHMS: Dict[str, BlockIteration] = {}
+ALGORITHMS: dict[str, BlockIteration] = {}
 
 def register(cls):
     ALGORITHMS[cls.__name__] = cls

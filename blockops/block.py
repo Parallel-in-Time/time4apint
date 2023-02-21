@@ -138,7 +138,7 @@ class BlockOperator(object):
                     self.matrix += other.matrix
             self.components.update(other.components)
             self.symbol += other.symbol
-            self.cost = None
+            self.cost = max(self.cost, other.cost)
         else:
             raise ValueError(
                 'incompatible addition between BlockOperator '
@@ -169,7 +169,7 @@ class BlockOperator(object):
                     self.matrix -= other.matrix
             self.components.update(other.components)
             self.symbol -= other.symbol
-            self.cost = None
+            self.cost = max(self.cost, other.cost)
         else:
             raise ValueError(
                 'incompatible substraction between BlockOperator '
@@ -197,7 +197,7 @@ class BlockOperator(object):
                 elif other.matrix is not None:
                     self.matrix = np.dot(self.matrix, other.matrix)
                 self.invert = other.invert
-            self.cost = None
+            self.cost += other.cost
         elif isinstance(other, (float, int)):
             self.symbol *= other
             if self.matrix is not None:

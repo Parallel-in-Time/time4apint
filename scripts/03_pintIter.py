@@ -11,8 +11,8 @@ from blockops import BlockProblem
 from blockops.plots import plotAccuracyContour, plotContour
 
 zoom = 1
-reLam = np.linspace(-4 / zoom, 0.5 / zoom, 128)
-imLam = np.linspace(-3 / zoom, 3 / zoom, 128)
+reLam = np.linspace(-3 / zoom, 0.5 / zoom, 512)
+imLam = np.linspace(-3 / zoom, 3 / zoom, 512)
 nBlocks = 10
 nPoints = 1
 schemeF = 'RK4'
@@ -61,35 +61,39 @@ for err in errPinTMax[-1::-1]:
     nIter[err < errDiscrMax] = k
     k -= 1
 
-# %% Plotting
-plotContour(reLam=reLam, imLam=imLam, val=nIter, nLevels=nIterMax, figName='PinTIter')
+# Plot number of iteration until discretization error
+plotContour(reLam=reLam, imLam=imLam, val=nIter, nLevels=nIterMax+1, figName='PinTIter')
 
-# Lowest cost first scheduling
-reqIters = np.unique(nIter)
+reqIters = np.unique(nIter).tolist()
+reqIters.pop(0)
+
+
+# %% Lowest cost first scheduling
 speedupLCF = np.zeros(nBlocks + 1)
 efficiencyLCF = np.zeros(nBlocks + 1)
-for k in range(1, nBlocks + 1):
-    if k in reqIters:
-        speedupLCF[k] = algo.speedup(N=nBlocks, K=k, nProc=nBlocks + 1, schedule_type='LCF')
-        efficiencyLCF[k] = algo.efficiency(N=nBlocks, K=k, nProc=nBlocks + 1, schedule_type='LCF', speedup=speedupLCF[k])
+for k in reqIters:
+    speedupLCF[k], efficiencyLCF[k], _ = algo.getPerformances(
+        N=nBlocks, K=k, nProc=nBlocks + 1, schedule_type='LCF')
 nSpeedup = speedupLCF[nIter]
 nEfficiency = efficiencyLCF[nIter]
 
-# %% Plotting
-plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, figName='Speedup Lowest Cost First Schedule')
-plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, figName='Efficiency Lowest Cost First Schedule')
+# Plotting
+plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, 
+            nLevels=None, figName='Lowest Cost First Schedule')
+plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, 
+            nLevels=None, figName='Lowest Cost First Schedule')
 
-# Block-by-Block scheduling
+# %% Block-by-Block scheduling
 speedupBbB = np.zeros(nBlocks + 1)
 efficiencyBbB = np.zeros(nBlocks + 1)
-for k in range(1, nBlocks + 1):
-    if k in reqIters:
-        speedupBbB[k] = algo.getRuntime(N=nBlocks, K=k, nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK')
-        efficiencyBbB[k] = algo.efficiency(N=nBlocks, K=k, nProc=nBlocks, schedule_type='BLOCK-BY-BLOCK', speedup=speedupBbB[k])
-
+for k in reqIters:
+    speedupBbB[k], efficiencyBbB[k], _ = algo.getPerformances(
+        N=nBlocks, K=k, schedule_type='BLOCK-BY-BLOCK')
 nSpeedup = speedupBbB[nIter]
 nEfficiency = efficiencyBbB[nIter]
 
-# %% Plotting
-plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, figName='Speedup Block-by-Block Schedule')
-plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, figName='Efficiency Block-by-Block Schedule')
+# Plotting
+plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, 
+            nLevels=None, figName='Block-by-Block Schedule')
+plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, 
+            nLevels=None, figName='Block-by-Block Schedule')
