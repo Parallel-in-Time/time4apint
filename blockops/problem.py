@@ -161,7 +161,7 @@ class BlockProblem(object):
         self.phiCoarseApprox = BlockOperator(r'\tilde{\phi}_C', matrix=phi, cost=cost)
         self.paramsCoarseApprox = params
 
-    def getSolution(self, sType='fine', initSol=False):
+    def getSolution(self, sType='fine', initSol=False) -> np.ndarray:
         u = [self.u0]
 
         if sType == 'exact':
@@ -187,7 +187,7 @@ class BlockProblem(object):
         else:
             return np.array(u[1:])
 
-    def getError(self, uNum='fine', uRef='exact'):
+    def getError(self, uNum='fine', uRef='exact') -> np.ndarray:
         if isinstance(uRef, str):
             if uRef == 'exact':
                 uRef = self.getSolution('exact')

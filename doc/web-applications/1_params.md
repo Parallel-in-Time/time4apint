@@ -53,7 +53,7 @@ Optional and `scheme`-dependent parameters and default values for parameters abo
     - `nStepsPerPoint` (`int`, default=1) : number of time-steps per block time points. For instance, if `M=4` and `nStepsPerPoint=3`, then there is 12 time-steps for the whole block. Default is 1.
     - **other defaults** : `nodes=EQUID`, `quadType=RADAU-RIGHT`, `form=N2N`
 - `scheme=COLLOCATION` : collocation method
-    - `quadProlong` : wether to compute initial solution for next block using collocation quadrature formula, rather than an extrapolation using the Lagrange interpolating polynomial defined on the block points. Default is `False`.
+    - `collUpdate` : wether to compute initial solution for next block using collocation quadrature formula, rather than an extrapolation using the Lagrange interpolating polynomial defined on the block points. Default is `False`.
     - **other defaults** : `nodes=LEGENDRE`, `quadType=RADAU-RIGHT`, `form=Z2N`
 
 ### Enabled elements after stage completion

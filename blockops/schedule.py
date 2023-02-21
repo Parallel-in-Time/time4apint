@@ -60,6 +60,9 @@ class Schedule:
         plt.show()
 
 
+# -----------------------------------------------------------------------------
+# Inherited specialized class
+# -----------------------------------------------------------------------------
 SCHEDULE_TYPES: dict[str, Schedule] = {}
 
 def register(cls: Schedule) -> Schedule:

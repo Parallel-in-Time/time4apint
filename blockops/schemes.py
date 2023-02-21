@@ -54,10 +54,10 @@ def getBlockMatrices(lamDt, nPoints, scheme, **kwargs):
     lamDt = np.ravel(lamDt)[None, :]
 
     # Reduce M for collocation with integral end-point prolongation
-    quadProlong = kwargs.pop('quadProlong', False)
-    if quadProlong and scheme == 'COLLOCATION':
+    collUpdate = kwargs.pop('collUpdate', False)
+    if collUpdate and scheme == 'COLLOCATION':
         nPoints -= 1
-        params['quadProlong'] = quadProlong
+        params['collUpdate'] = collUpdate
 
     # Time-points for the block discretization
     points = kwargs.pop('points',
@@ -122,7 +122,7 @@ def getBlockMatrices(lamDt, nPoints, scheme, **kwargs):
         Q = polyApprox.getIntegrationMatrix([(0, tau) for tau in points])
         Q = Q[..., None]
 
-        if quadProlong:
+        if collUpdate:
             # Using exact prolongation
             points = np.append(points, [1])
             weights = polyApprox.getIntegrationMatrix([(0, 1)]).ravel()

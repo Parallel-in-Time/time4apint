@@ -1,9 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Dec 21 16:42:11 2022
+Display the discretization error for one given problem
 
-@author: tlunet
+Parameters
+----------
+nBlocks : 
+    number of blocks (N)
+nPoints : 
+    number of time points per block
+scheme : 
+    type of time scheme used
+
+Other arguments can be given
 """
 import numpy as np
 
@@ -19,8 +28,7 @@ scheme = 'COLLOCATION'
 lam = reLam[:, None] + 1j*imLam[None, :]
 prob = BlockProblem(
     lam.ravel(), tEnd=nBlocks, nBlocks=nBlocks, nPoints=nPoints, scheme=scheme,
-    points='LEGENDRE', quadType='LOBATTO', nStepsPerPoint=1, form='Z2N',
-    quadProlong=False)
+    points='LEGENDRE', quadType='LOBATTO', collUpdate=False)
 
 uExact = prob.getSolution('exact')
 uNum = prob.getSolution('fine')
