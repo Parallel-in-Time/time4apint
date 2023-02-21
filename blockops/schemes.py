@@ -62,7 +62,7 @@ def getBlockMatrices(lamDt, nPoints, scheme, **kwargs):
     # Time-points for the block discretization
     points = kwargs.pop('points',
                        'LEGENDRE' if scheme=='COLLOCATION' else 'EQUID')
-    quadType = kwargs.pop('quadType', 'RADAU-RIGHT')
+    quadType = kwargs.pop('quadType', 'LOBATTO')
     if isinstance(points, str):
         paramsPoints = {'quadType': quadType}
         paramsPoints['points'] = points
