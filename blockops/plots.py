@@ -118,11 +118,11 @@ def plotIterations2D(prob: BlockProblem, algoName: str, nIter=4, figName=None):
     
     algo = prob.getBlockIteration(algoName)
     
-    uNum = algo(nIter=4, initSol=True)
+    uNum = algo(nIter=nIter, initSol=True)
     
     print(f'max discretization error : {errDiscr.max()}')
     
-    for k in range(4):
+    for k in range(nIter):
         plt.plot(uNum[k].ravel().real, uNum[k].ravel().imag, 'o-',
                   label=f'Iter{k}')
         err = prob.getError(uNum[k][1:], 'fine')
