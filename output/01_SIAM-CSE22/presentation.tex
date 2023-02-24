@@ -368,7 +368,7 @@
         \item[-] generate \textbf{accuracy-based performance models} for each algorithm
     \end{enumerate}\vskip30pt
 	
-	\textbf{Goal of this presentation :}
+	\textbf{Goal of this presentation :} illustration example
 	\begin{enumerate}
 		\item Describe the PFASST algorithm in a \textbf{simple formulation ...}
 		\item ... that allows to generate a first accuracy-based performance model
@@ -377,13 +377,8 @@
 \end{frame}
 
 \begin{frame}{Common formalism for PinT}\vskip10pt
-	Let us focus on an elementary time-dependent ODE :
-	$$\frac{du}{dt} = \lambda u, \quad \lambda \in \mathbb{C}, 
-	\quad t \in [0,T]
-	$$
     \begin{block}{Common factor for each algorithm}
-    Iterative PinT algorithms compute an solution by solving the linear system
-    using a given \textbf{iterative method} :
+    Iterative PinT algorithms compute an solution of 
     $$
     \begin{pmatrix}
         \bm{\phi} & & &\\
@@ -399,15 +394,21 @@
         \bm{\chi}(u_0\vect{\ones})\\0\\\vdots\\0
     \end{bmatrix}
     \quad \Leftrightarrow \quad 
-    \matr{A}\uvect = \vect{f}$$
-    $\rightarrow$ sequential time stepping $\Leftrightarrow$ exact solution of the system
+    \matr{A}\uvect = \vect{f},$$
+    using a given \textbf{iterative method}.
     \end{block}
+	$\rightarrow$ sequential time stepping $\Leftrightarrow$ exact solution of the system\vskip20pt
+	\textbf{Main goal :} represent PFASST through a block iteration :
+	$$
+	\uvect^{k+1}_{n+1} = \BMat^0_1(\uvect^k_{n+1})
+	+ \BMat^1_0(\uvect^{k+1}_{n}) + \BMat^0_0(\uvect^{k}_{n}) + ...
+	$$
 \end{frame}
 
-\begin{frame}{Stages to block formulation}\vskip5pt
-    \begin{block}{First step : time blocks}
+\begin{frame}{Block formulation}\vskip5pt
+    \begin{block}{Defining time blocks}
     	\begin{center}
-    		\includegraphics[width=0.7\linewidth]{decompositions.pdf}
+    		\includegraphics[width=0.6\linewidth]{decompositions.pdf}
     	\end{center}\vskip-10pt
         \begin{enumerate}
             \item $[0,T]$ decomposed into $N$ sub-intervals $[t_n, t_{n+1}]$ of  
@@ -419,8 +420,8 @@
 		\item in our case, $\tau_m$ are the nodes of a collocation method
 		\item block variable : $\uvect_n = [u_{n,1}, u_{n,2}, ..., u_{n,M}]^T$
 	\end{itemize}\vskip5pt
-	\begin{block}{Second step : block operators}
-		Linear operators mapping two consecutive block variables\vspace{-10pt}
+	\begin{block}{Building block operators}
+		Operators mapping two consecutive block variables\vspace{-10pt}
 		$$\bm{\phi}(\uvect_{n+1}) = \bm{\chi}(\uvect_{n})
 		\quad\Leftrightarrow\quad 
 		\uvect_{n+1} = \bm{\phi}^{-1}\bm{\chi}\uvect_{n}
@@ -428,10 +429,28 @@
 	\end{block}	
 \end{frame}
 
-\begin{frame}{Collocation and SDC}\vfill
-    \begin{block}{Block operators for Collocation and Spectral Deferred Corrections}
-        TODO ...
-    \end{block}
+\begin{frame}{Collocation and SDC}\vskip3pt
+	Collocation method on Dahlquist :\vspace{-10pt}
+	$$
+	u(t) = u_0 + \int_{0}^{t} \lambda u(\tau)d\tau  \quad
+	\Rightarrow \quad
+	u(t_n+\tau_m) = u_{n,m} = u_n + \Delta{t}\sum_{j=1}^{M} q_{m,j}\lambda(u_{n,j})
+	$$\vspace{-5pt}
+	$\Rightarrow$ block formulation (Lobatto nodes) :
+	$$(\Imat-\Delta{t}\lambda\Qmat) \uvect_{n} = \begin{pmatrix}
+		u_{n,0} \\ \vdots \\ u_{n,0}
+	\end{pmatrix} = \Hmat \uvect_{n-1} \quad
+	\Rightarrow \quad
+	\begin{cases}
+		\phiOp = (\Imat-\Delta{t}\lambda\Qmat)\\
+		\chiOp = \Hmat
+	\end{cases}
+	$$\vspace{-10pt}
+    \begin{block}{Spectral Deferred Correction (SDC)}
+    	1) Built lower triangular approximation $\QDelta$ of dense $\Qmat$ :\vspace*{-3pt}
+        $$\phiApprox = (\Imat-\Delta{t}\lambda\QDelta)$$\vskip-3pt
+        2) Stationary iteration on collocation system with $\phiApprox$ as preconditionner
+    \end{block}\vspace{-25pt}
 \end{frame}
 
 \begin{frame}{PFASST in a nutshell}
@@ -462,15 +481,47 @@
     	to estimate the \textit{Coarse Grid Correction}
     \end{enumerate}
     \end{block}
+	\textit{See also [Bolten, Moser \& Speck 2017]}\vspace{-20pt}
 \end{frame}
 
 \begin{frame}{Approximate Block Jacobi (ABJ)}
-    TODO (with kn-graphs ...)
+	Preconditioned stationary iteration :
+	$$\uvect^{k+1} = \uvect^k + \matr{P}_{ABJ}^{-1}(\vect{f}-\AMat\uvect^k) \quad \text{with} \quad 
+	\matr{P}_{ABJ} = \begin{pmatrix}
+		\phiApprox & & \\
+		0 & \phiApprox & \\
+		& \ddots & \ddots
+	\end{pmatrix}$$
+	\begin{block}{Block Iteration}
+		\begin{columns}
+			\column{0.55\linewidth}\vskip-35pt
+			$$\vect{u}_{n+1}^{k+1} = \left[\matr{I} - \tilde{\bm{\phi}}^{-1} \bm{\phi}\right] \vect{u}_{n+1}^{k} +
+			\tilde{\bm{\phi}}^{-1}\bm{\chi}\vect{u}_{n}^{k}$$
+			
+			\column{0.4\linewidth}
+			\includegraphics[width=\linewidth]{kn-approxBlockJacobi.pdf}
+		\end{columns}
+	\end{block}\vspace{-20pt}
 \end{frame}
 
-\begin{frame}{Approximate Block Gauss-Seidel (ABGS)}
-	TODO (with kn-graphs ...)
-\end{frame}
+%\begin{frame}{Approximate Block Gauss-Seidel (ABGS)}
+%	$$\uvect^{k+1} = \uvect^k + \matr{P}_{ABGS}^{-1}(\vect{f}-\AMat\uvect^k) \quad \text{with} \quad  
+%	\matr{P}_{ABGS} = \begin{pmatrix}
+%		\phiApprox & & \\
+%		-\chiOp & \phiApprox & \\
+%		& \ddots & \ddots
+%	\end{pmatrix}$$
+%	\begin{block}{Block Iteration}
+%		\begin{columns}
+%			\column{0.55\linewidth}\vskip-35pt
+%			$$\vect{u}_{n+1}^{k+1} = \left[\matr{I} - \tilde{\bm{\phi}}^{-1} \bm{\phi}\right] \vect{u}_{n+1}^{k} +
+%			\tilde{\bm{\phi}}^{-1}\bm{\chi}\vect{u}_{n}^{k+1}$$
+%			
+%			\column{0.4\linewidth}
+%			\includegraphics[width=\linewidth]{kn-approxBlockGaussSeidel.pdf}
+%		\end{columns}
+%	\end{block}\vspace{-20pt}
+%\end{frame}
 
 \begin{frame}{Coarse Grid Correction (CGC)}
 	1) Coarse problem for each block of size $M^C < M$ :
@@ -493,28 +544,78 @@
 	\end{equation*}
 	$\rightarrow$ lower order collocation method for $\phiCoarse$ and $\chiCoarse$ ($p$-coarsening)\vskip10pt
 	2) $\TFtoC$ and $\TCtoF$ are restriction and prolongation operators (polynomial)\vskip10pt
-	3) CGC in global form :
-	\begin{gather*}
-		\ACoarse\vect{d} = \TFtoCBar (\vect{f}-\AMat\uvect^{k+1/2}),\label{eq:PFASST-directCGC}\\
-		\uvect^{k+1} = \uvect^{k+1/2} + \TCtoFBar\vect{d}.\label{eq:PFASST-prolong}
-	\end{gather*}\vskip6pt
-	\centering
-	$\Rightarrow \uvect^{k+1} = \uvect^{k} + \TCtoFBar \ACoarse^{-1} \TFtoCBar
-	(\vect{f}-\AMat\uvect^k)$\vspace*{-10pt}
+	3) Standard CGC in global form :
+	\begin{align*}
+		\ACoarse\vect{d} = \TFtoCBar (\vect{f}-\AMat\uvect^{k})
+		&\text{ : coarse grid inverstion}\\
+		\uvect^{k+1} = \uvect^{k} + \TCtoFBar\vect{d}
+		&\text{ : prolongation + addition on fine level}
+	\end{align*}\vspace{-40pt}
 \end{frame}
 
 \begin{frame}{ABGS for Coarse Grid Correction}
-	
-	Simplifying assumptions :
+	4) Approximate CGS with ABGS
+	$$
+		\tilde{\matr{P}}_{ABGS} \vect{d}^{\ell} =
+		(\tilde{\matr{P}}_{ABGS} - \ACoarse)\vect{d}^{\ell-1}
+		+ \TFtoCBar (\vect{f}-\AMat\uvect^{k+1/2}),
+		\quad \vect{d}^0 = 0,\quad \ell \in \{1,..,L\},
+	$$\vspace{-10pt}
+	$$
+	\ell=1 \quad \Rightarrow \quad \tilde{\matr{P}}_{ABGS} \vect{d} = \TFtoCBar (\vect{f}-\AMat\uvect^{k+1/2}),
+	\quad\tilde{\matr{P}}_{ABGS} =
+	\begin{bmatrix}
+		\phiApproxCoarse & & \\
+		- \chiCoarse & \phiApproxCoarse & \\
+		& \ddots & \ddots
+	\end{bmatrix}
+	$$\vspace{-15pt}\\
+	5) Simplifying assumptions :
 	\begin{enumerate}
-		\item $\TFtoC\TCtoF = \Imat$ : invariance of interpolation + restriction on a coarse field
-		\item $\Delta_\chi = \TFtoC\bm{\chi} - \bm{\chi}_C \TFtoC = 0$ : usually verified in TMG-based algorithms
-	\end{enumerate}\vskip10pt
-	... TODO ...
+		\item $\TFtoC\TCtoF = \Imat$ $\quad\rightarrow\quad$ due to polynomial restriction/prolongation
+		\item $\Delta_\chi = \TFtoC\bm{\chi} - \bm{\chi}_C \TFtoC = 0$ $\quad\rightarrow\quad$ due to Lobatto nodes
+	\end{enumerate}
+	\begin{block}{Block Iteration}
+		$$\vect{u}_{n+1}^{k+1} = \left[\matr{I} - \TCtoF\phiApproxCoarse^{-1}\TFtoC\phiOp\right] \vect{u}_{n+1}^{k} +
+		\TCtoF\phiApproxCoarse^{-1}\TFtoC\bm{\chi}\vect{u}_{n}^{k+1}$$
+	\end{block}\vspace{-20pt}
 \end{frame}
 
 \begin{frame}{PFASST as block iteration}
-	... TODO ...
+	\begin{columns}
+		\column{0.56\linewidth}
+		\begin{enumerate}
+			\item One ABJ iteration on fine level
+			$$\vect{u}_{n+1}^{k+1/2} = \left[\matr{I} - \tilde{\bm{\phi}}^{-1} \bm{\phi}\right] \vect{u}_{n+1}^{k} +
+			\tilde{\bm{\phi}}^{-1}\bm{\chi}\vect{u}_{n}^{k}$$
+			\item One approximated CGC with ABGS
+			\begin{equation*}
+				\begin{split}
+					\vect{u}_{n+1}^{k+1} 
+					&= \left[\matr{I} - \TCtoF\phiApproxCoarse^{-1}\TFtoC\phiOp\right] \vect{u}_{n+1}^{k+1/2} \\
+					&~+ \TCtoF\phiApproxCoarse^{-1}\TFtoC\bm{\chi}\vect{u}_{n}^{k+1}
+				\end{split}
+			\end{equation*}
+		\end{enumerate}\vspace{-10pt}
+		\begin{block}{Block Iteration}\vskip-10pt
+			\begin{equation*}
+				\begin{split}
+					\uvect_{n+1}^{k+1} &=
+					[\eyeMat - \TCtoF\phiApproxCoarse^{-1}\TFtoC \phiOp]
+					(\eyeMat - \phiApprox^{-1} \phiOp)\uvect_{n+1}^k \\
+					&~+ (\eyeMat - \TCtoF\phiApproxCoarse^{-1}\TFtoC \phiOp)
+					\phiApprox^{-1}\chiOp\uvect_{n}^k\\
+					&~+ \TCtoF\phiApproxCoarse^{-1}\TFtoC\chiOp\uvect_{n}^{k+1}
+				\end{split}
+			\end{equation*}
+		\end{block}
+		
+		\column{0.37\linewidth}
+		\centering
+		\includegraphics[width=\linewidth]{kn-approxCGC.pdf}
+		$$\textbf{+}$$
+		\includegraphics[width=\linewidth]{kn-approxBlockJacobi.pdf}\vspace{-20pt}
+	\end{columns}
 \end{frame}
 
 \begin{frame}{Task graph}
