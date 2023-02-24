@@ -3,7 +3,8 @@ import re
 import sympy as sy
 
 COLOR_LIST = ['#4c72b0', '#dd8452', '#55a868', '#c44e52', '#8172b3', '#937860', '#da8bc3', '#8c8c8c', '#ccb974',
-              '#64b5cd']
+              '#64b5cd', '#818d6d', '#7f0c17', '#c4ddb2', '#2ab414', '#f98131', '#08786d', '#142840',
+              '#d065b5''#a73307']
 
 
 class TaskPool:
@@ -34,6 +35,64 @@ class TaskPool:
                 self.colorCounter += 1
             self.colorLookup[type] = color
             return color
+
+    def nextTask(self, task, list):
+        next_task = self.getTask(task)
+        if len(next_task.followingTasks) == 1 and len(next_task.dep) == 1 and next_task.type == 'sub':
+            list.append(task)
+            list = self.nextTask(next_task.followingTasks[0], list=list)
+            return list
+        else:
+            return list
+
+    def combineTasks(self, listOfTasks):
+
+        # Assemble all tasks to combine
+        tmp = []
+        for task in listOfTasks:
+            tmp.append(self.getTask(task))
+
+        # Combine operation and cost of all tasks
+        op = tmp[-1].op
+        cost = tmp[-1].cost
+        for i in range(len(tmp) - 2, -1, -1):
+            op = op.subs({tmp[i].result: tmp[i].op})
+            cost += tmp[i].cost
+
+        # Updating pool - removing combined tasks from followingTasks lists
+        for d in tmp[0].dep:
+            for i in range(len(self.pool[d].followingTasks)):
+                if self.pool[d].followingTasks[i] == tmp[0].result:
+                    self.pool[d].followingTasks[i] = tmp[-1].result
+                    break
+
+        # Updating pool - removing combined tasks from subtasks
+        a = 3
+        for q in tmp[:-1]:
+            self.pool[q.parent].subtasks = [item for item in self.pool[q.parent].subtasks if item != q.result]
+
+        # Update the last cast which now represents all combined tasks
+        tmp[-1].updateTask(op=op, cost=cost, taskpool=self)
+
+        # Remove all but the updated task from the pool
+        for i in range(0, len(listOfTasks) - 1):
+            self.pool.pop(listOfTasks[i], None)
+
+    def optimizeSerialPool(self):
+        taskChains = []
+        for key, value in self.pool.items():
+            list = []
+            a = value.followingTasks
+            if len(a) == 1 and value.type == 'sub':
+                list.append(key)
+                list = self.nextTask(a[0], list)
+            if len(list) > 1:
+                taskChains.append(list)
+        sets = [set(l) for l in taskChains]
+        tmp = [l for l, s in zip(taskChains, sets) if not any(s < other for other in sets)]
+        taskChains = [item for item in taskChains if item in tmp]
+        for item in taskChains:
+            self.combineTasks(listOfTasks=item)
 
     def __eq__(self, other):
         if len(self.pool) != len(other.pool):
@@ -67,6 +126,7 @@ class Task(object):
         self.color = "gray"  # Default color
         self.dep = self.findDependencies()  # Find dependencies based on op
         self.subtasks = self.findSubtasks(taskpool=taskpool)
+        self.parent = None
         self.followingTasks = []
 
         tmp_split = re.split('_|\^', result.name)
@@ -84,6 +144,14 @@ class Task(object):
 
         self.resultString = self.getResultString()
         self.opType = self.typeOfOperation()
+        self.color = taskpool.getColor(type=self.opType)
+
+    def updateTask(self, op, cost, taskpool):
+        self.op = op
+        self.cost = cost
+        self.dep = self.findDependencies()
+        self.opType = self.typeOfOperation()
+        self.color = taskpool.getColor(type=self.opType)
 
     def getResultString(self):
         tmp = self.translateSymbolString(self.result)
@@ -99,6 +167,8 @@ class Task(object):
         tmp = [key for key in taskpool.unassignedSubtasks if
                re.compile(tmpRegex).match(self.translateSymbolString(key))]
         taskpool.unassignedSubtasks = [item for item in taskpool.unassignedSubtasks if item not in tmp]
+        for item in tmp:
+            taskpool.pool[item].parent = self.result
         return tmp
 
     def findDependencies(self):
@@ -119,7 +189,10 @@ class Task(object):
                     else:
                         raise Exception('Does this exists?')
                 else:
-                    type = f"{self.op.args[0]}"
+                    r1 = re.search(r"(\*u_\d+\^\d+(_\d+)*)", str(self.op))
+                    replace = r1.group(1)
+                    type = str(self.op).replace(replace, '').replace('**', '^').replace("(", "{").replace(")", "}")
+                    # type = f"{self.op.args[0]}"
             elif isinstance(self.op.args[0], sy.Integer):
                 if self.op.func.is_Mul:
                     func = '*'
@@ -129,7 +202,10 @@ class Task(object):
                     raise Exception(f'Unknown func in {self.result}={self.op} with {type(self.op.func)}')
                 type = f'{self.op.args[0]}{func}'
             elif isinstance(self.op.args[0], sy.Pow):
-                type = f'{self.op.args[0].args[0]}^{{{self.op.args[0].args[1]}}}'
+                r1 = re.search(r"(\*u_\d+\^\d+(_\d+)*)", str(self.op))
+                replace = r1.group(1)
+                type = str(self.op).replace(replace, '').replace('**', '^').replace("(", "{").replace(")", "}")
+                # type = f'{self.op.args[0].args[0]}^{{{self.op.args[0].args[1]}}}'
             else:
                 raise Exception(f'Unknown operation in {self.result}={self.op} with {type(self.op.args[0])}')
         else:

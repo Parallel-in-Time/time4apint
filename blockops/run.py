@@ -50,7 +50,7 @@ class Generator:
 
 
 class PintRun:
-    def __init__(self, blockIteration, nBlocks, kMax):
+    def __init__(self, blockIteration, nBlocks, kMax, optimizeSerialPool=False):
         self.blockIteration = blockIteration
         self.nBlocks = nBlocks
         self.taskPool = TaskPool()
@@ -68,14 +68,17 @@ class PintRun:
         self.taskPool.addTask(operation=self.null,
                               result=self.createSymbolForUnk(0, 0),
                               cost=0)
-
         self.createExpressions()
+        if optimizeSerialPool:
+            self.taskPool.optimizeSerialPool()
+
         self.pintGraph.generateGraphFromPool(pool=self.taskPool)
 
     def getMinimalRuntime(self):
         return self.pintGraph.longestPath()
 
     def plotGraph(self, figName=None, figSize=(6.4, 4.8)):
+        #return self.pintGraph.plotGraph2(figName, figSize=figSize)
         return self.pintGraph.plotGraph(figName, figSize=figSize)
 
     def createSymbolForUnk(self, n, k):
@@ -183,13 +186,14 @@ class PintRun:
         # for the first two iterations. For these iterations it is necessary, since everything can go
         # back to the initial condition. Afterwards, we use a reduced version of computationToApprox
         # where we only consider entries that contain an u_x^y present in the expr.
-        if iter in [0,1]:
+        if iter in [0, 1]:
             for key, value in self.computationToApprox.items():
                 expr = expr.subs({key: self.computationToApprox[key]})
         else:
             reducedCompuToApprox = {item2[1]: self.computationToApprox[item2[1]] for item2 in
-                  [[key.atoms(), key] for key, value in self.computationToApprox.items()] if
-                  set(item2[0]).intersection(set([atoms for atoms in expr.atoms() if str(atoms).startswith('u')]))}
+                                    [[key.atoms(), key] for key, value in self.computationToApprox.items()] if
+                                    set(item2[0]).intersection(
+                                        set([atoms for atoms in expr.atoms() if str(atoms).startswith('u')]))}
             for key, value in reducedCompuToApprox.items():
                 expr = expr.subs({key: value})
         tmp = expr

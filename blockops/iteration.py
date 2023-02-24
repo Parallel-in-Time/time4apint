@@ -232,9 +232,9 @@ class BlockIteration(object):
                 print(f'Update: {self.update}')
             print(f'Predictor: {self.predictor}')
             print(f'N={N}, K={K} \n')
-            print(f'Runtime of schedule={schedule.schedule_name} for nProc={nProc}: {runtime}')
+            print(f'Runtime of schedule={schedule.NAME} for nProc={nProc}: {runtime}')
             print(f'Runtime time-stepping: {runtime_ts} (This is currently not the correct value)')
-            print(f'Speedup of schedule={schedule.schedule_name} for nProc={nProc}: {(runtime_ts / runtime):.2f} \n')
+            print(f'Speedup of schedule={schedule.NAME} for nProc={nProc}: {(runtime_ts / runtime):.2f} \n')
             print(f'Theoretical lower runtime bound: {optimal_runtime}')
             print(
                 f'Theoretical maximum speedup compared to time stepping: {(runtime_ts / optimal_runtime):.2f} (This is currently not the correct value)')
@@ -244,16 +244,16 @@ class BlockIteration(object):
         efficiency = speedup / nProc
         return speedup, efficiency, nProc
 
-    def plotGraph(self, N, K, figSize=(6.4, 4.8)):
+    def plotGraph(self, N, K, figSize=(6.4, 4.8), optimizeSerialParts=False):
         K = self.checkK(N=N, K=K)
-        run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
+        run = PintRun(blockIteration=self, nBlocks=N, kMax=K, optimizeSerialPool=optimizeSerialParts)
         run.plotGraph(figName=None if self.name is None else self.name + ' (graph)', figSize=figSize)
 
-    def plotSchedule(self, N, K, nProc, schedule_type='BLOCK-BY-BLOCK', figSize=(8, 4.8)):
+    def plotSchedule(self, N, K, nProc, schedule_type='BLOCK-BY-BLOCK', figSize=(8, 4.8), optimizeSerialParts=False):
         K = self.checkK(N=N, K=K)
-        run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
+        run = PintRun(blockIteration=self, nBlocks=N, kMax=K, optimizeSerialPool=optimizeSerialParts)
         schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
-        schedule.plot(figName=None if self.name is None else self.name + f' ({schedule.schedule_name} schedule)',
+        schedule.plot(figName=None if self.name is None else self.name + f' ({schedule.NAME} schedule)',
                       figSize=figSize)
 
     def checkK(self, N, K):
