@@ -71,7 +71,7 @@ def decomposeAddition(expr: Add, dico: dict):
 def expandTree(dico: dict):
     """Expand an operation tree stored into a dictionnary"""
     for leading, rest in dico.items():
-        if rest is None:
+        if rest == 1 or type(rest) == Symbol:
             continue
         if type(rest) == Mul:
             l, r = getLeadingTerm(rest)
@@ -80,6 +80,8 @@ def expandTree(dico: dict):
             subDico = decomposeAddition(rest, {})
             expandTree(subDico)
             dico[leading] = subDico
+        else:
+            raise ValueError('got neither Add nor Mul')
             
 dico = decomposeAddition(e1, {})  # Note : suppose that e1 is an addition ...
 expandTree(dico)
@@ -191,7 +193,7 @@ def createTasks(dico: dict):
         if inp == 1:
             res = res + ope
             dep = res + ope
-        if type(inp) is dict:
+        elif type(inp) is dict:
             t, r = pool.addTask(ope, *createTasks(inp))
             res = res + r
             dep = dep + t
@@ -199,6 +201,8 @@ def createTasks(dico: dict):
             t, r = pool.addTask(ope, inp, inp)
             res = res + r
             dep = dep + t
+        else:
+            raise ValueError('AAAAAAAAAAAAAAAAHHHHHH')
     return res, dep
              
 createTasks(dico)
