@@ -1,4 +1,5 @@
 # Python imports
+import copy
 import re
 
 import sympy as sy
@@ -6,6 +7,7 @@ import sympy as sy
 # BlockOps import
 from .graph import PintGraph
 from .taskpool import TaskPool
+from .taskPool2 import TasksPool
 
 
 class Generator:
@@ -49,11 +51,99 @@ class Generator:
         return tmp
 
 
+Add = sy.core.add.Add
+Mul = sy.core.mul.Mul
+Pow = sy.core.power.Pow
+Symbol = sy.core.symbol.Symbol
+
+
+def getLeadingTerm(expr: Mul):
+    """Decompose a multiplication into its leading term and the rest"""
+    try:
+        float(expr.args[0])
+
+        # Leading term is a scalar
+        if len(expr.args) == 2:
+            # Just multiplication
+            leading, rest = expr.args
+        else:
+            # Minus of several multiplicated terms
+            leading = expr.args[1]
+            rest = Mul(expr.args[0], *expr.args[2:])
+    except TypeError:
+        # Leading term is a operator
+        leading = expr.args[0]
+        rest = Mul(*expr.args[1:])
+
+    # if expr.args[0] != -1:
+    #     # Non-negative term
+    #     leading = expr.args[0]
+    #     rest = Mul(*expr.args[1:])
+    # else:
+    #     # Negative term with leading -1
+    #     if len(expr.args) == 2:
+    #         # Just minus one term
+    #         leading, rest = expr.args
+    #     else:
+    #         # Minus of several multiplicated terms
+    #         leading = expr.args[1]
+    #         rest = Mul(-1, *expr.args[2:])
+    return leading, rest
+
+
+def decomposeAddition(expr, dico: dict):
+    """Decompose an addition into a dictionnary with leading terms as key"""
+    if type(expr) == sy.Mul:
+        term = expr
+        leading, rest = getLeadingTerm(term)
+        try:
+            dico[leading] += rest
+        except KeyError:
+            dico[leading] = rest
+    elif type(expr) == sy.Add:
+        for term in expr.args:
+            if type(term) == Symbol:
+                dico[term] = 1
+            elif type(term) == Mul:
+                leading, rest = getLeadingTerm(term)
+                try:
+                    dico[leading] += rest
+                except KeyError:
+                    dico[leading] = rest
+            else:
+                raise ValueError('got neither Symbol nor Mul')
+    else:
+        raise Exception('Unknown expression type')
+    return dico
+
+
+def expandTree(dico: dict):
+    """Expand an operation tree stored into a dictionnary"""
+    for leading, rest in dico.items():
+        if rest == 1 or type(rest) == Symbol:
+            continue
+        if type(rest) == Mul:
+            l, r = getLeadingTerm(rest)
+            if type(r) == Symbol:
+                dico[leading] = {l: r}
+            elif type(rest) == Mul:
+                subDico = {l: r}
+                expandTree(subDico)
+                dico[leading] = subDico
+        elif type(rest) == Add:
+            subDico = decomposeAddition(rest, {})
+            expandTree(subDico)
+            dico[leading] = subDico
+        else:
+            raise ValueError('got neither Add nor Mul')
+
+
 class PintRun:
     def __init__(self, blockIteration, nBlocks, kMax, optimizeSerialPool=False):
         self.blockIteration = blockIteration
         self.nBlocks = nBlocks
         self.taskPool = TaskPool()
+        self.taskPool2 = TasksPool()
         self.kMax = kMax
         self.pintGraph = PintGraph(nBlocks, max(self.kMax))
         self.null = 0 * sy.symbols('null', commutative=False)
@@ -68,18 +158,29 @@ class PintRun:
         self.taskPool.addTask(operation=self.null,
                               result=self.createSymbolForUnk(0, 0),
                               cost=0)
+        self.taskPool2.addTask(ope=self.null,
+                               inp=self.null,
+                               dep=None,
+                               n=0,
+                               k=0,
+                               result=self.createSymbolForUnk(0, 0),
+                               blockIters=self.blockIteration.blockOps
+                               )
+
         self.createExpressions()
+        self.taskPool2.removeZeroTasks()
+        self.taskPool2.setCosts()
         if optimizeSerialPool:
             self.taskPool.optimizeSerialPool()
 
-        self.pintGraph.generateGraphFromPool(pool=self.taskPool)
+        self.pintGraph.generateGraphFromPool(pool=self.taskPool2)
 
     def getMinimalRuntime(self):
         return self.pintGraph.longestPath()
 
     def plotGraph(self, figName=None, figSize=(6.4, 4.8)):
-        #return self.pintGraph.plotGraph2(figName, figSize=figSize)
-        return self.pintGraph.plotGraph(figName, figSize=figSize)
+        return self.pintGraph.plotGraph2(figName, figSize=figSize)
+        #return self.pintGraph.plotGraph(figName, figSize=figSize)
 
     def createSymbolForUnk(self, n, k):
         # TODO: Workaround to make FCF work. But maybe this is not the way to go
@@ -209,6 +310,29 @@ class PintRun:
             expr = tmp
         return expr
 
+    def taskGenerator2(self, rule, res, n, k):
+        dico = decomposeAddition(rule, {})
+        expandTree(dico)
+        print('Factorized dictionnary :')
+        print(' -- note : (+) are additions, (x) are multiplications')
+
+        # Helping function for printing
+        def printFacto(dico: dict, tab=0):
+            indent = " " * 3 * tab + "(+)"
+            for key, val in dico.items():
+                if type(val) == dict:
+                    print(f'{indent} {key} (x)')
+                    printFacto(val, tab + 1)
+                else:
+                    print(f'{indent} {key} (x) {val}')
+
+        printFacto(dico)
+        self.taskPool2.createTasks(dico=dico, n=n, k=k, res=res, blockIters = self.blockIteration.blockOps)
+        self.taskPool2.save=[]
+        #print('List of tasks :')
+
+        # a = self.taskPool2.pool.pop(res)
+        # self.taskPool2.pool[res] = a
     def createExpressions(self):
 
         for n in range(self.nBlocks):
@@ -224,6 +348,7 @@ class PintRun:
                 else:
                     rule = self.generator[0].generatingExpr(n=n + 1)
                 self.taskGenerator(rule=rule, res=res)
+                self.taskGenerator2(rule=rule, res=res, n=n+1, k=0)
                 if len(rule.args) > 0:
                     self.approxToComputation[res] = rule
                     self.computationToApprox[rule] = res
@@ -234,12 +359,14 @@ class PintRun:
             for n in range(self.nBlocks):
                 if k < self.kMax[n + 1]:
                     res = self.createSymbolForUnk(n=n + 1, k=k + 1)
+                    tmp = self.createIterationRule(n=n + 1, k=k + 1)
                     if self.generator[k + 1].mode == 0:
                         rule = self.substitute_and_simplify(self.createIterationRule(n=n + 1, k=k + 1), k + 1)
                         self.generator[k + 1].check(rule, n + 1)
                     else:
                         rule = self.generator[k + 1].generatingExpr(n=n + 1)
                     self.taskGenerator(rule=rule, res=res)
+                    self.taskGenerator2(rule=rule, res=res, n=n+1, k=k+1)
                     if len(rule.args) > 0:
                         self.computationToApprox[rule] = res
                         self.approxToComputation[res] = rule

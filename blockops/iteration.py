@@ -7,6 +7,7 @@ Created on Mon Nov  7 15:40:41 2022
 """
 import numpy as np
 import sympy as sy
+from typing import Dict
 
 from .block import BlockOperator, I
 from .run import PintRun
@@ -204,20 +205,20 @@ class BlockIteration(object):
 
     def getPerformances(
             self, N, K, nProc=None, schedule_type='BLOCK-BY-BLOCK', verbose=False):
-        
+
         seqPropCost = self.propagator.cost
         if (seqPropCost is None) or (seqPropCost == 0):
             raise ValueError(
                 'no cost given for fine propagator,'
                 ' cannot measure performances')
-        runtime_ts =  seqPropCost * N
-        
+        runtime_ts = seqPropCost * N
+
         K = self.checkK(N=N, K=K)
         print(f' -- computing {schedule_type} cost for K={K}')
-            
+
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         schedule = getSchedule(
-            taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, 
+            taskPool=run.taskPool, nProc=nProc, nPoints=N + 1,
             schedule_type=schedule_type)
         runtime = schedule.getRuntime()
         nProc = schedule.nProc
@@ -239,7 +240,7 @@ class BlockIteration(object):
             print(
                 f'Theoretical maximum speedup compared to time stepping: {(runtime_ts / optimal_runtime):.2f} (This is currently not the correct value)')
             print('=============================')
-        
+
         speedup = runtime_ts / runtime
         efficiency = speedup / nProc
         return speedup, efficiency, nProc
@@ -252,7 +253,7 @@ class BlockIteration(object):
     def plotSchedule(self, N, K, nProc, schedule_type='BLOCK-BY-BLOCK', figSize=(8, 4.8), optimizeSerialParts=False):
         K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K, optimizeSerialPool=optimizeSerialParts)
-        schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
+        schedule = getSchedule(taskPool=run.taskPool2, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
         schedule.plot(figName=None if self.name is None else self.name + f' ({schedule.NAME} schedule)',
                       figSize=figSize)
 
@@ -268,19 +269,21 @@ class BlockIteration(object):
 # -----------------------------------------------------------------------------
 # Inherited specialized class
 # -----------------------------------------------------------------------------
-ALGORITHMS: dict[str, BlockIteration] = {}
+ALGORITHMS: Dict[str, BlockIteration] = {}
+
 
 def register(cls):
     ALGORITHMS[cls.__name__] = cls
     return cls
 
+
 DEFAULT_PROP = {
     'implicit': 'phi**(-1)*chi',
     'explicit': 'F'}
 
+
 @register
 class Parareal(BlockIteration):
-
     needApprox = True
 
     def __init__(self, implicitForm=True, approxPred=True, **blockOps):
@@ -298,9 +301,9 @@ class Parareal(BlockIteration):
         super().__init__(update, propagator, predictor,
                          rules=None, name='Parareal', **blockOps)
 
+
 @register
 class ABJ(BlockIteration):
-
     needApprox = True
 
     def __init__(self, implicitForm=True, approxPred=True, **blockOps):
@@ -319,9 +322,9 @@ class ABJ(BlockIteration):
         super().__init__(update, propagator, predictor,
                          rules=None, name='ABJ', **blockOps)
 
+
 @register
 class ABGS(BlockIteration):
-
     needApprox = True
 
     def __init__(self, implicitForm=True, approxPred=True, **blockOps):
@@ -340,9 +343,9 @@ class ABGS(BlockIteration):
         super().__init__(update, propagator, predictor,
                          rules=None, name='ABGS', **blockOps)
 
+
 @register
 class TMG(BlockIteration):
-
     needCoarse = True
 
     def __init__(self, coarsePred=True, **blockOps):
@@ -355,14 +358,15 @@ class TMG(BlockIteration):
         predictor = f"{phiC}*chi" if coarsePred else None
         update = f"{B10} + {B01} + {B00}"
         blockOps['I'] = I
+        rule = [(f"TFtoC * TCtoF", 1)]
         propagator = DEFAULT_PROP['implicit']
         super().__init__(update, propagator, predictor,
-                         rules=None, name='TMG', **blockOps)
+                         rules=rule, name='TMG', **blockOps)
         self.omega = omega
+
 
 @register
 class PFASST(BlockIteration):
-
     needApprox = True
     needCoarse = True
 

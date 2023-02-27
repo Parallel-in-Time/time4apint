@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from .taskpool import TaskPool
 from matplotlib.patches import Rectangle
-
+from typing import Dict
+from matplotlib.lines import Line2D
 
 class ScheduledTask():
 
@@ -42,6 +43,7 @@ class Schedule:
 
     def plot(self, figName, figSize=(8, 4.8)):
         fig, ax = plt.subplots(1, 1, figsize=figSize, num=figName)
+        colors = {}
         for key, value in self.schedule.items():
             time = value.end - value.start
             if time > 0:
@@ -51,19 +53,26 @@ class Schedule:
                 rx, ry = rec.get_xy()
                 cx = rx + rec.get_width() / 2.0
                 cy = ry + rec.get_height() / 2.0
-                ax.annotate(operation, (cx, cy), color='w', weight='bold',
-                            fontsize=6, ha='center', va='center')
+                if value.color not in colors:
+                    colors[value.color] = operation
+                # ax.annotate(operation, (cx, cy), color='w', weight='bold',
+                #             fontsize=6, ha='center', va='center')
         ax.set_xlim(0, self.makespan)
         ax.set_ylim(0, self.nProc)
         ax.set_yticks(np.linspace(self.nProc - 1, 0, self.nProc) + 0.5)
         ax.set_yticklabels(['P' + str(i) for i in range(self.nProc - 1, -1, -1)])
+        leg = [Line2D([0], [0], marker='o', color='w', label=value,
+                            markerfacecolor=key, markersize=15) for key, value in colors.items()]
+        plt.legend(handles=leg, title='Task description',loc='upper center', bbox_to_anchor=(0.5, 1.25),
+          ncol=5, fancybox=True, shadow=True, numpoints = 1)
+        fig.savefig('PFASSTSchedule.pdf', bbox_inches='tight', pad_inches=0.5)
         plt.show()
 
 
 # -----------------------------------------------------------------------------
 # Inherited specialized class
 # -----------------------------------------------------------------------------
-SCHEDULE_TYPES: dict[str, Schedule] = {}
+SCHEDULE_TYPES: Dict[str, Schedule] = {}
 
 def register(cls: Schedule) -> Schedule:
     for stringID in cls.IDS:
