@@ -164,8 +164,11 @@ class PintGraph:
         ax.set_xticklabels(labels=np.arange(0, self.nBlocks + 1))
         ax.set_yticks(ticks=np.arange(0, self.maxK + 1))
         ax.set_yticklabels(labels=np.arange(0, self.maxK + 1))
-        plt.legend(handles=leg, title='Task description',loc='upper center', bbox_to_anchor=(0.5, 1.3),
-          ncol=5, fancybox=True, shadow=True, numpoints = 1)
+        del leg[0]
+        del leg[4]
+        del leg[4]
+        plt.legend(handles=leg, title='Task description',loc='upper center', bbox_to_anchor=(0.5, 1.2),
+          ncol=6, fancybox=True, shadow=True, numpoints = 1)
         fig.savefig('PFASSTTaskGraph.pdf', bbox_inches='tight', pad_inches=0.5)
         plt.show()
 
