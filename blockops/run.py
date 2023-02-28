@@ -112,8 +112,10 @@ def decomposeAddition(expr, dico: dict):
                     dico[leading] = rest
             else:
                 raise ValueError('got neither Symbol nor Mul')
+    elif type(expr) == Symbol:
+        dico[expr] = 1
     else:
-        raise Exception('Unknown expression type')
+        raise Exception(f'Unknown expression type {type(expr)}')
     return dico
 
 

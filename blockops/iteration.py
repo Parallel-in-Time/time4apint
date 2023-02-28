@@ -247,8 +247,8 @@ class BlockIteration(object):
 
     def plotGraph(self, N, K, figSize=(6.4, 4.8), optimizeSerialParts=False):
         K = self.checkK(N=N, K=K)
-        run = PintRun(blockIteration=self, nBlocks=N, kMax=K, optimizeSerialPool=optimizeSerialParts)
-        run.plotGraph(figName=None if self.name is None else self.name + ' (graph)', figSize=figSize)
+        self.run = PintRun(blockIteration=self, nBlocks=N, kMax=K, optimizeSerialPool=optimizeSerialParts)
+        self.run.plotGraph(figName=None if self.name is None else self.name + ' (graph)', figSize=figSize)
 
     def plotSchedule(self, N, K, nProc, schedule_type='BLOCK-BY-BLOCK', figSize=(8, 4.8), optimizeSerialParts=False):
         K = self.checkK(N=N, K=K)

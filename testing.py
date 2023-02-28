@@ -18,7 +18,7 @@ nStepsF = 20
 nStepsG = 1
 nPoints = 1
 nPointsCoarse = 1
-algoName = 'Parareal'
+algoName = 'PFASST'
 
 prob = BlockProblem(lam, tEnd, nBlocks, nPoints, 'BE', nStepsPerPoint=nStepsF)
 prob.setApprox('BE', nStepsPerPoint=nStepsG)

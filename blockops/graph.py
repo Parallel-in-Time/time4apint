@@ -158,17 +158,19 @@ class PintGraph:
         ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         ax.set_xlim(left=-0.2, right=self.nBlocks + 0.2)
         ax.set_ylim(bottom=-.3, top=self.maxK + .2)
-        ax.set_xlabel(xlabel='Time block n')
-        ax.set_ylabel(ylabel='Iteration k')
+        ax.set_xlabel(xlabel='Time block $n$')
+        ax.set_ylabel(ylabel='Iteration $k$')
         ax.set_xticks(ticks=np.arange(0, self.nBlocks + 1))
         ax.set_xticklabels(labels=np.arange(0, self.nBlocks + 1))
         ax.set_yticks(ticks=np.arange(0, self.maxK + 1))
         ax.set_yticklabels(labels=np.arange(0, self.maxK + 1))
+        leg[6].set_label('$2*$')
         del leg[0]
         del leg[4]
-        del leg[4]
+        # del leg[4]
         plt.legend(handles=leg, title='Task description',loc='upper center', bbox_to_anchor=(0.5, 1.2),
-          ncol=6, fancybox=True, shadow=True, numpoints = 1)
+          ncol=7, fancybox=True, shadow=True, numpoints = 1,
+          fontsize=16)
         fig.savefig('PFASSTTaskGraph.pdf', bbox_inches='tight', pad_inches=0.5)
         plt.show()
 

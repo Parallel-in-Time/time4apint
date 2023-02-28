@@ -359,7 +359,7 @@
 	\end{center}
 \end{frame}
 
-\begin{frame}{Objectives}
+\begin{frame}{Project objectives}
 	\textbf{Implement a generic framework analysis tool, allowing to :}
     \begin{enumerate}
         \item[-] write each algorithm using the same notation/formalism
@@ -377,8 +377,8 @@
 \end{frame}
 
 \begin{frame}{Common formalism for PinT}\vskip10pt
-    \begin{block}{Common factor for each algorithm}
-    Iterative PinT algorithms compute an solution of 
+    \begin{block}{Common factor for many algorithms}
+    Iterative PinT methods compute a solution of 
     $$
     \begin{pmatrix}
         \bm{\phi} & & &\\
@@ -398,7 +398,7 @@
     using a given \textbf{iterative method}.
     \end{block}
 	$\rightarrow$ sequential time stepping $\Leftrightarrow$ exact solution of the system\vskip20pt
-	\textbf{Main goal :} represent PFASST through a block iteration :
+	\textbf{Main goal :} represent PFASST through a block iteration
 	$$
 	\uvect^{k+1}_{n+1} = \BMat^0_1(\uvect^k_{n+1})
 	+ \BMat^1_0(\uvect^{k+1}_{n}) + \BMat^0_0(\uvect^{k}_{n}) + ...
@@ -619,64 +619,49 @@
 \end{frame}
 
 \begin{frame}{Task graph}
+	$\rightarrow$ automatically generated from block iteration formula
 	\begin{center}
-    	\includegraphics[width=0.6\linewidth]{PFASSTTaskGraph.pdf}
+    	\includegraphics[width=0.85\linewidth]{PFASSTTaskGraph.pdf}
     \end{center}
 \end{frame}
 
 \begin{frame}{Task scheduling}
-	... TODO ...
+	$\rightarrow$ set a given cost for relevant operators (modeled or measured)\\
+	$\rightarrow$ choose a given scheduling strategy (block-by-block, lowest-cost-first, ...)
+	\begin{center}
+		\includegraphics[width=0.85\linewidth]{PFASSTSchedule.pdf}
+	\end{center}
 \end{frame}
 
 \begin{frame}{Parallel efficiency in the complex plane}
-	... TODO ...
+	$\rightarrow$ discretization error of sequential time-stepping in complex plane\\
+	$\rightarrow$ compute number of iteration for PinT to reach sequential error\\
+	$\rightarrow$ add speedup/efficiency from modeled schedule with one strategy\\\vskip5pt
+	
+	Example with Parareal on 10 blocks, RK4, coarse/fine time-step ratio of 20
+	\begin{center}
+		\includegraphics[width=0.5\linewidth]{Block-by-Block_Schedule.pdf}%
+		\includegraphics[width=0.5\linewidth]{Lowest_Cost_First_Schedule.pdf}%
+	\end{center} 
 \end{frame}
 
-%\begin{frame}{Common formalism for PinT}
-%	\begin{block}{Fourth application : PFASST}
-%		1) Additional base component : Approximate Block Jacobi
-%		\begin{itemize}
-%			\item Full matrix representation : 
-%			$$\matr{P}_{ABJ} = \begin{pmatrix}
-%				\bm{\phiApprox} & & &\\
-%				 & \bm{\phiApprox} & &\\
-%				&  & \ddots &\\
-%				& &  & \bm{\phiApprox}
-%			\end{pmatrix}$$
-%			$\rightarrow$ still a smoother, but more approximate than BJ\\
-%			$\rightarrow$ fully parallel and supposed to be very cheap
-%			\item Block Iteration formula :
-%			$$\vect{u}_{n+1}^{k+1} = \left[\eyeMat - \phiApprox^{-1} \phiOp\right] \vect{u}_{n+1}^{k} +
-%			\phiApprox^{-1}\chiOp\vect{u}_{n}^{k}$$
-%		\end{itemize}
-%	\end{block}
-%\end{frame}
-
-%\begin{frame}{Common formalism for PinT}
-%	\begin{block}{Fourth application : PFASST}
-%		2) Basic two-level PFASST
-%		\begin{enumerate}
-%			\item One ABJ iteration : $\vect{u}_{n+1}^{k+1/2} = \left[\eyeMat - \phiApprox^{-1} \phiOp\right] \vect{u}_{n+1}^{k} + \phiApprox^{-1}\chiOp\vect{u}_{n}^{k}$
-%			\item One ABGS iteration on coarse level to solve the CGC \\
-%			$\rightarrow$ details not shown ...
-%		\end{enumerate}\vskip10pt
-%		Combination of both produces ...
-%		\begin{equation*}
-%			\begin{split}
-%				\uvect_{n+1}^{k+1} &=
-%				[\eyeMat - \TCtoF\phiApproxCoarse^{-1}\TFtoC \phiOp]
-%				(\eyeMat - \phiApprox^{-1} \phiOp)\uvect_{n+1}^k \\
-%				&~+ (\eyeMat - \TCtoF\phiApproxCoarse^{-1}\TFtoC \phiOp)
-%				\phiApprox^{-1}\chiOp\uvect_{n}^k
-%				+ \TCtoF\phiApproxCoarse^{-1}\TFtoC\chiOp\uvect_{n}^{k+1}.
-%			\end{split}
-%		\end{equation*}
-%	$\Rightarrow$ \textit{again, simplified description using a Block Iteration}
-%	\end{block}
-%\end{frame}
-
-\begin{frame}{Conclusion}
-	... TODO ...
+\begin{frame}{Conclusion}\vskip10pt
+	\textbf{Current progress}
+	\begin{itemize}
+		\item Analysis framework in review : [Gander, L., Ruprecht \& Speck, 2022]
+		\item Python code (in development) : \url{https://github.com/Parallel-in-Time/time4apint}\\
+		$\rightarrow$ many algorithms implemented : Parareal, PFASST, ...\\
+		$\rightarrow$ many time-stepping method available : Runge-Kutta, SDC, ...
+	\end{itemize}\vskip10pt
+	\textbf{Perspectives}
+	\begin{itemize}
+		\item Generic open-source code for first accuracy \& performance analysis \\
+		 $\rightarrow$ generic/robust implementations for many PinT methods,\\
+		 $\rightarrow$ documentation and tutorials, continuous testing, ...
+		\item Implementation of a GUI website for demonstrations and first tests
+		\item Extend analysis tool to more complex algorithms :\\
+		$\Rightarrow$ MGRIT-FCF, multi-level, ...
+	\end{itemize}
 \end{frame}
 
 \begin{frame}{Acknowledgments}

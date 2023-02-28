@@ -184,7 +184,8 @@ class BlockProblem(object):
         self.phiCoarse = BlockOperator(r'\phi_C', matrix=phi, cost=cost)
         self.chiCoarse = BlockOperator(r'\chi_C', matrix=chi, cost=0)
 
-        TFtoC, TCtoF = getTransferMatrices(self.points, self.pointsCoarse)
+        TFtoC, TCtoF = getTransferMatrices(
+            self.points, self.pointsCoarse, vectorized=self.nLam > 1)
         self.TFtoC = BlockOperator('T_F^C', matrix=TFtoC, cost=0)
         self.TCtoF = BlockOperator('T_C^F', matrix=TCtoF, cost=0)
         self.deltaChi = self.TFtoC * self.chi - self.chiCoarse * self.TFtoC

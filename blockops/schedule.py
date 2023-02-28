@@ -61,10 +61,13 @@ class Schedule:
         ax.set_ylim(0, self.nProc)
         ax.set_yticks(np.linspace(self.nProc - 1, 0, self.nProc) + 0.5)
         ax.set_yticklabels(['P' + str(i) for i in range(self.nProc - 1, -1, -1)])
+        ax.set_ylabel(ylabel='Processor rank')
+        ax.set_xlabel(xlabel='Computation cost')
         leg = [Line2D([0], [0], marker='o', color='w', label=value,
                             markerfacecolor=key, markersize=15) for key, value in colors.items()]
         plt.legend(handles=leg, title='Task description',loc='upper center', bbox_to_anchor=(0.5, 1.25),
-          ncol=5, fancybox=True, shadow=True, numpoints = 1)
+          ncol=5, fancybox=True, shadow=True, numpoints = 1,
+          fontsize=16)
         fig.savefig('PFASSTSchedule.pdf', bbox_inches='tight', pad_inches=0.5)
         plt.show()
 

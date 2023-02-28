@@ -193,11 +193,14 @@ def getBlockMatrices(lamDt, nPoints, scheme, **kwargs):
     return phi, chi, points, cost, params, paramsPoints
 
 
-def getTransferMatrices(nodesFine, nodesCoarse):
+def getTransferMatrices(nodesFine, nodesCoarse, vectorized=False):
     # Build polynomial approximations
     polyApproxFine = LagrangeApproximation(nodesFine)
     polyApproxCoarse = LagrangeApproximation(nodesCoarse)
     # Compute interpolation matrix
     TFtoC = polyApproxFine.getInterpolationMatrix(nodesCoarse)
     TCtoF = polyApproxCoarse.getInterpolationMatrix(nodesFine)
+    if vectorized:
+        TFtoC.shape = (1, *TFtoC.shape)
+        TCtoF.shape = (1, *TCtoF.shape)
     return TFtoC, TCtoF

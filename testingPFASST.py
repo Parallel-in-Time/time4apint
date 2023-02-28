@@ -1,7 +1,5 @@
 import numpy as np
 from blockops import BlockProblem
-from blockops.plots import plotIterations2D
-import sympy.printing as printing
 
 tEnd = 2*np.pi-0.2
 lam = 1j
@@ -14,6 +12,10 @@ prob.setCoarseLevel(2)
 algo = prob.getBlockIteration('PFASST')
 
 algo.plotGraph(N=2,K=1, optimizeSerialParts=False)
-algo.plotSchedule(N=4,K=[1,2,3,4], nProc=4, optimizeSerialParts=False)
+algo.plotSchedule(
+    N=4,
+    K=4, #K=[1,2,3,4], 
+    nProc=4, 
+    optimizeSerialParts=False)
 
 a=3
