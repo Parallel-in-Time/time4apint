@@ -245,17 +245,19 @@ class BlockIteration(object):
         efficiency = speedup / nProc
         return speedup, efficiency, nProc
 
-    def plotGraph(self, N, K, figSize=(6.4, 4.8), optimizeSerialParts=False):
+    def plotGraph(self, N: int, K, figSize: tuple = (6.4, 4.8), saveFig: str = ""):
         K = self.checkK(N=N, K=K)
-        self.run = PintRun(blockIteration=self, nBlocks=N, kMax=K, optimizeSerialPool=optimizeSerialParts)
-        self.run.plotGraph(figName=None if self.name is None else self.name + ' (graph)', figSize=figSize)
+        self.run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
+        self.run.plotGraph(figName=None if self.name is None else self.name + ' (graph)',
+                           figSize=figSize, saveFig=saveFig)
 
-    def plotSchedule(self, N, K, nProc, schedule_type='BLOCK-BY-BLOCK', figSize=(8, 4.8), optimizeSerialParts=False):
+    def plotSchedule(self, N: int, K, nProc: int, schedule_type: str = 'BLOCK-BY-BLOCK', figSize: tuple = (8, 4.8),
+                     saveFig: str = ""):
         K = self.checkK(N=N, K=K)
-        run = PintRun(blockIteration=self, nBlocks=N, kMax=K, optimizeSerialPool=optimizeSerialParts)
-        schedule = getSchedule(taskPool=run.taskPool2, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
+        run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
+        schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
         schedule.plot(figName=None if self.name is None else self.name + f' ({schedule.NAME} schedule)',
-                      figSize=figSize)
+                      figSize=figSize, saveFig=saveFig)
 
     def checkK(self, N, K):
         if isinstance(K, int):

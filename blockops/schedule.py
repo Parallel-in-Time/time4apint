@@ -1,10 +1,11 @@
 # Python import
 import matplotlib.pyplot as plt
 import numpy as np
-from .taskpool import TaskPool
+from .taskPool import TaskPool
 from matplotlib.patches import Rectangle
 from typing import Dict
 from matplotlib.lines import Line2D
+
 
 class ScheduledTask():
 
@@ -17,7 +18,6 @@ class ScheduledTask():
 
 
 class Schedule:
-    
     NAME = None  # unique name for the schedule
     IDS = set()  # list of ids that can be used for usage of this schedule
 
@@ -32,7 +32,7 @@ class Schedule:
     def computeSchedule(self):
         raise NotImplementedError(
             'abstract method, should be implemented in children class')
-        
+
     @staticmethod
     def getDefaultNProc(N):
         """Return a default number of processors for a given number of block"""
@@ -41,7 +41,7 @@ class Schedule:
     def getRuntime(self):
         return self.makespan
 
-    def plot(self, figName, figSize=(8, 4.8)):
+    def plot(self, figName: str, figSize: tuple = (8, 4.8), saveFig: str = ""):
         fig, ax = plt.subplots(1, 1, figsize=figSize, num=figName)
         colors = {}
         for key, value in self.schedule.items():
@@ -64,11 +64,12 @@ class Schedule:
         ax.set_ylabel(ylabel='Processor rank')
         ax.set_xlabel(xlabel='Computation cost')
         leg = [Line2D([0], [0], marker='o', color='w', label=value,
-                            markerfacecolor=key, markersize=15) for key, value in colors.items()]
-        plt.legend(handles=leg, title='Task description',loc='upper center', bbox_to_anchor=(0.5, 1.25),
-          ncol=5, fancybox=True, shadow=True, numpoints = 1,
-          fontsize=16)
-        fig.savefig('PFASSTSchedule.pdf', bbox_inches='tight', pad_inches=0.5)
+                      markerfacecolor=key, markersize=15) for key, value in colors.items()]
+        plt.legend(handles=leg, title='Task description', loc='upper center', bbox_to_anchor=(0.5, 1.25),
+                   ncol=5, fancybox=True, shadow=True, numpoints=1,
+                   fontsize=16)
+        if saveFig != "":
+            fig.savefig(saveFig, bbox_inches='tight', pad_inches=0.5)
         plt.show()
 
 
@@ -76,6 +77,7 @@ class Schedule:
 # Inherited specialized class
 # -----------------------------------------------------------------------------
 SCHEDULE_TYPES: Dict[str, Schedule] = {}
+
 
 def register(cls: Schedule) -> Schedule:
     for stringID in cls.IDS:
@@ -88,7 +90,7 @@ class PinTBlockByBlock(Schedule):
     """
     Computes standard schedule based on block-by-block basis
     """
-    
+
     NAME = "PinT Block-by-Block"
     IDS = {'BLOCK-BY-BLOCK', 'BbB'}
 
@@ -167,7 +169,7 @@ class PinTBlockByBlock(Schedule):
             taskName = self.pickTask()
             self.assignTask(taskName=taskName)
             self.updateLists(taskName=taskName)
-              
+
     @staticmethod
     def getDefaultNProc(N):
         return N
@@ -175,7 +177,6 @@ class PinTBlockByBlock(Schedule):
 
 @register
 class PinTWindowing(Schedule):
-    
     NAME = "PinTWindowing"
     IDS = {'WINDOWING'}
 
@@ -310,15 +311,15 @@ class Optimal(Schedule):
             self.assignTask(taskName=taskName)
             self.updateLists(taskName=taskName)
         self.nProc = len(np.where(self.startPointProc != 0)[0])
-    
-        
+
+
 def getSchedule(taskPool: TaskPool, nProc: int, nPoints: int, schedule_type: str
                 ) -> Schedule:
     if schedule_type not in SCHEDULE_TYPES:
         raise Exception(f"Schedule {type} not implemented, must be in {list(SCHEDULE_TYPES.keys())}")
     else:
         ScheduleClass = SCHEDULE_TYPES[schedule_type]
-        nProc = ScheduleClass.getDefaultNProc(nPoints-1) if nProc is None else nProc
+        nProc = ScheduleClass.getDefaultNProc(nPoints - 1) if nProc is None else nProc
         schedule = ScheduleClass(taskPool=taskPool, nProc=nProc, nPoints=nPoints)
         schedule.computeSchedule()
         return schedule
