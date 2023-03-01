@@ -49,3 +49,10 @@ Implemented [here](./blockops/problem.py), with some documentation details provi
 1. [Basic example with Parareal](./notebook/01_baseTuto.ipynb)
 2. [Playing with Approximate Block Jacobi](./notebook/02_ApproximateBlockJacobi.ipynb)
 3. [PLaying with Parareal, ABJ and ABGS](./notebook/03_PrimaryBlockIteration.ipynb)
+
+## Web Interface
+
+Install the dependencies stated in the `requirements.txt` and then open a browser at `127.0.0.1:8000` after running
+```sh
+python web.py
+```
