@@ -13,7 +13,62 @@ app = Flask(__name__,
             static_folder='web/static',
             template_folder='web/templates')
 
-allowed_schemes = ['COLLOCATION', 'RK4']
+# --- Schemes ---
+rk_type_params = {
+    'defaults': {
+        'nodes': 'EQUID',
+        'quadType': 'RADAU-RIGHT',
+        'form': 'N2N',
+    },
+    'nStepsPerPoint': {
+        'default': 1,
+        'type': 'int'
+    },
+}
+
+collocation_type_params = {
+    'defaults': {
+        'nodes': 'LEGENDRE',
+        'quadType': 'RADAU-RIGHT',
+        'form': 'Z2N',
+    },
+    'quadProlong': {
+        'default': False,
+        'type': 'bool'
+    },
+}
+
+schemes = {
+    'BE': rk_type_params,
+    'FE': rk_type_params,
+    'TRAP': rk_type_params,
+    'RK2': rk_type_params,
+    'RK4': rk_type_params,
+    'EXACT': rk_type_params,
+    'COLLOCATION': collocation_type_params,
+}
+
+# --- Algorithms ---
+algorithms = {
+    'Parareal': [
+        'schemeApprox',
+    ],
+    'ABGS': [
+        'schemeApprox',
+    ],
+    'ABJ': [
+        'schemeApprox',
+    ],
+    'TMG': [
+        'MCoarse',
+    ],
+    'TMG-C': ['MCoarse', 'schemeApprox'],
+    'TMG-F': ['MCoarse', 'schemeApprox'],
+    'PFASST': ['MCoarse', 'schemeApprox'],
+    'MGRIT-FCF': [
+        'schemeApprox',
+    ],
+}
 
 
 @app.route('/')
@@ -21,35 +76,92 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/compute', methods=['POST'])
-def compute():
+@app.route('/app')
+def application():
+    return render_template('app.html')
+
+
+@app.route('/app/data')
+def app_data():
+    return jsonify({'algorithms': algorithms, 'schemes': schemes})
+
+
+@app.route('/compute-stage-1', methods=['POST'])
+def compute_stage_1():
     # Fetch the selected values
     try:
-        scheme = request.json['scheme']
-        if scheme not in allowed_schemes:
-            raise RuntimeError(
-                f'scheme {scheme} unknown. Must be one of {allowed_schemes}')
-        n = int(request.json['n'])
+        # TODO: Check for strictly positive etc.
+
+        # Stage 1-A: Time block decomposition
         N = int(request.json['N'])
+        tEnd = int(request.json['tEnd'])
+
+        # Stage 1-B: base (fine) block propagator
+        scheme = request.json['scheme']  # TODO: Check for string?
+        if scheme not in schemes.keys():
+            raise RuntimeError(
+                f'scheme {scheme} unknown. Must be one of {schemes.keys()}')
         M = int(request.json['M'])
-        n_steps_F = int(request.json['nStepsF'])
-        n_steps_G = int(request.json['nStepsG'])
-    except Exception as e:
-        return jsonify({'error': f'[ERROR]\n{str(e)}'}), 500
 
+        # Optional parameters
+        points = int(request.json['points'])
+        quadType = int(request.json['quadType'])
+        form = int(request.json['form'])
+    except Exception as e:
+        return jsonify({'error': f'[PARAM ERROR]\n{str(e)}'}), 500
+
+    data = {}
+    # Compute stuff here
     try:
-        # Compute
-        discretization_error_fig = discretization_error(scheme, n, N, M)
-        pint_iter_fig = pint_iter(scheme, n, N, M, n_steps_F, n_steps_G)
-        pint_error_fig = pint_error(scheme, n, N, M, n_steps_F, n_steps_G)
-    except Exception as e:
-        return jsonify({'error': f'[ERROR]\n{str(e)}'}), 500
+        # TODO: Actually compute some stuff here
+        data['delta_T'] = 0.2
+        data['block_points_distribution'] = 15.2
+        data['fine_discretization_error'] = 'I am a plot!'
+        data['estimated_fine_block_cost'] = 8.3
 
-    data = {
-        'discretization': fig_to_dict(discretization_error_fig),
-        'pint_iter': fig_to_dict(pint_iter_fig),
-        'pint_error': fig_to_dict(pint_error_fig),
-    }
+    except Exception as e:
+        return jsonify({'error': f'[COMPUTE ERROR]\n{str(e)}'}), 500
+
+    return jsonify({'data': data})
+
+
+@app.route('/compute-stage-2', methods=['POST'])
+def compute_stage_2():
+    # Fetch the selected values
+    try:
+        # TODO: Check for strictly positive etc.
+
+        # Stage 2: Selection and analysis of a PinT algorithm
+        algo = request.json['algo']
+        schemeApprox = request.json['schemeApprox']
+        MCoarse = int(request.json['MCoarse'])
+        if algo not in algorithms.keys():
+            raise RuntimeError(
+                f'Algorithm {algo} unknown. Must be one of {algorithms.keys()}'
+            )
+
+        for param_dependency in algorithms[algo]:
+            if request.json[param_depency] == None:
+                raise RuntimeError(
+                    f'Algorithm {algo} depends on the param {param_dependency} but is None.'
+                )
+    except Exception as e:
+        return jsonify({'error': f'[PARAM ERROR]\n{str(e)}'}), 500
+
+    data = {}
+    # Compute stuff here
+    try:
+        # TODO: Actually compute some stuff here
+        data['block_iteration'] = 7
+        data['approximation_error'] = 'I am a plot!'
+        data['coarse_error'] = 'I am a plot!'
+        data['PinT_error'] = 'I am a plot!'
+        data['PinT_iterations'] = 9
+        data['PinT_speedup'] = 'I am a plot!'
+
+    except Exception as e:
+        return jsonify({'error': f'[COMPUTE ERROR]\n{str(e)}'}), 500
+
     return jsonify({'data': data})
 
 

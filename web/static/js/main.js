@@ -1,5 +1,19 @@
 ('use strict');
 
+import { init } from './init.js';
+import { elements } from './elements.js';
+import { State } from './state.js';
+import { Connection } from './connection.js';
+
+// Create the global state
+const state = new State(elements);
+
+const connection = new Connection();
+
+// Initialize all the elements with the state
+init(elements, state, connection);
+
+/*
 // Send a message to the server by clicking on the compute button
 document.getElementById('compute-button').onclick = () => {
   // Open up a compute message
@@ -147,3 +161,4 @@ document.getElementById('display-option').onchange = () => {
     pintErrorDiv.style.display = 'block';
   }
 };
+*/
