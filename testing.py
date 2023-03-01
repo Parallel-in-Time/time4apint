@@ -13,13 +13,16 @@ from blockops.problem import BlockProblem
 
 tEnd = 2*np.pi-0.2
 lam = 1j
-N = 8
-nStepsF = 50
-nStepsG = 3
-algoName = 'Parareal'
+nBlocks = 4
+nStepsF = 20
+nStepsG = 1
+nPoints = 1
+nPointsCoarse = 1
+algoName = 'PFASST'
 
-prob = BlockProblem(lam, tEnd, N, 1, 'BE', nStepPerNode=nStepsF)
-prob.setApprox('BE', nStepPerNode=nStepsG)
+prob = BlockProblem(lam, tEnd, nBlocks, nPoints, 'BE', nStepsPerPoint=nStepsF)
+prob.setApprox('BE', nStepsPerPoint=nStepsG)
+prob.setCoarseLevel(nPointsCoarse)
 
 
 uSeq = prob.getSolution('fine', initSol=True)
@@ -29,11 +32,11 @@ errDiscr = prob.getError('fine', 'exact')
 
 plt.figure(algoName)
 plt.plot(uExact.ravel().real, uExact.ravel().imag, '^-', label='Exact')
-plt.plot(uSeq.ravel().real, uSeq.ravel().imag, 'o-', label='Sequential', ms=10)
+plt.plot(uSeq.ravel().real, uSeq.ravel().imag, 's-', label='Sequential', ms=12)
 
 algo = prob.getBlockIteration(algoName)
 
-uNum = algo(K=4, initSol=True)
+uNum = algo(nIter=4, initSol=True)
 
 print(f'max discretization error : {errDiscr.max()}')
 

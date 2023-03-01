@@ -138,11 +138,11 @@ class BlockOperator(object):
                     self.matrix += other.matrix
             self.components.update(other.components)
             self.symbol += other.symbol
-            self.cost = None
+            self.cost = max(self.cost, other.cost)
         else:
             raise ValueError(
                 'incompatible addition between BlockOperator '
-                f'and {other.__class__.__name__} ({other})')
+                f'({self}) and {other.__class__.__name__} ({other})')
         return self
 
     def __isub__(self, other):
@@ -169,11 +169,11 @@ class BlockOperator(object):
                     self.matrix -= other.matrix
             self.components.update(other.components)
             self.symbol -= other.symbol
-            self.cost = None
+            self.cost = max(self.cost, other.cost)
         else:
             raise ValueError(
                 'incompatible substraction between BlockOperator '
-                f'and {other.__class__.__name__} ({other})')
+                f'({self}) and {other.__class__.__name__} ({other})')
         return self
 
     def __imul__(self, other):
@@ -197,11 +197,17 @@ class BlockOperator(object):
                 elif other.matrix is not None:
                     self.matrix = np.dot(self.matrix, other.matrix)
                 self.invert = other.invert
-            self.cost = None
+            self.cost += other.cost
+        elif isinstance(other, (float, int)):
+            self.symbol *= other
+            if self.matrix is not None:
+                self.matrix *= other
+            else:
+                self.invert *= other
         else:
             raise ValueError(
                 'incompatible multiplication between BlockOperator '
-                f'and {other.__class__.__name__} ({other})')
+                f'({self}) and {other.__class__.__name__} ({other})')
         return self
 
     def __ipow__(self, n):
@@ -240,6 +246,14 @@ class BlockOperator(object):
         res = self.copy()
         res *= other
         return res
+
+    def __rmul__(self, other):
+        if isinstance(other, (float, int)):
+            return  self.__mul__(other)
+        else:
+            raise ValueError(
+                'incompatible multiplication between BlockOperator '
+                f'and {other.__class__.__name__} ({other})')
 
     def __pow__(self, n):
         res = self.copy()

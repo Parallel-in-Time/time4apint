@@ -11,10 +11,10 @@ from blockops import BlockProblem
 from blockops.plots import plotAccuracyContour
 
 zoom = 1
-reLam = np.linspace(-4/zoom, 0.5/zoom, 501)
-imLam = np.linspace(-3/zoom, 3/zoom, 500)
-N = 10
-M = 1
+reLam = np.linspace(-4/zoom, 0.5/zoom, 128)
+imLam = np.linspace(-3/zoom, 3/zoom, 128)
+nBlocks = 10
+nPoints = 1
 scheme = 'RK4'
 nStepsF = 10
 nStepsG = 1
@@ -22,13 +22,14 @@ algoName = 'Parareal'
 
 lam = reLam[:, None] + 1j*imLam[None, :]
 prob = BlockProblem(
-    lam.ravel(), N, N, M, scheme, nStepPerNode=nStepsF)
-prob.setApprox(scheme, nStepPerNode=nStepsG)
+    lam.ravel(), tEnd=nBlocks, nBlocks=nBlocks, nPoints=nPoints, scheme=scheme,
+    nStepsPerPoint=nStepsF)
+prob.setApprox(scheme, nStepsPerPoint=nStepsG)
 
 algo = prob.getBlockIteration(algoName)
 
 uNum = prob.getSolution('fine')
-uPar = algo(K=4)
+uPar = algo(nIter=4)
 
 err = np.abs(uNum-uPar)
 
