@@ -16,7 +16,7 @@ app = Flask(__name__,
 # --- Schemes ---
 rk_type_params = {
     'defaults': {
-        'nodes': 'EQUID',
+        'points': 'EQUID',
         'quadType': 'RADAU-RIGHT',
         'form': 'N2N',
     },
@@ -28,7 +28,7 @@ rk_type_params = {
 
 collocation_type_params = {
     'defaults': {
-        'nodes': 'LEGENDRE',
+        'points': 'LEGENDRE',
         'quadType': 'RADAU-RIGHT',
         'form': 'Z2N',
     },
@@ -86,7 +86,7 @@ def app_data():
     return jsonify({'algorithms': algorithms, 'schemes': schemes})
 
 
-@app.route('/compute-stage-1', methods=['POST'])
+@app.route('/app/compute-stage-1', methods=['POST'])
 def compute_stage_1():
     # Fetch the selected values
     try:
@@ -104,9 +104,9 @@ def compute_stage_1():
         M = int(request.json['M'])
 
         # Optional parameters
-        points = int(request.json['points'])
-        quadType = int(request.json['quadType'])
-        form = int(request.json['form'])
+        points = request.json['points']
+        quadType = request.json['quadType']
+        form = request.json['form']
     except Exception as e:
         return jsonify({'error': f'[PARAM ERROR]\n{str(e)}'}), 500
 
@@ -125,7 +125,7 @@ def compute_stage_1():
     return jsonify({'data': data})
 
 
-@app.route('/compute-stage-2', methods=['POST'])
+@app.route('/app/compute-stage-2', methods=['POST'])
 def compute_stage_2():
     # Fetch the selected values
     try:

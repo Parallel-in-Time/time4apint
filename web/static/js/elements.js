@@ -7,6 +7,10 @@ const elements = {
   stage1B: document.getElementById('stage-1-b'),
   stage2: document.getElementById('stage-2'),
 
+  // Stage 2 dependencies
+  schemeApproxParameters: document.getElementById('stage-2-schemeApprox'),
+  MCoarseParameters: document.getElementById('stage-2-MCoarse'),
+
   // Buttons
   stage1Button: document.getElementById('stage-1-button'),
   stage2Button: document.getElementById('stage-2-button'),

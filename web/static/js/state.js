@@ -73,11 +73,23 @@ class State {
     }
   }
 
-  compute(data) {
-    if (data === 1) {
+  getStageSelections(stage) {
+    // Capture everything with a selected in its tag that is visible
+    // (and set the computation state)
+    const selections = {};
+    Array.from(document.querySelectorAll('[id*="select-"]'))
+      .filter((elem) => elem.offsetParent !== null) // Remove hidden elements
+      .forEach((element) => {
+        selections[element.id.replace('select-', '')] = element.value;
+      }); // Create object with id: value
+
+    if (stage === 1) {
       this.firstStageComputed = true;
-      this.update();
     }
+    this.update();
+
+    // Return it as an object
+    return selections;
   }
 }
 
