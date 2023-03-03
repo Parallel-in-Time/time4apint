@@ -1,6 +1,8 @@
 import sympy as sy
 import re
 
+from .utils import getFactorizedRule
+
 COLOR_LIST = ['#4c72b0', '#dd8452', '#55a868', '#c44e52', '#8172b3', '#937860', '#da8bc3', '#8c8c8c', '#ccb974',
               '#64b5cd', '#818d6d', '#7f0c17', '#c4ddb2', '#2ab414', '#f98131', '#08786d', '#142840',
               '#d065b5', '#a73307']
@@ -23,14 +25,52 @@ class Counter(object):
 class TaskPool(object):
     """Helping class to store the description of the tasks"""
 
-    def __init__(self):
+    def __init__(self, run):
         self.counter = Counter()
+        self.counter2 = Counter()
         self.tasks = {}
+        self.tasks2 = {}
         self.results = {}
+        self.results2 = {}
         self.pool = {}
+        self.pool2 = {}
         self.colorLookup = {'$IC$': 'lightgrey'}
         self.colorCounter = 0
         self.save = []
+        self.blockIteration = run.blockIteration
+        self.pintRun = run
+        self.blockRules = run.blockRules
+        self.facBlockRules = run.facBlockRules
+
+        for key, value in self.facBlockRules.items():
+            self.taskGenerator(rule=value['rule'], res=value['result'], n=key[0], k=key[1])
+        self.removeTasksRepresentingOne()
+
+    def taskGenerator(self, rule, res: sy.Symbol, n: int, k: int):
+        """
+        Generates tasks based on a given rule.
+
+        Parameters
+        ----------
+        rule : sy.Symbol, sy.Mul, sy.Add
+            The rule to compute the block iteration for n and k
+        res : sy.Symbol
+            The name of the result
+        n : int
+            Current block
+        k : int
+            Current iteration
+        """
+
+        # If rule is just a copy of another task
+        if type(rule) == dict:
+            self.createTasks(dico=rule, n=n, k=k, res=res)
+        elif type(rule) == sy.core.numbers.Zero:
+            self.addTask(ope=sy.core.numbers.Zero(), inp=sy.core.numbers.Zero(), dep=None, n=n, k=k, result=res)
+        elif rule is None:
+            pass
+        else:
+            raise Exception(f'Unknown type of rule in task generator: {type(rule)}')
 
     def getColor(self, type):
         if type in self.colorLookup:
@@ -47,7 +87,7 @@ class TaskPool(object):
     def getTask(self, name):
         return self.pool[name]
 
-    def addTask(self, ope, inp, dep, n, k, blockIters, result=None):
+    def addTask(self, ope, inp, dep, n, k, result=None):
         """
         Add a task to the pool, considering one operator, one input,
         and a task dependency.
@@ -86,17 +126,17 @@ class TaskPool(object):
             self.tasks[task] = (ope, inp, dep)
             if type(ope) == sy.Integer or type(ope) == sy.core.numbers.Zero:
                 cost = 0
-            elif str(ope) in blockIters:
-                cost = blockIters[str(ope)].cost
+            elif str(ope) in self.blockIteration.blockOps:
+                cost = self.blockIteration.blockOps[str(ope)].cost
             else:
                 cost = 5
-            self.pool[task] = Task(op=ope, fullOp=res, result=task, cost=cost, taskpool=self, n=n, k=k, dep=dep)
+            self.pool[task] = self.createTask(op=ope, fullOp=res, result=task, cost=cost, n=n, k=k, dep=dep)
             self.results[res] = task
             self.counter.increment()
 
         return task, res
 
-    def createTasks(self, dico, n, k, res, blockIters):
+    def createTasks(self, dico, n, k, res):
         """
         Function extracting the tasks from a factorized dictionnary
 
@@ -121,30 +161,38 @@ class TaskPool(object):
                 if res is not None:
                     self.save.append([res_tmp, dep])
             elif type(inp) is dict:
-                r1, d1 = self.createTasks(dico=inp, n=n, k=k, res=None, blockIters=blockIters)
-                t, r = self.addTask(ope=ope, inp=r1, dep=d1, n=n, k=k, blockIters=blockIters)
+                r1, d1 = self.createTasks(dico=inp, n=n, k=k, res=None)
+                t, r = self.addTask(ope=ope, inp=r1, dep=d1, n=n, k=k)
                 if res is not None:
                     self.save.append([t, r])
                 res_tmp = res_tmp + r
                 dep = dep + t
             elif type(inp) is sy.Symbol:
-                t, r = self.addTask(ope=ope, inp=inp, dep=inp, n=n, k=k, blockIters=blockIters)
+                t, r = self.addTask(ope=ope, inp=inp, dep=inp, n=n, k=k)
                 res_tmp = res_tmp + r
                 dep = dep + t
                 if res is not None:
                     self.save.append([t, r])
             else:
                 raise ValueError(f'CreateTask unknown type: {type(inp)}')
-
         if res is not None:
             depe = self.save[0][0]
             fullOp = self.save[0][1]
             for i in range(1, len(self.save)):
                 depe = depe + self.save[i][0]
                 fullOp = fullOp + self.save[i][1]
+            self.save = []
 
-            self.pool[res] = Task(op='+', fullOp=fullOp, result=res, cost=0, taskpool=self, n=n, k=k, dep=depe)
+            self.pool[res] = self.createTask(op='+', fullOp=fullOp, result=res, cost=0, n=n, k=k, dep=depe)
         return res_tmp, dep
+
+    def createTask(self, op, fullOp, result, cost, n, k, dep):
+        newTask = Task(op=op, fullOp=fullOp, result=result, cost=cost, n=n, k=k, dep=dep)
+        for item in newTask.dep:
+            task = self.getTask(item)
+            task.followingTasks.append(newTask.result)
+            newTask.color = self.getColor(type=newTask.opType)
+        return newTask
 
     def removeTasksRepresentingOne(self):
         remove_list = []
@@ -171,7 +219,7 @@ class TaskPool(object):
 class Task(object):
     """Represents one task"""
 
-    def __init__(self, op, result, cost, taskpool, dep, n, k, fullOp):
+    def __init__(self, op, result, cost, dep, n, k, fullOp):
         """
         Creates a task based.
 
@@ -188,7 +236,7 @@ class Task(object):
         self.result = result  # Result (what is computed by this task)
         self.cost = cost  # Costs
         self.color = "gray"  # Default color
-        self.fullOP = fullOp # Full operation
+        self.fullOP = fullOp  # Full operation
 
         self.dep = []
         if type(dep) == sy.Add:
@@ -211,10 +259,6 @@ class Task(object):
         else:
             raise Exception(f'Unknown type of dependency: {type(self.dep)}')
 
-        for item in self.dep:
-            task = taskpool.getTask(item)
-            task.followingTasks.append(result)
-
         self.parent = None
         self.followingTasks = []
 
@@ -229,4 +273,3 @@ class Task(object):
         self.opType = f'${str(op).replace("(-1)", "{-1}").replace("**", "^")}$'
         if self.opType.startswith("$-"):
             self.opType = "$" + self.opType[2:]
-        self.color = taskpool.getColor(type=self.opType)
