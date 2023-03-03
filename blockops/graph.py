@@ -1,6 +1,4 @@
 # Python import
-import copy
-import re
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -37,7 +35,7 @@ class PintGraph:
     """DOCTODO"""
 
     # Constructor
-    def __init__(self, nBlocks, maxK):
+    def __init__(self, nBlocks, maxK, taskPool):
         """
         Creates a graph
 
@@ -45,12 +43,13 @@ class PintGraph:
         ----------
         """
         self.graph = nx.DiGraph()
-        self.pool = None
+        self.pool = taskPool
         self.nBlocks = nBlocks
         self.maxK = maxK
         self.counter = 0
         self.lookup = {}
         self.pos = Position(nBlocks=nBlocks, k=maxK)
+        self.generateGraphFromPool()
 
     def addTaskToGraph(self, pos, task):
         """Adds task to the digraph."""
@@ -66,9 +65,8 @@ class PintGraph:
             self.graph.add_edge(self.lookup[self.pool.getTask(item).result], self.counter, cost=0)
         self.counter += 1
 
-    def generateGraphFromPool(self, pool):
+    def generateGraphFromPool(self):
         """Creates graph vom taskpool"""
-        self.pool = pool
         for key, value in self.pool.pool.items():
             if value.type == 'main':
                 # Put u_x^y tasks (main tasks) on exact positions

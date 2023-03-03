@@ -11,8 +11,10 @@ from typing import Dict
 
 from .block import BlockOperator, I
 from .run import PintRun
+from .taskPool import TaskPool
 from .schedule import getSchedule
 from .utils import getCoeffsFromFormula
+from .graph import PintGraph
 
 
 # -----------------------------------------------------------------------------
@@ -200,11 +202,11 @@ class BlockIteration(object):
     def getRuntime(self, N, K, nProc, schedule_type='BLOCK-BY-BLOCK'):
         K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
-        schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
+        pool = TaskPool(run=run)
+        schedule = getSchedule(taskPool=pool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
         return schedule.getRuntime()
 
-    def getPerformances(
-            self, N, K, nProc=None, schedule_type='BLOCK-BY-BLOCK', verbose=False):
+    def getPerformances(self, N, K, nProc=None, schedule_type='BLOCK-BY-BLOCK', verbose=False):
 
         seqPropCost = self.propagator.cost
         if (seqPropCost is None) or (seqPropCost == 0):
@@ -217,14 +219,16 @@ class BlockIteration(object):
         print(f' -- computing {schedule_type} cost for K={K}')
 
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
+        pool = TaskPool(run=run)
         schedule = getSchedule(
-            taskPool=run.taskPool, nProc=nProc, nPoints=N + 1,
+            taskPool=pool, nProc=nProc, nPoints=N + 1,
             schedule_type=schedule_type)
         runtime = schedule.getRuntime()
         nProc = schedule.nProc
 
         if verbose:
-            optimal_runtime = run.pintGraph.longestPath()
+            graph = PintGraph(N, max(K), pool)
+            optimal_runtime = graph.longestPath()
             print('=============================')
             if self.name is None:
                 print(f'Block iteration: {self.update}')
@@ -247,15 +251,19 @@ class BlockIteration(object):
 
     def plotGraph(self, N: int, K, figSize: tuple = (6.4, 4.8), saveFig: str = ""):
         K = self.checkK(N=N, K=K)
-        self.run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
-        self.run.plotGraph(figName=None if self.name is None else self.name + ' (graph)',
-                           figSize=figSize, saveFig=saveFig)
+        run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
+        pool = TaskPool(run=run)
+        pintGraph = PintGraph(N, max(K), pool)
+        pintGraph.plotGraph(figName=None if self.name is None else self.name + ' (graph)',
+                            figSize=figSize, saveFig=saveFig)
+        return run, pool, pintGraph
 
     def plotSchedule(self, N: int, K, nProc: int, schedule_type: str = 'BLOCK-BY-BLOCK', figSize: tuple = (8, 4.8),
                      saveFig: str = ""):
         K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
-        schedule = getSchedule(taskPool=run.taskPool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
+        pool = TaskPool(run=run)
+        schedule = getSchedule(taskPool=pool, nProc=nProc, nPoints=N + 1, schedule_type=schedule_type)
         schedule.plot(figName=None if self.name is None else self.name + f' ({schedule.NAME} schedule)',
                       figSize=figSize, saveFig=saveFig)
 

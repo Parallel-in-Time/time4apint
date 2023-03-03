@@ -187,7 +187,7 @@ def expandPowers(leading, rest):
     newLeading, newRest = getLeadingTerm(leadingMul)
     return newLeading, newRest*rest
 
-def decomposeAddition(expr, dico: dict, expand=True):
+def decomposeAddition(expr, dico: dict):
     """Decompose an addition into a dictionnary with leading terms as key"""
     if type(expr) == sy.Mul:
         term = expr
