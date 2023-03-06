@@ -54,23 +54,35 @@ class State {
   }
 
   updateView() {
+    // Display the needed stage elements
     switch (this.state) {
       case '1-A':
         show(this.elements['stage1A']);
+        show(this.elements['stage1ADocumentation']);
         hide(this.elements['stage1B']);
+        hide(this.elements['stage1BDocumentation']);
         hide(this.elements['stage2']);
+        hide(this.elements['stage2Documentation']);
         break;
       case '1-B':
         show(this.elements['stage1A']);
+        show(this.elements['stage1ADocumentation']);
         show(this.elements['stage1B']);
+        show(this.elements['stage1BDocumentation']);
         hide(this.elements['stage2']);
+        hide(this.elements['stage2Documentation']);
         break;
       case '2':
         show(this.elements['stage1A']);
+        show(this.elements['stage1ADocumentation']);
         show(this.elements['stage1B']);
+        show(this.elements['stage1BDocumentation']);
         show(this.elements['stage2']);
+        show(this.elements['stage2Documentation']);
         break;
     }
+    const selectionsHeight = this.elements['selections'].clientHeight;
+    this.elements['documentation'].style.height = `${selectionsHeight}px`;
   }
 
   getStageSelections(stage) {

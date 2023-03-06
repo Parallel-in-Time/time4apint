@@ -1,5 +1,14 @@
 ('use strict');
 
+function showError(error) {
+  UIkit.notification({
+    message: error,
+    status: 'danger',
+    pos: 'top-center',
+    timeout: 5000,
+  });
+}
+
 /**
  * Initialize all the onchange callbacks
  */
@@ -56,15 +65,22 @@ function init(elements, state, connection) {
   // Initialize the button events
   elements['stage1Button'].onclick = () => {
     const allSelections = state.getStageSelections(1);
-    connection.compute(allSelections).then((data) => {
-      if ('error' in data) {
-        UIkit.notification({
-          message: data['error'],
-          status: 'danger',
-          pos: 'top-center',
-          timeout: 5000,
-        });
-      }
+    connection.compute(1, allSelections).then((data) => {
+      if ('error' in data) showError(data['error']);
+
+      // TODO: Pass this result on to the stage or to the plot renderer or something
+      console.log(data);
+      elements['documentationBlockPointsDistribution'].value =
+        data['block_points_distribution'];
+      elements['documentationDeltaT'].value = data['delta_T'];
+      elements['stage1Output'].style.display = 'block';
+    });
+  };
+  elements['stage2Button'].onclick = () => {
+    const allSelections = state.getStageSelections(2);
+    connection.compute(2, allSelections).then((data) => {
+      if ('error' in data) showError(data['error']);
+
       // TODO: Pass this result on to the stage or to the plot renderer or something
       console.log(data);
     });

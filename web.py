@@ -2,88 +2,36 @@
 import numpy as np
 from flask import Flask, jsonify, render_template, request
 
+import mistune
+
 from mpld3 import fig_to_dict
 
 from blockops import BlockProblem
 
 from web.utilities import discretization_error, pint_iter, pint_error
+# from web.data import algorithms, schemes
+import web.data as data
 
 app = Flask(__name__,
             static_url_path='',
             static_folder='web/static',
             template_folder='web/templates')
 
-# --- Schemes ---
-rk_type_params = {
-    'defaults': {
-        'points': 'EQUID',
-        'quadType': 'RADAU-RIGHT',
-        'form': 'N2N',
-    },
-    'nStepsPerPoint': {
-        'default': 1,
-        'type': 'int'
-    },
-}
-
-collocation_type_params = {
-    'defaults': {
-        'points': 'LEGENDRE',
-        'quadType': 'RADAU-RIGHT',
-        'form': 'Z2N',
-    },
-    'quadProlong': {
-        'default': False,
-        'type': 'bool'
-    },
-}
-
-schemes = {
-    'BE': rk_type_params,
-    'FE': rk_type_params,
-    'TRAP': rk_type_params,
-    'RK2': rk_type_params,
-    'RK4': rk_type_params,
-    'EXACT': rk_type_params,
-    'COLLOCATION': collocation_type_params,
-}
-
-# --- Algorithms ---
-algorithms = {
-    'Parareal': [
-        'schemeApprox',
-    ],
-    'ABGS': [
-        'schemeApprox',
-    ],
-    'ABJ': [
-        'schemeApprox',
-    ],
-    'TMG': [
-        'MCoarse',
-    ],
-    'TMG-C': ['MCoarse', 'schemeApprox'],
-    'TMG-F': ['MCoarse', 'schemeApprox'],
-    'PFASST': ['MCoarse', 'schemeApprox'],
-    'MGRIT-FCF': [
-        'schemeApprox',
-    ],
-}
-
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    text = data.markdown(open('web/index.md').read())
+    return render_template('index.html', text=text)
 
 
 @app.route('/app')
 def application():
-    return render_template('app.html')
+    return render_template('app.html', documentation=data.documentation)
 
 
 @app.route('/app/data')
 def app_data():
-    return jsonify({'algorithms': algorithms, 'schemes': schemes})
+    return jsonify({'algorithms': data.algorithms, 'schemes': data.schemes})
 
 
 @app.route('/app/compute-stage-1', methods=['POST'])
@@ -98,9 +46,10 @@ def compute_stage_1():
 
         # Stage 1-B: base (fine) block propagator
         scheme = request.json['scheme']  # TODO: Check for string?
-        if scheme not in schemes.keys():
+        if scheme not in data.schemes.keys():
             raise RuntimeError(
-                f'scheme {scheme} unknown. Must be one of {schemes.keys()}')
+                f'scheme {scheme} unknown. Must be one of {data.schemes.keys()}'
+            )
         M = int(request.json['M'])
 
         # Optional parameters
@@ -110,19 +59,19 @@ def compute_stage_1():
     except Exception as e:
         return jsonify({'error': f'[PARAM ERROR]\n{str(e)}'}), 500
 
-    data = {}
+    result = {}
     # Compute stuff here
     try:
         # TODO: Actually compute some stuff here
-        data['delta_T'] = 0.2
-        data['block_points_distribution'] = 15.2
-        data['fine_discretization_error'] = 'I am a plot!'
-        data['estimated_fine_block_cost'] = 8.3
+        result['delta_T'] = 0.2
+        result['block_points_distribution'] = 15.2
+        result['fine_discretization_error'] = 'I am a plot!'
+        result['estimated_fine_block_cost'] = 8.3
 
     except Exception as e:
         return jsonify({'error': f'[COMPUTE ERROR]\n{str(e)}'}), 500
 
-    return jsonify({'data': data})
+    return jsonify(result)
 
 
 @app.route('/app/compute-stage-2', methods=['POST'])
@@ -137,10 +86,10 @@ def compute_stage_2():
         MCoarse = int(request.json['MCoarse'])
         if algo not in algorithms.keys():
             raise RuntimeError(
-                f'Algorithm {algo} unknown. Must be one of {algorithms.keys()}'
+                f'Algorithm {algo} unknown. Must be one of {data.algorithms.keys()}'
             )
 
-        for param_dependency in algorithms[algo]:
+        for param_dependency in data.algorithms[algo]:
             if request.json[param_depency] == None:
                 raise RuntimeError(
                     f'Algorithm {algo} depends on the param {param_dependency} but is None.'
@@ -148,21 +97,21 @@ def compute_stage_2():
     except Exception as e:
         return jsonify({'error': f'[PARAM ERROR]\n{str(e)}'}), 500
 
-    data = {}
+    result = {}
     # Compute stuff here
     try:
         # TODO: Actually compute some stuff here
-        data['block_iteration'] = 7
-        data['approximation_error'] = 'I am a plot!'
-        data['coarse_error'] = 'I am a plot!'
-        data['PinT_error'] = 'I am a plot!'
-        data['PinT_iterations'] = 9
-        data['PinT_speedup'] = 'I am a plot!'
+        result['block_iteration'] = 7
+        result['approximation_error'] = 'I am a plot!'
+        result['coarse_error'] = 'I am a plot!'
+        result['PinT_error'] = 'I am a plot!'
+        result['PinT_iterations'] = 9
+        result['PinT_speedup'] = 'I am a plot!'
 
     except Exception as e:
         return jsonify({'error': f'[COMPUTE ERROR]\n{str(e)}'}), 500
 
-    return jsonify({'data': data})
+    return jsonify(result)
 
 
 if __name__ == '__main__':

@@ -2,10 +2,24 @@
  * All elements, so that they have the same name as the html id.
  */
 const elements = {
+  // Main columns
+  documentation: document.getElementById('documentation'),
+  selections: document.getElementById('selections'),
+
   // Stage Elements
   stage1A: document.getElementById('stage-1-a'),
   stage1B: document.getElementById('stage-1-b'),
+  stage1Output: document.getElementById('stage-1-output'),
   stage2: document.getElementById('stage-2'),
+  stage1ADocumentation: document.getElementById('stage-1-a-documentation'),
+  stage1BDocumentation: document.getElementById('stage-1-b-documentation'),
+  stage2Documentation: document.getElementById('stage-2-documentation'),
+
+  // Documentation outputs
+  documentationBlockPointsDistribution: document.getElementById(
+    'documentation-block-points-distribution'
+  ),
+  documentationDeltaT: document.getElementById('documentation-delta-T'),
 
   // Stage 2 dependencies
   schemeApproxParameters: document.getElementById('stage-2-schemeApprox'),

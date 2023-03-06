@@ -26,9 +26,15 @@ class Connection {
     return getData();
   }
 
-  compute(data) {
+  compute(stage, data) {
     console.log('Computing...');
-    return post('app/compute-stage-1', data);
+    switch (stage) {
+      case 1:
+        return post('app/compute-stage-1', data);
+        break;
+      case 2:
+        break;
+    }
   }
 }
 
