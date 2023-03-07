@@ -38,22 +38,22 @@ schemes = {
 # --- Algorithms ---
 algorithms = {
     'Parareal': [
-        'schemeApprox',
+        'scheme-approx-form',
     ],
     'ABGS': [
-        'schemeApprox',
+        'scheme-approx-form',
     ],
     'ABJ': [
-        'schemeApprox',
+        'scheme-approx-form',
     ],
     'TMG': [
         'MCoarse',
     ],
-    'TMG-C': ['MCoarse', 'schemeApprox'],
-    'TMG-F': ['MCoarse', 'schemeApprox'],
-    'PFASST': ['MCoarse', 'schemeApprox'],
+    'TMG-C': ['MCoarse', 'scheme-approx-form'],
+    'TMG-F': ['MCoarse', 'scheme-approx-form'],
+    'PFASST': ['MCoarse', 'scheme-approx-form'],
     'MGRIT-FCF': [
-        'schemeApprox',
+        'scheme-approx-form',
     ],
 }
 

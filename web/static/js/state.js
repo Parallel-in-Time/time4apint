@@ -86,14 +86,21 @@ class State {
   }
 
   getStageSelections(stage) {
-    // Capture everything with a selected in its tag that is visible
     // (and set the computation state)
     const selections = {};
+    // Capture everything with a 'select-' in its tag that is visible
     Array.from(document.querySelectorAll('[id*="select-"]'))
       .filter((elem) => elem.offsetParent !== null) // Remove hidden elements
       .forEach((element) => {
         selections[element.id.replace('select-', '')] = element.value;
       }); // Create object with id: value
+
+    // And add everything with a 'selection-plot'
+    Array.from(document.querySelectorAll('[id*="selection-plot"]')).forEach(
+      (element) => {
+        selections[element.id.replace('selection-plot-', '')] = element.value;
+      }
+    );
 
     if (stage === 1) {
       this.firstStageComputed = true;

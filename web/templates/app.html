@@ -28,18 +28,17 @@
 
     <!-- Custom CSS -->
     <style type="text/css">
-      /*
-      body {
-        height: 100vh; 
-      }
-      */
-
       .dropdown:hover .dropdown-menu {
         display: block;
       }
     </style>
   </head>
   <body>
+    <div style="position: absolute; left: 5px; top: 5px">
+      <a href="/">
+        <span class="uk-margin-small-right" uk-icon="home"></span>
+      </a>
+    </div>
     <div class="uk-height-1-1 uk-padding uk-background-muted">
       <div class="uk-container uk-container-expand">
         <div uk-grid>
@@ -110,33 +109,25 @@
                   <div
                     id="stage-1-output"
                     style="display: none"
-                    class="uk-grid-small uk-child-width-1-1"
-                    uk-grid
+                    class="uk-card uk-card-body uk-card-default uk-margin-large-left uk-padding-small"
                   >
-                    <div class="uk-margin-small-left" uk-grid>
-                      <span class="uk-margin-small-right uk-margin-small-top"
-                        >Block Points Distribution:
-                      </span>
-                      <div class="uk-width-expand@m uk-padding-remove-left">
-                        <input
-                          uk-tooltip="title: ---."
-                          class="uk-input uk-align-right"
+                    <div
+                      class="uk-card uk-grid-small uk-child-width-1-1"
+                      uk-grid
+                    >
+                      <div class="uk-margin-small-left" uk-grid>
+                        <span
                           id="documentation-block-points-distribution"
-                          type="number"
-                        />
+                          class="uk-margin-small-right uk-margin-small-top"
+                        >
+                        </span>
                       </div>
-                    </div>
-                    <div class="uk-margin-small-left" uk-grid>
-                      <span class="uk-margin-small-right uk-margin-small-top"
-                        >`\Delta T` =
-                      </span>
-                      <div class="uk-width-expand@m uk-padding-remove-left">
-                        <input
-                          uk-tooltip="title: ---."
-                          class="uk-input uk-align-right"
+                      <div class="uk-margin-small-left" uk-grid>
+                        <span
                           id="documentation-delta-T"
-                          type="number"
-                        />
+                          class="uk-margin-small-right uk-margin-small-top"
+                        >
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -164,6 +155,26 @@
                     </div>
                     <div id="documentation-MCoarse">
                       {{ documentation.MCoarse | safe }}
+                    </div>
+                  </div>
+
+                  <!-- Stage 2 Output-->
+                  <div
+                    id="stage-2-output"
+                    style="display: none"
+                    class="uk-card uk-card-body uk-card-default uk-margin-large-left uk-padding-small"
+                  >
+                    <div
+                      class="uk-card uk-grid-small uk-child-width-1-1"
+                      uk-grid
+                    >
+                      <div class="uk-margin-small-left" uk-grid>
+                        <span
+                          id="documentation-block-iteration"
+                          class="uk-margin-small-right uk-margin-small-top"
+                        >
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -356,6 +367,22 @@
                         <div class="uk-margin-small-left" uk-grid>
                           <span
                             class="uk-margin-small-right uk-margin-small-top"
+                          >
+                            Estimated Cost:
+                          </span>
+                          <div class="uk-width-expand@m uk-padding-remove-left">
+                            <input
+                              uk-tooltip="title: Estimated fine block cost."
+                              class="uk-input uk-align-right"
+                              id="select-estimated-fine-block-cost"
+                              type="number"
+                            />
+                          </div>
+                        </div>
+
+                        <div class="uk-margin-small-left" uk-grid>
+                          <span
+                            class="uk-margin-small-right uk-margin-small-top"
                             >Algorithm:</span
                           >
                           <div class="uk-width-expand@m uk-padding-remove-left">
@@ -465,29 +492,153 @@
 
             <!-- Plot Div -->
             <div class="uk-child-width-1-1 uk-margin-remove-top" uk-grid>
-              <div id="plot-column">
+              <div>
                 <div
-                  id="discretization-error"
-                  style="display: block"
+                  id="plot"
                   class="uk-card uk-card-body uk-card-default uk-card-hover"
                 >
-                  <div id="discretization-plot"></div>
-                </div>
+                  <!-- Global paramaters -->
+                  <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div class="uk-margin-small-left" uk-grid>
+                      <span class="uk-margin-small-right uk-margin-small-top"
+                        >Number of `\lambda` values:
+                      </span>
+                      <div class="uk-width-expand@m uk-padding-remove-left">
+                        <input
+                          uk-tooltip="title: Number of lambda values to display in each direction of the complex plane (i.e looks at nVals*nVals Dahlquist problems)."
+                          class="uk-input uk-align-right"
+                          id="selection-plot-nVals"
+                          type="number"
+                          placeholder="nVals"
+                          value="500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div class="uk-margin-small-left" uk-grid>
+                      <span class="uk-margin-small-right uk-margin-small-top"
+                        >Real `\lambda` bounds:
+                      </span>
+                      <div class="uk-width-expand@m uk-padding-remove-left">
+                        <input
+                          uk-tooltip="title: Lower bound."
+                          class="uk-input uk-align-right"
+                          id="selection-plot-reLambdaLow"
+                          type="number"
+                          placeholder="Real Lambda low"
+                          value="-4"
+                        />
+                      </div>
+                      <div class="uk-width-expand@m uk-padding-remove-left">
+                        <input
+                          uk-tooltip="title: Higher bound."
+                          class="uk-input uk-align-right"
+                          id="selection-plot-reLambdaHigh"
+                          type="number"
+                          placeholder="Real Lambda high"
+                          value="0.5"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div class="uk-margin-small-left" uk-grid>
+                      <span class="uk-margin-small-right uk-margin-small-top"
+                        >Imaginary `\lambda` bounds:
+                      </span>
+                      <div class="uk-width-expand@m uk-padding-remove-left">
+                        <input
+                          uk-tooltip="title: Lower bound."
+                          class="uk-input uk-align-right"
+                          id="selection-plot-imLambdaLow"
+                          type="number"
+                          placeholder="Imaginary Lambda low"
+                          value="-3"
+                        />
+                      </div>
+                      <div class="uk-width-expand@m uk-padding-remove-left">
+                        <input
+                          uk-tooltip="title: Higher bound."
+                          class="uk-input uk-align-right"
+                          id="selection-plot-imLambdaHigh"
+                          type="number"
+                          placeholder="Imaginary Lambda high"
+                          value="3"
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-                <div
-                  id="pint-iter"
-                  style="display: none"
-                  class="uk-card uk-card-body uk-card-default uk-card-hover"
-                >
-                  <div id="pint-iter-plot"></div>
-                </div>
-
-                <div
-                  id="pint-error"
-                  style="display: none"
-                  class="uk-card uk-card-body uk-card-default uk-card-hover"
-                >
-                  <div id="pint-error-plot"></div>
+                  <!-- Tabs -->
+                  <ul id="plot-selection" class="uk-child-width-expand" uk-tab>
+                    <li class="uk-active">
+                      <a id="plot-tab-error-selection" href="#">Error</a>
+                    </li>
+                    <li>
+                      <a id="plot-tab-iteration-selection" href="#"
+                        >Iteration</a
+                      >
+                    </li>
+                    <li>
+                      <a id="plot-tab-efficiency-selection" href="#"
+                        >Efficiency</a
+                      >
+                    </li>
+                  </ul>
+                  <div id="plot-tab-error">
+                    <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                      <div class="uk-margin-small-left" uk-grid>
+                        <span class="uk-margin-small-right uk-margin-small-top"
+                          >Error Exponent:
+                        </span>
+                        <div class="uk-width-expand@m uk-padding-remove-left">
+                          <input
+                            uk-tooltip="title: Minimum."
+                            class="uk-input uk-align-right"
+                            id="selection-plot-eMin"
+                            type="number"
+                            placeholder="Error Exponent"
+                            value="-7"
+                          />
+                        </div>
+                        <div class="uk-width-expand@m uk-padding-remove-left">
+                          <input
+                            uk-tooltip="title: Maximum."
+                            class="uk-input uk-align-right"
+                            id="selection-plot-eMax"
+                            type="number"
+                            placeholder="Error Exponent"
+                            value="0"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div id="plot-error"></div>
+                  </div>
+                  <div id="plot-tab-iteration" style="display: none">
+                    <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                      <div class="uk-margin-small-left" uk-grid>
+                        <span class="uk-margin-small-right uk-margin-small-top"
+                          >Maximum Iterations:
+                        </span>
+                        <div class="uk-width-expand@m uk-padding-remove-left">
+                          <input
+                            uk-tooltip="title: Maximum iterations."
+                            class="uk-input uk-align-right"
+                            id="selection-plot-nIterMax"
+                            type="number"
+                            placeholder="Maximum iterations"
+                            value="2"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div id="plot-iteration"></div>
+                  </div>
+                  <div id="plot-tab-efficiency" style="display: none">
+                    <div id="plot-efficiency"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -497,8 +648,6 @@
     </div>
   </body>
 
-  <!-- <script src="js/lib/Plotly.js"></script> -->
-  <script src="https://d3js.org/d3.v3.min.js"></script>
-  <script src="js/lib/mpld3.v0.2.js"></script>
+  <script src="js/lib/Plotly.js"></script>
   <script type="module" src="js/main.js"></script>
 </html>

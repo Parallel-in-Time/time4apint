@@ -5,5 +5,5 @@ pytest==7.2.1
 scipy==1.10.0
 sympy==1.11.1
 Flask==2.2.2
-mpld3==0.5.9
+plotly==5.13.1
 mistune==2.0.5

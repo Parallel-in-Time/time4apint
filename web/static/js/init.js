@@ -8,11 +8,18 @@ function showError(error) {
     timeout: 5000,
   });
 }
+const computeNotification = {
+  message: '<div uk-spinner></div> &nbsp; Computing...',
+  pos: 'top-center',
+  timeout: 0,
+};
 
 /**
  * Initialize all the onchange callbacks
  */
 function init(elements, state, connection) {
+  // --- Selections ---
+
   // TODO: Reset values on startup so that everything works fine
 
   // Initialize the algorithms and their default values correctly
@@ -62,27 +69,65 @@ function init(elements, state, connection) {
     };
   });
 
-  // Initialize the button events
+  // Initialize the stage 1 button computation
   elements['stage1Button'].onclick = () => {
+    const notification = UIkit.notification(computeNotification);
     const allSelections = state.getStageSelections(1);
     connection.compute(1, allSelections).then((data) => {
+      notification.close();
       if ('error' in data) showError(data['error']);
 
-      // TODO: Pass this result on to the stage or to the plot renderer or something
-      console.log(data);
-      elements['documentationBlockPointsDistribution'].value =
-        data['block_points_distribution'];
-      elements['documentationDeltaT'].value = data['delta_T'];
+      // Set the computed numbers
+      elements['documentationBlockPointsDistribution'].innerHTML =
+        'Block Points Distribution: `' +
+        data['block_points_distribution'] +
+        '`';
+      elements['documentationDeltaT'].innerHTML =
+        '`Delta T =' + data['delta_T'] + '`';
+      elements['estimatedFineBlockCost'].value =
+        data['estimated_fine_block_cost'];
       elements['stage1Output'].style.display = 'block';
+      // Then rerender all injected math equations
+      MathJax.typesetPromise();
+
+      // Then create the plot
+      Plotly.newPlot(
+        elements['plotError'],
+        JSON.parse(data['fine_discretization_error'])
+      );
     });
   };
+
+  // Initialize the stage 2 button computation
   elements['stage2Button'].onclick = () => {
+    const notification = UIkit.notification(computeNotification);
     const allSelections = state.getStageSelections(2);
     connection.compute(2, allSelections).then((data) => {
+      notification.close();
       if ('error' in data) showError(data['error']);
 
-      // TODO: Pass this result on to the stage or to the plot renderer or something
-      console.log(data);
+      // Set the content in the documentation column
+      elements['blockIteration'].innerHTML =
+        'Block iterations: `' + data['block_iteration'] + '`';
+      elements['stage2Output'].style.display = 'block';
+      // Then rerender all injected math equations
+      MathJax.typesetPromise();
+
+      // Then create the plots
+      elements['plotTabIteration'].style.display = 'block';
+      elements['plotTabEfficiency'].style.display = 'block';
+      Plotly.newPlot(
+        elements['plotIteration'],
+        JSON.parse(data['approximation_error'])
+      );
+
+      Plotly.newPlot(
+        elements['plotEfficiency'],
+        JSON.parse(data['PinT_speedup'])
+      );
+      elements['plotTabIteration'].style.display = 'none';
+      elements['plotTabEfficiency'].style.display = 'none';
+      elements['plotSelection'].active(0);
     });
   };
 
@@ -100,6 +145,24 @@ function init(elements, state, connection) {
 
   // Then update the state view once
   state.update();
+
+  // --- Plots ---
+  // Change to the correct plot on tab selection
+  elements['plotTabErrorSelection'].onclick = () => {
+    elements['plotTabError'].style.display = 'block';
+    elements['plotTabIteration'].style.display = 'none';
+    elements['plotTabEfficiency'].style.display = 'none';
+  };
+  elements['plotTabIterationSelection'].onclick = () => {
+    elements['plotTabError'].style.display = 'none';
+    elements['plotTabIteration'].style.display = 'block';
+    elements['plotTabEfficiency'].style.display = 'none';
+  };
+  elements['plotTabEfficiencySelection'].onclick = () => {
+    elements['plotTabError'].style.display = 'none';
+    elements['plotTabIteration'].style.display = 'none';
+    elements['plotTabEfficiency'].style.display = 'block';
+  };
 }
 
 export { init };

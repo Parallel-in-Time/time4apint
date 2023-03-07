@@ -31,9 +31,8 @@ class Connection {
     switch (stage) {
       case 1:
         return post('app/compute-stage-1', data);
-        break;
       case 2:
-        break;
+        return post('app/compute-stage-2', data);
     }
   }
 }

@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
-import numpy as np
+
+import json
+
 from flask import Flask, jsonify, render_template, request
 
-import mistune
+from web.utilities import compute_plot
 
-from mpld3 import fig_to_dict
-
-from blockops import BlockProblem
-
-from web.utilities import discretization_error, pint_iter, pint_error
-# from web.data import algorithms, schemes
 import web.data as data
 
 app = Flask(__name__,
@@ -36,6 +32,8 @@ def app_data():
 
 @app.route('/app/compute-stage-1', methods=['POST'])
 def compute_stage_1():
+
+    print(json.dumps(request.json, indent=2))
     # Fetch the selected values
     try:
         # TODO: Check for strictly positive etc.
@@ -65,7 +63,7 @@ def compute_stage_1():
         # TODO: Actually compute some stuff here
         result['delta_T'] = 0.2
         result['block_points_distribution'] = 15.2
-        result['fine_discretization_error'] = 'I am a plot!'
+        result['fine_discretization_error'] = compute_plot()
         result['estimated_fine_block_cost'] = 8.3
 
     except Exception as e:
@@ -76,37 +74,36 @@ def compute_stage_1():
 
 @app.route('/app/compute-stage-2', methods=['POST'])
 def compute_stage_2():
+    print(json.dumps(request.json, indent=2))
     # Fetch the selected values
     try:
         # TODO: Check for strictly positive etc.
 
         # Stage 2: Selection and analysis of a PinT algorithm
-        algo = request.json['algo']
-        schemeApprox = request.json['schemeApprox']
-        MCoarse = int(request.json['MCoarse'])
-        if algo not in algorithms.keys():
+        algorithm = request.json['algorithm']
+        if algorithm not in data.algorithms.keys():
             raise RuntimeError(
-                f'Algorithm {algo} unknown. Must be one of {data.algorithms.keys()}'
+                f'Algorithm {algorithm} unknown. Must be one of {data.algorithms.keys()}'
             )
 
-        for param_dependency in data.algorithms[algo]:
-            if request.json[param_depency] == None:
+        for param_dependency in data.algorithms[algorithm]:
+            if request.json[param_dependency] == None:
                 raise RuntimeError(
-                    f'Algorithm {algo} depends on the param {param_dependency} but is None.'
+                    f'Algorithm {algorithm} depends on the param {param_dependency} but is None.'
                 )
     except Exception as e:
-        return jsonify({'error': f'[PARAM ERROR]\n{str(e)}'}), 500
+        return jsonify({'error': f'[PARAM ERROR]\n{type(e)}: {str(e)}'}), 500
 
     result = {}
     # Compute stuff here
     try:
         # TODO: Actually compute some stuff here
         result['block_iteration'] = 7
-        result['approximation_error'] = 'I am a plot!'
-        result['coarse_error'] = 'I am a plot!'
-        result['PinT_error'] = 'I am a plot!'
+        result['approximation_error'] = compute_plot()
+        result['coarse_error'] = compute_plot()
+        result['PinT_error'] = compute_plot()
         result['PinT_iterations'] = 9
-        result['PinT_speedup'] = 'I am a plot!'
+        result['PinT_speedup'] = compute_plot()
 
     except Exception as e:
         return jsonify({'error': f'[COMPUTE ERROR]\n{str(e)}'}), 500

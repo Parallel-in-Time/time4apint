@@ -5,12 +5,14 @@ const elements = {
   // Main columns
   documentation: document.getElementById('documentation'),
   selections: document.getElementById('selections'),
+  plots: document.getElementById('plots'),
 
   // Stage Elements
   stage1A: document.getElementById('stage-1-a'),
   stage1B: document.getElementById('stage-1-b'),
   stage1Output: document.getElementById('stage-1-output'),
   stage2: document.getElementById('stage-2'),
+  stage2Output: document.getElementById('stage-2-output'),
   stage1ADocumentation: document.getElementById('stage-1-a-documentation'),
   stage1BDocumentation: document.getElementById('stage-1-b-documentation'),
   stage2Documentation: document.getElementById('stage-2-documentation'),
@@ -37,12 +39,31 @@ const elements = {
   points: document.getElementById('select-points'),
   quadType: document.getElementById('select-quadType'),
   form: document.getElementById('select-form'),
+  estimatedFineBlockCost: document.getElementById(
+    'select-estimated-fine-block-cost'
+  ),
   algorithm: document.getElementById('select-algorithm'),
   schemeApproxPoints: document.getElementById('select-scheme-approx-points'),
   schemeApproxForm: document.getElementById('select-scheme-approx-form'),
   MCoarse: document.getElementById('select-MCoarse'),
+  blockIteration: document.getElementById('documentation-block-iteration'),
 
-  // TODO: Plot Elements
+  // Plot Elements
+  plotTabErrorSelection: document.getElementById('plot-tab-error-selection'),
+  plotTabIterationSelection: document.getElementById(
+    'plot-tab-iteration-selection'
+  ),
+  plotTabEfficiencySelection: document.getElementById(
+    'plot-tab-efficiency-selection'
+  ),
+
+  plotTabError: document.getElementById('plot-tab-error'),
+  plotTabIteration: document.getElementById('plot-tab-iteration'),
+  plotTabEfficiency: document.getElementById('plot-tab-efficiency'),
+
+  plotError: document.getElementById('plot-error'),
+  plotIteration: document.getElementById('plot-iteration'),
+  plotEfficiency: document.getElementById('plot-efficiency'),
 };
 
 export { elements };
