@@ -12,7 +12,7 @@ $$
 u_{n+1}^{k+1} = B_1^0 u_{n+1}^k + B_0^0 u_{n}^k + B_0^1 u_{n}^{k+1} + ...
 $$
 
-with `B_i^j` the **block coefficient**, built using one or a combination of **block operators** (addition, substraction, multiplication, inverse).
+with $B_i^j$ the **block coefficient**, built using one or a combination of **block operators** (addition, substraction, multiplication, inverse).
 For instance, looking at the Parareal algorithm, we have
 
 $$

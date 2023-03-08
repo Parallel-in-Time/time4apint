@@ -64,7 +64,7 @@ def compute_stage_1():
         result['delta_T'] = 0.2
         result['block_points_distribution'] = 15.2
         result['fine_discretization_error'] = compute_plot()
-        result['estimated_fine_block_cost'] = 8.3
+        result['estimated_fine_block_cost'] = 5.2
 
     except Exception as e:
         return jsonify({'error': f'[COMPUTE ERROR]\n{str(e)}'}), 500
