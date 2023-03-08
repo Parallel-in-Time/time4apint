@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Call of PinTy</title>
+    <meta name="description" content="description" />
+    <meta name="author" content="author" />
+    <meta name="keywords" content="keywords" />
+
+    <!-- Math Equation Renderer -->
+    <script>
+      MathJax = {
+        loader: { load: ['input/asciimath', 'output/chtml'] },
+      };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script
+      type="text/javascript"
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+
+    <!-- UI Kit CSS Framework -->
+    <link rel="stylesheet" href="css/uikit.min.css" />
+    <script src="js/uikit/uikit.min.js"></script>
+    <script src="js/uikit/uikit-icons.min.js"></script>
+
+    <!-- Custom CSS -->
+    <style type="text/css">
+      .dropdown:hover .dropdown-menu {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="position: absolute; left: 5px; top: 5px">
+      <a href="/">
+        <span class="uk-margin-small-right" uk-icon="home"></span>
+      </a>
+    </div>
+    <div class="uk-height-1-1 uk-padding uk-background-muted">
+      <div class="uk-container uk-container-expand">
+        <div uk-grid>
+          <!-- Title -->
+          <div class="uk-width-1-1">
+            <h1 class="uk-heading uk-heading-line uk-text-center">
+              <span> Call of PinTy </span>
+            </h1>
+          </div>
+
+          <!-- Documentation | Selections | Plots -->
+          <div class="uk-width-1-1 uk-child-width-1-3@m" uk-grid>
+            <!-- Documentation -->
+            <div id="documentation" style="overflow: auto">
+              <div class="uk-card uk-card-body uk-card-default uk-card-hover">
+                <div
+                  class="uk-child uk-child-width-1-1"
+                  id="documentation-column"
+                  uk-grid
+                >
+                  <!-- Stage 1-A -->
+
+                  <div
+                    id="stage-1-a-documentation"
+                    class="uk-grid-small uk-child-width-1-1"
+                    uk-grid
+                  >
+                    <div class="uk-margin-left">
+                      <h6 class="uk-heading-line uk-text-center">
+                        <span>Stage 1-A</span>
+                      </h6>
+                    </div>
+                    <div id="documentation-N">{{ documentation.N | safe }}</div>
+                    <div id="documentation-tEnd">
+                      {{ documentation.tEnd | safe }}
+                    </div>
+                  </div>
+
+                  <!-- Stage 1-B -->
+
+                  <div
+                    id="stage-1-b-documentation"
+                    class="uk-grid-small uk-child-width-1-1"
+                    uk-grid
+                  >
+                    <div class="uk-margin-left">
+                      <h6 class="uk-heading-line uk-text-center">
+                        <span>Stage 1-B</span>
+                      </h6>
+                    </div>
+                    <div id="documentation-scheme">
+                      {{ documentation.scheme | safe }}
+                    </div>
+                    <div id="documentation-M">{{ documentation.M | safe }}</div>
+                    <div id="documentation-points">
+                      {{ documentation.points | safe }}
+                    </div>
+                    <div id="documentation-quadType">
+                      {{ documentation.quadType | safe }}
+                    </div>
+                    <div id="documentation-form">
+                      {{ documentation.form | safe }}
+                    </div>
+                  </div>
+
+                  <!-- Stage 1 Output-->
+
+                  <div
+                    id="stage-1-output"
+                    style="display: none"
+                    class="uk-card uk-card-body uk-card-default uk-margin-large-left uk-padding-small"
+                  >
+                    <div
+                      class="uk-card uk-grid-small uk-child-width-1-1"
+                      uk-grid
+                    >
+                      <div class="uk-margin-small-left" uk-grid>
+                        <span
+                          id="documentation-block-points-distribution"
+                          class="uk-margin-small-right uk-margin-small-top"
+                        >
+                        </span>
+                      </div>
+                      <div class="uk-margin-small-left" uk-grid>
+                        <span
+                          id="documentation-delta-T"
+                          class="uk-margin-small-right uk-margin-small-top"
+                        >
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Stage 2 -->
+
+                  <div
+                    id="stage-2-documentation"
+                    class="uk-grid-small uk-child-width-1-1"
+                    uk-grid
+                  >
+                    <div class="uk-margin-left">
+                      <h6 class="uk-heading-line uk-text-center">
+                        <span>Stage 2</span>
+                      </h6>
+                    </div>
+                    <div id="documentation-algorithm">
+                      {{ documentation.algorithm | safe }}
+                    </div>
+                    <div id="documentation-schemeApproxPoints">
+                      {{ documentation.schemeApproxPoints | safe }}
+                    </div>
+                    <div id="documentation-schemeApproxForm">
+                      {{ documentation.schemeApproxForm | safe }}
+                    </div>
+                    <div id="documentation-MCoarse">
+                      {{ documentation.MCoarse | safe }}
+                    </div>
+                  </div>
+
+                  <!-- Stage 2 Output-->
+                  <div
+                    id="stage-2-output"
+                    style="display: none"
+                    class="uk-card uk-card-body uk-card-default uk-margin-large-left uk-padding-small"
+                  >
+                    <div
+                      class="uk-card uk-grid-small uk-child-width-1-1"
+                      uk-grid
+                    >
+                      <div class="uk-margin-small-left" uk-grid>
+                        <span
+                          id="documentation-block-iteration"
+                          class="uk-margin-small-right uk-margin-small-top"
+                        >
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selections -->
+            <div uk-grid>
+              <div>
+                <div
+                  id="selections"
+                  class="uk-card uk-card-body uk-card-default uk-card-hover"
+                >
+                  <div class="uk-child uk-child-width-1-1" uk-grid>
+                    <div class="uk-grid-collapse uk-child-width-1-1" uk-grid>
+                      <!-- Stage 1-A -->
+                      <div
+                        id="stage-1-a"
+                        class="uk-grid-small uk-child-width-1-1"
+                        uk-grid
+                      >
+                        <div
+                          class="uk-heading-bullet uk-margin-small-top uk-text-bolder"
+                        >
+                          1-A: Time block decomposition
+                        </div>
+
+                        <div class="uk-margin-small-left" uk-grid>
+                          <span
+                            class="uk-margin-small-right uk-margin-small-top"
+                            >`N = `</span
+                          >
+                          <div class="uk-width-expand@m uk-padding-remove-left">
+                            <input
+                              uk-tooltip="title: Number of blocks N, strictly positive integer."
+                              class="uk-input uk-align-right"
+                              id="select-N"
+                              type="number"
+                              placeholder="N"
+                              tabindex="1"
+                            />
+                          </div>
+                        </div>
+
+                        <div class="uk-margin-small-left" uk-grid>
+                          <span
+                            class="uk-margin-small-right uk-margin-small-top"
+                            >`T = `</span
+                          >
+                          <div class="uk-width-expand@m uk-padding-remove-left">
+                            <input
+                              uk-tooltip="title: Total simulation time T, strictly positive float."
+                              class="uk-input uk-align-right"
+                              id="select-tEnd"
+                              type="number"
+                              placeholder="tEnd"
+                              tabindex="2"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Stage 1-B -->
+                      <div
+                        id="stage-1-b"
+                        class="uk-grid-small uk-child-width-1-1"
+                        uk-grid
+                      >
+                        <div
+                          class="uk-heading-bullet uk-margin-small-top uk-text-bolder"
+                        >
+                          1-B: Base (fine) block propagator
+                        </div>
+                        <div class="uk-margin-small-left" uk-grid>
+                          <span
+                            class="uk-margin-small-right uk-margin-small-top"
+                            >Scheme:</span
+                          >
+                          <div class="uk-width-expand@m uk-padding-remove-left">
+                            <select
+                              id="select-scheme"
+                              class="uk-select"
+                              tabindex="3"
+                              uk-tooltip="title: Time discretization scheme to use."
+                            ></select>
+                          </div>
+                        </div>
+
+                        <div class="uk-margin-small-left" uk-grid>
+                          <span
+                            class="uk-margin-small-right uk-margin-small-top"
+                            >`M = `</span
+                          >
+                          <div class="uk-width-expand@m uk-padding-remove-left">
+                            <input
+                              uk-tooltip="title: Number of time-points per blocks M, strictly positive integer."
+                              class="uk-input uk-align-right"
+                              id="select-M"
+                              type="number"
+                              placeholder="M"
+                              tabindex="4"
+                            />
+                          </div>
+                        </div>
+
+                        <!-- Optional -->
+                        <div class="uk-margin-left">
+                          <h6 class="uk-heading-line uk-text-right">
+                            <span>Optional</span>
+                          </h6>
+                        </div>
+
+                        <div class="uk-margin-small-left" uk-grid>
+                          <span
+                            class="uk-margin-small-right uk-margin-small-top"
+                            >Points:
+                          </span>
+                          <div class="uk-width-expand@m uk-padding-remove-left">
+                            <input
+                              uk-tooltip="title: Time point distribution for each block."
+                              class="uk-input uk-align-right"
+                              id="select-points"
+                              type="text"
+                              value="EQUID"
+                              tabindex="5"
+                              placeholder="Points"
+                            />
+                          </div>
+                        </div>
+
+                        <div class="uk-margin-small-left" uk-grid>
+                          <span
+                            class="uk-margin-small-right uk-margin-small-top"
+                            >Quad Type:
+                          </span>
+                          <div class="uk-width-expand@m uk-padding-remove-left">
+                            <select
+                              id="select-quadType"
+                              class="uk-select"
+                              uk-tooltip="title: Quadrature type for each block."
+                              tabindex="6"
+                            >
+                              <option value="GAUSS">GAUSS</option>
+                              <option value="LOBATTO">LOBATTO</option>
+                              <option value="RADAU-LEFT">RADAU-LEFT</option>
+                              <option value="RADAU-RIGHT">RADAU-RIGHT</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div class="uk-margin-small-left" uk-grid>
+                          <span
+                            class="uk-margin-small-right uk-margin-small-top"
+                            >Form:
+                          </span>
+                          <div class="uk-width-expand@m uk-padding-remove-left">
+                            <select
+                              id="select-form"
+                              class="uk-select"
+                              tabindex="7"
+                              uk-tooltip="title: Node formulation (generalized from collocation methods)."
+                            >
+                              <option value="Z2N">Z2N</option>
+                              <option value="N2N">N2N</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div>
+                          <button
+                            id="stage-1-button"
+                            class="uk-width-expand uk-button uk-button-default"
+                          >
+                            Compute
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Stage 2 -->
+                      <div
+                        id="stage-2"
+                        class="uk-grid-small uk-child-width-1-1"
+                        uk-grid
+                      >
+                        <div
+                          class="uk-heading-bullet uk-margin-small-top uk-text-bolder"
+                        >
+                          2: Selection and analysis of a PinT algorithm
+                        </div>
+
+                        <div class="uk-margin-small-left" uk-grid>
+                          <span
+                            class="uk-margin-small-right uk-margin-small-top"
+                          >
+                            Estimated Cost:
+                          </span>
+                          <div class="uk-width-expand@m uk-padding-remove-left">
+                            <input
+                              uk-tooltip="title: Estimated fine block cost."
+                              class="uk-input uk-align-right"
+                              id="select-estimated-fine-block-cost"
+                              type="number"
+                            />
+                          </div>
+                        </div>
+
+                        <div class="uk-margin-small-left" uk-grid>
+                          <span
+                            class="uk-margin-small-right uk-margin-small-top"
+                            >Algorithm:</span
+                          >
+                          <div class="uk-width-expand@m uk-padding-remove-left">
+                            <select
+                              id="select-algorithm"
+                              class="uk-select"
+                              tabindex="8"
+                            ></select>
+                          </div>
+                        </div>
+
+                        <div
+                          class="uk-grid-small uk-child-width-1-1"
+                          id="stage-2-schemeApprox"
+                          uk-grid
+                        >
+                          <div class="uk-margin-large-left">
+                            <h6 class="uk-heading-line uk-text-center">
+                              <span>Scheme Approximation</span>
+                            </h6>
+                          </div>
+                          <div class="uk-margin-small-left" uk-grid>
+                            <span
+                              class="uk-margin-small-right uk-margin-small-top"
+                              >Points:
+                            </span>
+                            <div
+                              class="uk-width-expand@m uk-padding-remove-left"
+                            >
+                              <input
+                                uk-tooltip="title: Time point distribution for each block."
+                                class="uk-input uk-align-right"
+                                id="select-scheme-approx-points"
+                                type="text"
+                                value="EQUID"
+                                tabindex="9"
+                                placeholder="Points"
+                              />
+                            </div>
+                          </div>
+
+                          <div class="uk-margin-small-left" uk-grid>
+                            <span
+                              class="uk-margin-small-right uk-margin-small-top"
+                              >Form:
+                            </span>
+                            <div
+                              class="uk-width-expand@m uk-padding-remove-left"
+                            >
+                              <select
+                                class="uk-select"
+                                id="select-scheme-approx-form"
+                                tabindex="10"
+                                uk-tooltip="title: Node formulation (generalized from collocation methods)."
+                              >
+                                <option value="Z2N">Z2N</option>
+                                <option value="N2N">N2N</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          class="uk-grid-small uk-child-width-1-1"
+                          id="stage-2-MCoarse"
+                          uk-grid
+                        >
+                          <div class="uk-margin-large-left">
+                            <h6 class="uk-heading-line uk-text-center">
+                              <span>M Coarse</span>
+                            </h6>
+                          </div>
+                          <div class="uk-margin-small-left" uk-grid>
+                            <span
+                              class="uk-margin-small-right uk-margin-small-top"
+                              >`M_C = `</span
+                            >
+                            <div
+                              class="uk-width-expand@m uk-padding-remove-left"
+                            >
+                              <input
+                                uk-tooltip="title: Coarse level using exactly the same discretization as the fine level."
+                                class="uk-input uk-align-right"
+                                id="select-MCoarse"
+                                type="number"
+                                tabindex="11"
+                                placeholder="M"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <button
+                            id="stage-2-button"
+                            class="uk-width-expand uk-button uk-button-default"
+                          >
+                            Compute
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Plot Div -->
+            <div class="uk-child-width-1-1 uk-margin-remove-top" uk-grid>
+              <div>
+                <div
+                  id="plot"
+                  class="uk-card uk-card-body uk-card-default uk-card-hover"
+                >
+                  <!-- Global paramaters -->
+                  <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div class="uk-margin-small-left" uk-grid>
+                      <span class="uk-margin-small-right uk-margin-small-top"
+                        >Number of `\lambda` values:
+                      </span>
+                      <div class="uk-width-expand@m uk-padding-remove-left">
+                        <input
+                          uk-tooltip="title: Number of lambda values to display in each direction of the complex plane (i.e looks at nVals*nVals Dahlquist problems)."
+                          class="uk-input uk-align-right"
+                          id="selection-plot-nVals"
+                          type="number"
+                          placeholder="nVals"
+                          value="500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div class="uk-margin-small-left" uk-grid>
+                      <span class="uk-margin-small-right uk-margin-small-top"
+                        >Real `\lambda` bounds:
+                      </span>
+                      <div class="uk-width-expand@m uk-padding-remove-left">
+                        <input
+                          uk-tooltip="title: Lower bound."
+                          class="uk-input uk-align-right"
+                          id="selection-plot-reLambdaLow"
+                          type="number"
+                          placeholder="Real Lambda low"
+                          value="-4"
+                        />
+                      </div>
+                      <div class="uk-width-expand@m uk-padding-remove-left">
+                        <input
+                          uk-tooltip="title: Higher bound."
+                          class="uk-input uk-align-right"
+                          id="selection-plot-reLambdaHigh"
+                          type="number"
+                          placeholder="Real Lambda high"
+                          value="0.5"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div class="uk-margin-small-left" uk-grid>
+                      <span class="uk-margin-small-right uk-margin-small-top"
+                        >Imaginary `\lambda` bounds:
+                      </span>
+                      <div class="uk-width-expand@m uk-padding-remove-left">
+                        <input
+                          uk-tooltip="title: Lower bound."
+                          class="uk-input uk-align-right"
+                          id="selection-plot-imLambdaLow"
+                          type="number"
+                          placeholder="Imaginary Lambda low"
+                          value="-3"
+                        />
+                      </div>
+                      <div class="uk-width-expand@m uk-padding-remove-left">
+                        <input
+                          uk-tooltip="title: Higher bound."
+                          class="uk-input uk-align-right"
+                          id="selection-plot-imLambdaHigh"
+                          type="number"
+                          placeholder="Imaginary Lambda high"
+                          value="3"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Tabs -->
+                  <ul id="plot-selection" class="uk-child-width-expand" uk-tab>
+                    <li class="uk-active">
+                      <a id="plot-tab-error-selection" href="#">Error</a>
+                    </li>
+                    <li>
+                      <a id="plot-tab-iteration-selection" href="#"
+                        >Iteration</a
+                      >
+                    </li>
+                    <li>
+                      <a id="plot-tab-efficiency-selection" href="#"
+                        >Efficiency</a
+                      >
+                    </li>
+                  </ul>
+                  <div id="plot-tab-error">
+                    <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                      <div class="uk-margin-small-left" uk-grid>
+                        <span class="uk-margin-small-right uk-margin-small-top"
+                          >Error Exponent:
+                        </span>
+                        <div class="uk-width-expand@m uk-padding-remove-left">
+                          <input
+                            uk-tooltip="title: Minimum."
+                            class="uk-input uk-align-right"
+                            id="selection-plot-eMin"
+                            type="number"
+                            placeholder="Error Exponent"
+                            value="-7"
+                          />
+                        </div>
+                        <div class="uk-width-expand@m uk-padding-remove-left">
+                          <input
+                            uk-tooltip="title: Maximum."
+                            class="uk-input uk-align-right"
+                            id="selection-plot-eMax"
+                            type="number"
+                            placeholder="Error Exponent"
+                            value="0"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div id="plot-error"></div>
+                  </div>
+                  <div id="plot-tab-iteration" style="display: none">
+                    <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                      <div class="uk-margin-small-left" uk-grid>
+                        <span class="uk-margin-small-right uk-margin-small-top"
+                          >Maximum Iterations:
+                        </span>
+                        <div class="uk-width-expand@m uk-padding-remove-left">
+                          <input
+                            uk-tooltip="title: Maximum iterations."
+                            class="uk-input uk-align-right"
+                            id="selection-plot-nIterMax"
+                            type="number"
+                            placeholder="Maximum iterations"
+                            value="2"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div id="plot-iteration"></div>
+                  </div>
+                  <div id="plot-tab-efficiency" style="display: none">
+                    <div id="plot-efficiency"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+
+  <script src="js/lib/Plotly.js"></script>
+  <script type="module" src="js/main.js"></script>
+</html>
