@@ -184,18 +184,18 @@ class BlockOperator(object):
                 if other.matrix is not None:
                     inv = np.linalg.solve(self.invert, other.matrix)
                     if self.matrix is not None:
-                        self.matrix = np.dot(self.matrix, inv)
+                        self.matrix = self.matrix @ inv
                     else:
                         self.matrix = inv
                     self.invert = other.invert
                 else:
                     if other.invert is not None:
-                        self.invert = np.dot(other.invert, self.invert)
+                        self.invert = other.invert @ self.invert
             else:
                 if self.matrix is None:
                     self.matrix = other.matrix
                 elif other.matrix is not None:
-                    self.matrix = np.dot(self.matrix, other.matrix)
+                    self.matrix = self.matrix @ other.matrix
                 self.invert = other.invert
             self.cost += other.cost
         elif isinstance(other, (float, int)):

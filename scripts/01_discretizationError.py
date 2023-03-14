@@ -22,13 +22,13 @@ from blockops.plots import plotAccuracyContour
 reLam = np.linspace(-4, 0.5, 128)
 imLam = np.linspace(-3, 3, 128)
 nBlocks = 20
-nPoints = 5
-scheme = 'COLLOCATION'
+nPoints = 1
+scheme = 'RK4'
 
 lam = reLam[:, None] + 1j*imLam[None, :]
 prob = BlockProblem(
     lam.ravel(), tEnd=nBlocks, nBlocks=nBlocks, nPoints=nPoints, scheme=scheme,
-    points='LEGENDRE', quadType='LOBATTO', collUpdate=False)
+    points='EQUID', quadType='LOBATTO', collUpdate=False)
 
 uExact = prob.getSolution('exact')
 uNum = prob.getSolution('fine')

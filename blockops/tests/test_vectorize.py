@@ -9,7 +9,7 @@ import numpy as np
 
 M, nDOF = 5, 100
 
-from ..vectorize import matVecMul, matVecInv, matMatMul
+from blockops.vectorize import matVecMul, matVecInv, matMatMul
 
 def generate(M, nDOF):
     mat = np.random.rand(nDOF, M, M)
