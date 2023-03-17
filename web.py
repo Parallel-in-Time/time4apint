@@ -4,7 +4,7 @@ import json
 
 from flask import Flask, jsonify, render_template, request
 
-from web.utilities import compute_plot
+from web.utilities import compute_plot, fine_discretization_error
 
 import web.data as data
 
@@ -54,6 +54,17 @@ def compute_stage_1():
         points = request.json['points']
         quadType = request.json['quadType']
         form = request.json['form']
+
+        # Plot parameters
+        reLambdaLow = float(request.json['reLambdaLow'])
+        reLambdaHigh = float(request.json['reLambdaHigh'])
+        imLambdaLow = float(request.json['imLambdaLow'])
+        imLambdaHigh = float(request.json['imLambdaHigh'])
+        nVals = int(request.json['nVals'])
+
+        eMin = int(request.json['eMin'])
+        eMax = int(request.json['eMax'])
+
     except Exception as e:
         return jsonify({'error': f'[PARAM ERROR]\n{str(e)}'}), 500
 
@@ -63,7 +74,9 @@ def compute_stage_1():
         # TODO: Actually compute some stuff here
         result['delta_T'] = 0.2
         result['block_points_distribution'] = 15.2
-        result['fine_discretization_error'] = compute_plot()
+        result['fine_discretization_error'] = fine_discretization_error(
+            N, tEnd, M, scheme, points, quadType, form, reLambdaLow,
+            reLambdaHigh, imLambdaLow, imLambdaHigh, nVals, eMin, eMax)
         result['estimated_fine_block_cost'] = 5.2
 
     except Exception as e:
