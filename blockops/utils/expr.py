@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import numpy as np
+"""
+Created on Mon Mar 27 17:41:30 2023
+
+Utility functions and classes for expression parsing and manipulation
+"""
 import sympy as sy
 import re
-
 
 Add = sy.core.add.Add
 Mul = sy.core.mul.Mul
@@ -110,41 +113,6 @@ def getCoeffsFromFormula(s, blockOps):
     return coeffs
 
 
-def numericalOrder(nSteps, err):
-    """
-    Help function to compute numerical order from error and nSteps vectors 
-
-    Parameters
-    ----------
-    nSteps : np.1darray
-        Different number of steps to compute the error.
-    err : np.1darray
-        Diffenrent error values associated to the number of steps.
-
-    Returns
-    -------
-    beta : float
-        Order coefficient computed through linear regression.
-    rmse : float
-        The root mean square error of the linear regression.
-    """
-    x, y = np.log10(1/nSteps), np.log10(err)
-
-    # Compute regression coefficients and rmse
-    xMean = x.mean()
-    yMean = y.mean()
-    sX = ((x-xMean)**2).sum()
-    sXY = ((x-xMean)*(y-yMean)).sum()
-
-    beta = sXY/sX
-    alpha = yMean - beta*xMean
-
-    yHat = alpha + beta*x
-    rmse = ((y-yHat)**2).sum()**0.5
-    rmse /= x.size**0.5
-
-    return beta, rmse
-
 def getLeadingTerm(expr: Mul):
     """Decompose a multiplication into its leading term and the rest"""
     try:
@@ -250,8 +218,8 @@ def printFacto(dico: dict, tab=0):
             printFacto(val, tab + 1)
         else:
             print(f'{indent} {key} (x) {val}')
-
-
+            
+            
 class Generator:
     def __init__(self, k, checks=2):
         self.k = k
@@ -270,7 +238,7 @@ class Generator:
             iteration = int(tmp_split[2])
             block = int(tmp_split[1])
             tmp_block = f'n-{n - int(block)}' if n - int(block) != 0 else 'n'
-            tmp_iter = f'k-{self.k - iteration}' if self.k - iteration != 0 else f'k'
+            tmp_iter = f'k-{self.k - iteration}' if self.k - iteration != 0 else 'k'
             tmp_str = f'u_{tmp_block}^{tmp_iter}'
             expr_str = expr_str.replace(unknowns[i], tmp_str)
             tmpWildcard[f'x{i}'] = unknowns[i].replace('^', '\^')

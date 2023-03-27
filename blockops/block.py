@@ -8,7 +8,7 @@ Created on Thu Sep 29 13:17:29 2022
 import sympy as sy
 import numpy as np
 
-from .vectorize import matVecMul, matVecInv
+from blockops.utils.vectorize import matVecMul, matVecInv
 
 # -----------------------------------------------------------------------------
 # Block Operator class & specific operators

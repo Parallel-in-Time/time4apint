@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 
 from blockops.problem import BlockProblem
-from blockops.utils import numericalOrder
+from blockops.utils.numeric import numericalOrder
 
 COLLOCATION_ORDERS = {
     'GAUSS': 
@@ -51,7 +51,7 @@ def testCollocationOrder(lam, collUpdate, M, quadType):
     err = []
     for nStep in nSteps:
         prob = BlockProblem(
-            lam, T, nStep, nPoints, 'COLLOCATION', 
+            lam, T, nStep, nPoints, 'Collocation', 
             quadType=quadType, collUpdate=collUpdate)
         err.append(prob.getError().ravel()[-1])
     err = np.array(err)

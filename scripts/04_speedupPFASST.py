@@ -13,8 +13,8 @@ nBlocks = 6
 lam = reLam[:, None] + 1j * imLam[None, :]
 prob = BlockProblem(
     lam.ravel(), tEnd=nBlocks, nBlocks=nBlocks, nPoints=5, 
-    scheme='COLLOCATION', quadType='LOBATTO')
-prob.setApprox('BE')
+    scheme='Collocation', quadType='LOBATTO')
+prob.setApprox('RungeKutta', rkScheme='BE')
 prob.setCoarseLevel(3)
 
 

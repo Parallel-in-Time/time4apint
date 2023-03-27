@@ -23,9 +23,10 @@ algoName = 'Parareal'
 
 lam = reLam[:, None] + 1j * imLam[None, :]
 prob = BlockProblem(
-    lam.ravel(), tEnd=nBlocks, nBlocks=nBlocks, nPoints=nPoints, scheme=schemeF,
-    nStepsPerPoint=nStepsF, points='LEGENDRE', quadType='LOBATTO', form='Z2N')
-prob.setApprox(schemeG, nStepsPerPoint=nStepsG)
+    lam.ravel(), tEnd=nBlocks, nBlocks=nBlocks, nPoints=nPoints, 
+    scheme='RungeKutta', rkScheme=schemeF,
+    nStepsPerPoint=nStepsF, ptsType='LEGENDRE', quadType='LOBATTO')
+prob.setApprox(scheme='RungeKutta', rkScheme=schemeG, nStepsPerPoint=nStepsG)
 
 algo = prob.getBlockIteration(algoName)
 

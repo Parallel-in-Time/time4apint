@@ -9,12 +9,12 @@ import numpy as np
 import sympy as sy
 from typing import Dict
 
-from .block import BlockOperator, I
-from .run import PintRun
-from .taskPool import TaskPool
-from .schedule import getSchedule
-from .utils import getCoeffsFromFormula
-from .graph import PintGraph
+from blockops.block import BlockOperator, I
+from blockops.run import PintRun
+from blockops.taskPool import TaskPool
+from blockops.schedule import getSchedule
+from blockops.utils.expr import getCoeffsFromFormula
+from blockops.graph import PintGraph
 
 
 # -----------------------------------------------------------------------------
@@ -68,7 +68,10 @@ class BlockIteration(object):
             if isinstance(x, BlockOperator):
                 return x.symbol
             else:
-                e = eval(x, blockOps)
+                try:
+                    e = eval(x, blockOps)
+                except TypeError:
+                    raise ValueError(f'cannot evaluate {x}')
                 if hasattr(e, 'symbol'):
                     return e.symbol
                 else:
@@ -368,10 +371,10 @@ class TMG(BlockIteration):
         predictor = f"{phiC}*chi" if coarsePred else None
         update = f"{B10} + {B01} + {B00}"
         blockOps['I'] = I
-        rule = [(f"TFtoC * TCtoF", 1)]
+        rules = [("TFtoC * TCtoF", I)]
         propagator = DEFAULT_PROP['implicit']
         super().__init__(update, propagator, predictor,
-                         rules=rule, name='TMG', **blockOps)
+                         rules=rules, name='TMG', **blockOps)
         self.omega = omega
 
 
@@ -388,6 +391,7 @@ class PFASST(BlockIteration):
         predictor = f"{phiC}*chi" if coarsePred else None
         update = f"{B10} + {B01} + {B00}"
         blockOps['I'] = I
+        rules = [("TFtoC * TCtoF", I)]
         propagator = DEFAULT_PROP['implicit']
         super().__init__(update, propagator, predictor,
-                         rules=None, name='PFASST', **blockOps)
+                         rules=rules, name='PFASST', **blockOps)

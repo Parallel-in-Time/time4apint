@@ -8,7 +8,7 @@ Created on Mon Nov  7 13:15:19 2022
 import numpy as np
 import pytest
 
-from ..block import BlockOperator, scalarBlock, I
+from blockops.block import BlockOperator, scalarBlock, I
 
 M = 5
 m1 = np.random.rand(M, M)

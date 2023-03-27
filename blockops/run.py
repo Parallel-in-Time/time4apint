@@ -3,7 +3,7 @@ import re
 import sympy as sy
 
 # BlockOps import
-from .utils import Generator, getFactorizedRule
+from blockops.utils.expr import Generator, getFactorizedRule
 
 
 class PintRun:

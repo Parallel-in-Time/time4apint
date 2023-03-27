@@ -3,8 +3,8 @@
 import pytest
 import numpy as np
 
-from blockops.schemes import STABILITY_FUNCTION_RK
-from blockops.utils import numericalOrder
+from blockops.schemes.rk import STABILITY_FUNCTIONS
+from blockops.utils.numeric import numericalOrder
 
 EXPECTED_ORDER = {
     1: ('BE', 'FE', 'RK21'),
@@ -29,7 +29,7 @@ def testNumericalOrder(lam, scheme):
     """Test expected order for all RK methods"""
     lam = eval(lam.split('=')[-1])
 
-    g = STABILITY_FUNCTION_RK[scheme]
+    g = STABILITY_FUNCTIONS[scheme]
     order = RK_ORDERS[scheme]
 
     uNum = []

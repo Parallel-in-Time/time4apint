@@ -1,10 +1,9 @@
 import numpy as np
-import pytest
 
-from ..run import PintRun
-from ..block import BlockOperator, I
-from ..taskPool import TaskPool
-from ..iteration import BlockIteration
+from blockops.run import PintRun
+from blockops.block import BlockOperator, I
+from blockops.taskPool import TaskPool
+from blockops.iteration import BlockIteration
 from blockops import BlockProblem
 
 nBlocks = 4
@@ -1324,8 +1323,8 @@ class TestMethods:
         checkResults(method='ApproxBlockGaussSeidel', run=run, pool=pool)
 
     def testPFASST(self):
-        prob = BlockProblem(1j, 2 * np.pi - 0.2, nBlocks, nPoints=5, scheme='COLLOCATION')
-        prob.setApprox('BE')
+        prob = BlockProblem(1j, 2 * np.pi - 0.2, nBlocks, nPoints=5, scheme='Collocation')
+        prob.setApprox('RungeKutta', rkScheme='BE')
         prob.setCoarseLevel(2)
         algo = prob.getBlockIteration('PFASST')
         run = PintRun(blockIteration=algo, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4])
