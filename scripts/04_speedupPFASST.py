@@ -6,10 +6,9 @@ from blockops import BlockProblem
 from blockops.plots import plotAccuracyContour, plotContour
 
 zoom = 1
-reLam = np.linspace(-3 / zoom, 0.5 / zoom, 128)
-imLam = np.linspace(-3 / zoom, 3 / zoom, 128)
-nBlocks = 10
-nPoints = 1
+reLam = np.linspace(-3 / zoom, 0.5 / zoom, 256)
+imLam = np.linspace(-3 / zoom, 3 / zoom, 256)
+nBlocks = 6
 
 lam = reLam[:, None] + 1j * imLam[None, :]
 prob = BlockProblem(
@@ -65,7 +64,7 @@ for err in errPinTMax[-1::-1]:
     k -= 1
 
 # Plot number of iteration until discretization error
-plotContour(reLam=reLam, imLam=imLam, val=nIter, nLevels=nIterMax+1, figName='PinTIter')
+plotContour(reLam=reLam, imLam=imLam, val=nIter, nLevels=None, figName='PinTIter')
 
 reqIters = np.unique(nIter).tolist()
 reqIters.pop(0)
