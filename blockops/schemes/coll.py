@@ -26,7 +26,7 @@ class Collocation(BlockScheme):
     """
     def __init__(self, nPoints, ptsType='LEGENDRE', quadType='LOBATTO', form='Z2N',
                  collUpdate=False):
-        self.checkAndStoreParams(locals())
+        self.initialize(locals())
         
         nNodes = nPoints-1 if collUpdate else nPoints
         super().__init__(nNodes, ptsType, quadType, form)

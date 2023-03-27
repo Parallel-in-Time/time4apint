@@ -52,8 +52,8 @@ class BlockScheme(ParamClass):
     """
     def __init__(self, nPoints, ptsType='EQUID', quadType='LOBATTO', form='Z2N'):
         
-        # Check parameters
-        self.checkAndStoreParams(locals())
+        # Initialize parameters
+        self.initialize(locals())
         
         # Time-points for the block discretization
         if isinstance(ptsType, str):

@@ -62,7 +62,7 @@ class RungeKutta(BlockScheme):
     """
     def __init__(self, nPoints, ptsType='EQUID', quadType='LOBATTO', form='Z2N',
                  rkScheme='BE', nStepsPerPoint=1):
-        self.checkAndStoreParams(locals())
+        self.initialize(locals())
         super().__init__(nPoints, ptsType, quadType, form)
         
     def getBlockMatrices(self, lamDt):

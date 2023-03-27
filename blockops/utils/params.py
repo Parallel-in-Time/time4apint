@@ -52,7 +52,7 @@ class ParamClass(object):
     """
     Base class that list its parameters, default value and documentation.
     It allows to check and store the parameter values using the 
-    `checkAndStoreParams` method on the first line of the constructor method.
+    `initialize` method on the first line of the constructor method.
     """
     PARAMS = {}
     
@@ -64,12 +64,12 @@ class ParamClass(object):
     def getParamsDefault(cls):
         return {name: param.default for name, param in cls.PARAMS.items()}
     
-    @classmethod
-    def getParamsValue(cls):
-        return {name: param.value for name, param in cls.PARAMS.items()}
+    def getParamsValue(self):
+        return {name: param.value for name, param in self.PARAMS.items()}
 
-    def checkAndStoreParams(self, localVars: dict):
+    def initialize(self, localVars: dict):
         """Check parameters given in localVars dictionnary"""
+        self.PARAMS = copy.deepcopy(self.PARAMS)
         for name, value in localVars.items():
             if name != 'self' and not name.startswith('__'):
                 self.PARAMS[name].check(value)
