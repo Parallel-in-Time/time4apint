@@ -75,6 +75,7 @@ class BlockScheme(ParamClass):
         
     @property
     def quadType(self):
+        """str: quadrature type of the block time points"""
         leftIsNode = (self.points[0] == 0)
         rightIsNode = (self.points[-1] == 1)
         if leftIsNode and rightIsNode:
@@ -88,9 +89,29 @@ class BlockScheme(ParamClass):
               
     @property
     def nPoints(self):
+        """int: number of time points in the block"""
         return len(self.points)
         
-    def getBlockOperators(self, lamDt, phiName, chiName):
+    def getBlockOperators(self, lamDt, phiName, chiName) -> [BlockOperator, BlockOperator]:
+        r"""
+        Generate the :math:`\phi` and :math:`\chi` block operators
+
+        Parameters
+        ----------
+        lamDt : scalar or 1D vector
+            The value of :math:`\lambda\Delta{T}` for the block.
+        phiName : str
+            The symbol name for the :math:`\phi` operator.
+        chiName : Tstr
+            The symbol name for the :math:`\chi` operator.
+
+        Returns
+        -------
+        phi : BlockOperator
+            The BlockOperator object for :math:`\phi`.
+        chi : TYPE
+            The BlockOperator object for :math:`\chi`.
+        """
         
         # Eventually generate matrices for several lamDt
         lamDt = np.ravel(lamDt)[None, :]
@@ -113,10 +134,35 @@ class BlockScheme(ParamClass):
         
         return phi, chi
         
-    def getBlockMatrices(self, lamDt):
+    def getBlockMatrices(self, lamDt) -> [np.ndarray, np.ndarray]:
+        """
+        Generate matrices for the :math:`\phi` and :math:`\chi` block operators.
+
+        Parameters
+        ----------
+        lamDt : scalar or 1D vector
+            The value of :math:`\lambda\Delta{T}` for the block.
+
+        Returns
+        -------
+        phi : np.ndarray
+            The matrix for :math:`\phi`.
+        chi : np.ndarray
+            The matrix for :math:`\chi`.
+        """
         raise NotImplementedError('cannot use BlockScheme class (abstract)')
         
-    def getBlockCosts(self):
+    def getBlockCosts(self) -> [float, float]:
+        """
+        Generate costs fpr the :math:`\phi` and :math:`\chi` block operators.
+
+        Returns
+        -------
+        costPhi : float
+            The (estimated) cost for :math:`\phi`.
+        costChi : float
+            The (estimated) cost for :math:`\chi`.
+        """
         raise NotImplementedError('cannot use BlockScheme class (abstract)')
 
 # Dictionnary to store all the BlockScheme implementations

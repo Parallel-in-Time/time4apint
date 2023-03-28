@@ -66,6 +66,21 @@ class RungeKutta(BlockScheme):
         super().__init__(nPoints, ptsType, quadType, form)
         
     def getBlockMatrices(self, lamDt):
+        """
+        Generate matrices for the :math:`\phi` and :math:`\chi` block operators.
+
+        Parameters
+        ----------
+        lamDt : scalar or 1D vector
+            The value of :math:`\lambda\Delta{T}` for the block.
+
+        Returns
+        -------
+        phi : np.ndarray
+            The matrix for :math:`\phi`.
+        chi : np.ndarray
+            The matrix for :math:`\chi`.
+        """
         # Main parameters
         rkScheme = self.PARAMS['rkScheme'].value
         nStepsPerPoint = self.PARAMS['nStepsPerPoint'].value
@@ -94,6 +109,16 @@ class RungeKutta(BlockScheme):
         return phi, chi
         
     def getBlockCosts(self):
+        """
+        Generate costs fpr the :math:`\phi` and :math:`\chi` block operators.
+
+        Returns
+        -------
+        costPhi : float
+            The (estimated) cost for :math:`\phi`.
+        costChi : float
+            The (estimated) cost for :math:`\chi`.
+        """
         costPhi = self.PARAMS['nStepsPerPoint'].value * self.nPoints
         costChi = 0
         return costPhi, costChi

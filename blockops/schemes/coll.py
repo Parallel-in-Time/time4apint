@@ -12,6 +12,7 @@ from blockops.utils.vectorize import matMatMul
 from blockops.schemes import BlockScheme, register
 from blockops.utils.params import setParams, Boolean
     
+
 @register
 @setParams(
     collUpdate=Boolean())
@@ -36,6 +37,21 @@ class Collocation(BlockScheme):
             
             
     def getBlockMatrices(self, lamDt):
+        """
+        Generate matrices for the :math:`\phi` and :math:`\chi` block operators.
+
+        Parameters
+        ----------
+        lamDt : scalar or 1D vector
+            The value of :math:`\lambda\Delta{T}` for the block.
+
+        Returns
+        -------
+        phi : np.ndarray
+            The matrix for :math:`\phi`.
+        chi : np.ndarray
+            The matrix for :math:`\chi`.
+        """
         # Main parameters
         collUpdate = self.PARAMS['collUpdate'].value
         form = self.PARAMS['form'].value
@@ -77,6 +93,16 @@ class Collocation(BlockScheme):
         return phi, chi
             
     def getBlockCosts(self):
+        """
+        Generate costs fpr the :math:`\phi` and :math:`\chi` block operators.
+
+        Returns
+        -------
+        costPhi : float
+            The (estimated) cost for :math:`\phi`.
+        costChi : float
+            The (estimated) cost for :math:`\chi`.
+        """
         # TODO : estimation for collocation methods
         return 1, 0
         
