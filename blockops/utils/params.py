@@ -169,16 +169,16 @@ class MultipleChoices(Parameter):
     """Parameter that accepts different parameter values or parameter types"""
 
     def __init__(self, *choices):
-        self.pTypes = set(c for c in choices if isinstance(c, Parameter))
-        self.choices = set(c for c in choices if not isinstance(c, Parameter))
+        self.pTypes = [c for c in choices if isinstance(c, Parameter)]
+        self.choices = [c for c in choices if not isinstance(c, Parameter)]
 
     def check(self, value):
-        choices = {c for c in self.choices}
+        choices = [c for c in self.choices]
         for pType in self.pTypes:
             try:
                 return pType.check(value)
             except ParamError as err:
-                choices.add(err.reason)
+                choices.append(err.reason)
         if not isinstance(value, Hashable):
             self.error(value, f"is not in {[c for c in choices]}")
         if value not in self.choices:
