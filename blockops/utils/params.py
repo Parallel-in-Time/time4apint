@@ -55,9 +55,10 @@ class Parameter(object):
 
 class ParamClass(object):
     """
-    Base class that list its parameters, default value and documentation.
-    It allows to check and store the parameter values using the
-    `initialize` method on the first line of the constructor method.
+    Base class that lists its parameters, default value and documentation in
+    a `PARAMS` attribute.
+    It allows to check and store the parameter values using the `initialize`
+    method on the first line of the subclass constructor.
     """
     PARAMS = {}
 
@@ -72,13 +73,17 @@ class ParamClass(object):
     def getParamsValue(self):
         return {name: param.value for name, param in self.PARAMS.items()}
 
-    def initialize(self, localVars: dict):
-        """Check parameters given in localVars dictionnary"""
-        self.PARAMS = copy.deepcopy(self.PARAMS)
-        for name, value in localVars.items():
-            if name != 'self' and not name.startswith('__'):
+    def initialize(self, params: dict):
+        """Check given parameter values and store them in PARAMS elements"""
+        self._copyParams()
+        for name, value in params.items():
+            if name in self.PARAMS:
                 self.PARAMS[name].check(value)
                 self.PARAMS[name].value = value
+
+    def _copyParams(self):
+        """Copy PARAMS to an attribute specific for the instance"""
+        self.PARAMS = copy.deepcopy(self.PARAMS)
 
     @classmethod
     def extractParamDocs(cls, *names):
@@ -91,7 +96,9 @@ class ParamClass(object):
         for name in names:
             iStart = docs.find(f'\n    {name} :')
             if iStart == -1:
-                raise ValueError(f'{name} parameter not in {cls} docs')
+                iStart = docs.find(f'\n    **{name} :')
+                if iStart == -1:
+                    raise ValueError(f'{name} parameter not in {cls} docs')
             docLines = docs[iStart:].splitlines()[2:]
             descr = []
             for line in docLines:
@@ -108,7 +115,7 @@ class ParamClass(object):
 
 
 # -----------------------------------------------------------------------------
-# Main class decorator to be applied on ParamClass children
+# Main class decorator to be applied on ParamClass subclasses
 # -----------------------------------------------------------------------------
 
 def setParams(**kwargs) -> Callable[[ParamClass], ParamClass]:
@@ -122,13 +129,17 @@ def setParams(**kwargs) -> Callable[[ParamClass], ParamClass]:
         # Get constructor signature
         sig = inspect.signature(cls.__init__)
 
+        # Ignore **kwargs type arguments
+        sigParams = {name: par for name, par in sig.parameters.items()
+                      if par.kind != par.VAR_KEYWORD}
+
         # Add parameter object to the class PARAMS dictionnary
         for name, pType in kwargs.items():
             pType.name = name
             cls.PARAMS[name] = pType
 
         # Check if signature of the constructor corresponds to given parameters
-        clsParams = set(sig.parameters.keys())
+        clsParams = set(sigParams.keys())
         clsParams.remove('self')
 
         objParams = set(cls.PARAMS.keys())
@@ -140,7 +151,7 @@ def setParams(**kwargs) -> Callable[[ParamClass], ParamClass]:
 
         # Add docs and default value for each parameters
         cls.extractParamDocs(*kwargs.keys())
-        for name, par in sig.parameters.items():
+        for name, par in sigParams.items():
             if name == 'self':
                 continue
             default = par.default if par.default != inspect._empty else None
@@ -155,46 +166,52 @@ def setParams(**kwargs) -> Callable[[ParamClass], ParamClass]:
 # Parameter implementations
 # -----------------------------------------------------------------------------
 
-class Integer(Parameter):
-    """Parameter that accepts integer, eventually strictly positive"""
+class PositiveInteger(Parameter):
+    """Accepts one (default strictly) positive integer"""
 
-    def __init__(self, positive=True, strict=True):
-        self.positive = positive
+    def __init__(self, strict=True):
         self.strict = strict
 
     def check(self, value):
         try:
             assert int(value) == value
         except (ValueError, TypeError):
-            self.error(value, "cannot be interpreted as integer")
+            self.error(value, "cannot be interpreted as an integer")
         except AssertionError:
-            self.error(value, "is not a rounded integer")
+            self.error(value, "cannot be rounded to an integer")
         except Exception:
             self.error(value, "something went wrong with this value")
-        if value < 1:
+        if self.strict and value < 1:
             self.error(value, "is not a strictly positive integer")
+        if value < 0:
+            self.error(value, "is not a positive integer")
         return True
 
 
-class PositiveNumber(Parameter):
-    """Parameter that accepts (stricly) positive real number"""
+class ScalarNumber(Parameter):
+    """Accepts one scalar number (eventually a strict positive float)"""
+
+    def __init__(self, positive=False):
+        self.positive = positive
 
     def check(self, value):
+        dtype = float if self.positive else complex
         try:
-            assert float(value) == value
-        except (ValueError, TypeError):
-            self.error(value, "cannot be interpreted as a float")
+            value = np.array(value, dtype=dtype).ravel()
+            assert value.size == 1
+        except ValueError:
+            self.error(value, f"cannot be interpreted as a {dtype}")
         except AssertionError:
-            self.error(value, "casting to float looses accuracy")
+            self.error(value, "is more than one value")
         except Exception:
             self.error(value, "something went wrong with this value")
-        if value <= 0:
+        if self.positive and value <= 0:
             self.error(value, "is not a strictly positive number")
         return True
 
 
-class ComplexScalarOrVector(Parameter):
-    """Parameter that accepts one or several complex values"""
+class VectorNumbers(Parameter):
+    """Accepts one or several (complex or float) numbers"""
 
     def check(self, value):
         try:
@@ -210,7 +227,7 @@ class ComplexScalarOrVector(Parameter):
 
 
 class MultipleChoices(Parameter):
-    """Parameter that accepts different parameter values or parameter types"""
+    """Accepts different parameter values or parameter types"""
 
     def __init__(self, *choices):
         self.pTypes = [c for c in choices if isinstance(c, Parameter)]
@@ -231,7 +248,7 @@ class MultipleChoices(Parameter):
 
 
 class CustomPoints(Parameter):
-    """Parameter that accepts an ordered list of float values in [0, 1]"""
+    """Accepts an ordered list of float values in [0, 1]"""
 
     def check(self, value):
         try:
@@ -249,7 +266,7 @@ class CustomPoints(Parameter):
 
 
 class Boolean(Parameter):
-    """Parameter that accepts boolean values"""
+    """Accepts a boolean value"""
 
     def check(self, value):
         if not isinstance(value, bool):

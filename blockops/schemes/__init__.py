@@ -3,7 +3,7 @@ import numpy as np
 from typing import Dict
 
 from blockops.utils.params import ParamClass, setParams
-from blockops.utils.params import Integer, MultipleChoices, CustomPoints
+from blockops.utils.params import PositiveInteger, MultipleChoices, CustomPoints
 from blockops.utils.poly import NodesGenerator, NODE_TYPES, QUAD_TYPES
 from blockops.utils.poly import LagrangeApproximation
 from blockops.block import BlockOperator
@@ -23,7 +23,7 @@ def getTransferMatrices(nodesFine, nodesCoarse, vectorized=False):
 
 
 @setParams(
-    nPoints=Integer(),
+    nPoints=PositiveInteger(),
     ptsType=MultipleChoices(*NODE_TYPES, CustomPoints()),
     quadType=MultipleChoices(*QUAD_TYPES),
     form=MultipleChoices('Z2N', 'N2N')
@@ -38,18 +38,31 @@ class BlockScheme(ParamClass):
         Number of time points in the block. Ignored if a custom list of points
         is given for `ptsType`.
     ptsType : str of list of float, optional
-        Either the type of points (EQUID, LEGENDRE), or a list of given time
-        points in [0, 1].
+        Either the type of points (EQUID, LEGENDRE, ...), or a list of given time
+        points in [0, 1]. For string values, possibilities are :
+
+        - `EQUID` : equidistant point uniformly distributed on the block
+        - `LEGENDRE` : points distribution from Legendre polynomials
+        - `CHEBY-{i}` : points distribution from Chebychev polynomials of the
+          `i`'th kind (`i in [1,2,3,4]`).
+
     quadType : str, optional
         Quadrature type used for the points in [0, 1]:
 
-        - LOBATTO -> 0 and 1 are included
-        - GAUSS -> neither 0 nor 1 are included
-        - RADAU-RIGHT -> only 1 is included
-        - RADAU-LEFT -> only 0 is included
+        - `LOBATTO` : 0 and 1 are included
+        - `GAUSS` : neither 0 nor 1 are included
+        - `RADAU-RIGHT` : only 1 is included
+        - `RADAU-LEFT` : only 0 is included
 
     form : str, optional
-        Used formulation, either N2N (node-to-node) or Z2N (zero-to-node).
+        Used formulation, can be either :
+
+        - `Z2N` : zeros-to-nodes formulation, i.e the `chi` operator produces
+          a vector of the form :math:`[u_0, u_0, ..., u_0]` and `phi` represents
+          the integration from :math:`u_{0}` to each block time points (nodes).
+        - `N2N` : node-to-node formulation, i.e the `chi` operator produces
+          a vector of the form :math:`[u_0, 0, ..., 0]` and `phi` represents
+          the integration from one time point (node) to the next one.
     """
     def __init__(self, nPoints, ptsType='EQUID', quadType='LOBATTO', form='Z2N'):
 

@@ -11,15 +11,16 @@ from blockops.utils.poly import LagrangeApproximation
 from blockops.utils.vectorize import matMatMul
 from blockops.schemes import BlockScheme, register
 from blockops.utils.params import setParams, Boolean
-    
+
 
 @register
 @setParams(
-    collUpdate=Boolean())
+    collUpdate=Boolean()
+    )
 class Collocation(BlockScheme):
     """
     Generic class for Collocation methods
-    
+
     Parameters
     ----------
     collUpdate : bool, optional
@@ -28,14 +29,14 @@ class Collocation(BlockScheme):
     def __init__(self, nPoints, ptsType='LEGENDRE', quadType='LOBATTO', form='Z2N',
                  collUpdate=False):
         self.initialize(locals())
-        
+
         nNodes = nPoints-1 if collUpdate else nPoints
         super().__init__(nNodes, ptsType, quadType, form)
-        
+
         if collUpdate:
             self.points = np.append(self.points, [1])
-            
-            
+
+
     def getBlockMatrices(self, lamDt):
         """
         Generate matrices for the :math:`\phi` and :math:`\chi` block operators.
@@ -57,10 +58,10 @@ class Collocation(BlockScheme):
         form = self.PARAMS['form'].value
         nPoints = self.nPoints
         points = self.points
-        
+
         nNodes = nPoints-1 if collUpdate else nPoints
         nodes = points[:-1] if collUpdate else points
-        
+
         # Compute Q matrix
         polyApprox = LagrangeApproximation(nodes)
         Q = polyApprox.getIntegrationMatrix([(0, tau) for tau in nodes])
@@ -89,9 +90,9 @@ class Collocation(BlockScheme):
             T[1:,:-1][np.diag_indices(nPoints-1)] = -1
             phi = matMatMul(T, phi)
             chi = matMatMul(T, chi)
-            
+
         return phi, chi
-            
+
     def getBlockCosts(self):
         """
         Generate costs fpr the :math:`\phi` and :math:`\chi` block operators.
@@ -105,4 +106,3 @@ class Collocation(BlockScheme):
         """
         # TODO : estimation for collocation methods
         return 1, 0
-        

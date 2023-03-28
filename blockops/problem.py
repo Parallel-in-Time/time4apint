@@ -2,19 +2,27 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from blockops.utils.params import ParamClass, setParams
-from blockops.utils.params import Integer
-
+from blockops.utils.params import ParamClass, setParams, \
+    PositiveInteger, ScalarNumber, VectorNumbers, MultipleChoices
 
 from blockops.schemes import SCHEMES, getTransferMatrices
 from blockops.block import BlockOperator
 from blockops.iteration import ALGORITHMS, BlockIteration
 
+
 class ProblemError(Exception):
     """Specific exception for the BlockProblem class"""
     pass
 
-class BlockProblem(object):
+
+@setParams(
+    lam=VectorNumbers(),
+    tEnd=ScalarNumber(positive=True),
+    nBlocks=PositiveInteger(),
+    scheme=MultipleChoices(*SCHEMES.keys()),
+    u0=ScalarNumber(),
+    )
+class BlockProblem(ParamClass):
     r"""
     Class instantiating a block problem for the Dahlquist problem
 
@@ -56,8 +64,6 @@ class BlockProblem(object):
         End of simulation interval :math:`T`.
     nBlocks : int
         Number of blocks :math:`N`.
-    nPoints : int
-        Number of time-points per block :math:`M`.
     scheme : str
         Time discretization scheme used for the block operators.
     u0 : scalar, optional
@@ -65,8 +71,10 @@ class BlockProblem(object):
     **schemeArgs :
         Additional keyword arguments used for the time-discretization scheme.
     """
-    def __init__(self, lam, tEnd, nBlocks, nPoints, scheme, u0=1,
-                 **schemeArgs):
+    def __init__(self, lam, tEnd, nBlocks, scheme, u0=1, **schemeArgs):
+
+        # Initialize parameters
+        self.initialize(locals())
 
         # Block sizes and problem settings
         self.nBlocks = nBlocks
@@ -74,9 +82,6 @@ class BlockProblem(object):
         self.lam = np.asarray(lam)
 
         # Set up bock operators and propagator of the sequential problem
-        if not scheme in SCHEMES:
-            raise ValueError(f'{scheme} scheme is not implemented')
-        schemeArgs['nPoints'] = nPoints
         self.scheme = SCHEMES[scheme](**schemeArgs)
         self.phi, self.chi = self.scheme.getBlockOperators(
             self.lam*self.dt, r'\phi', r'\chi')
@@ -387,11 +392,13 @@ if __name__ == '__main__':
     # Quick module testing
 
     # Create block problem with its fine level operator
-    prob = BlockProblem(1j, 12*np.pi, nBlocks=6, nPoints=11, scheme='SDIRK54')
+    prob = BlockProblem(
+        1j, 12*np.pi, nBlocks=6, scheme='RungeKutta', nPoints=11,
+        rkScheme='SDIRK54')
     # Set up coarse level :
-    prob.setCoarseLevel(points=5)
+    prob.setCoarseLevel(nPoints=5)
     # Set up approximate operator (on coarse and fine level) :
-    prob.setApprox('SDIRK2')
+    prob.setApprox(scheme='RungeKutta', rkScheme='SDIRK2')
 
     import matplotlib.pyplot as plt
 

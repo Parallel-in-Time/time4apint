@@ -2,7 +2,7 @@
 
 Generic description of the `Plots` components. Inputs are the main computed values require to generate the plot. Parameters are additional settings that have pre-set default values.
 
-## CP1 : contour plot of error with stability contour
+## P1 : contour plot of error with stability contour
 
 Plot the error on a rectangular domain of the complex plane, in log scale, from the numerical solution obtained with one given time-integration (fine, approax, coarse, PinT, ...), versus one given reference (fine or exact).
 
@@ -17,7 +17,7 @@ Plot the error on a rectangular domain of the complex plane, in log scale, from 
 - `reLamBounds`, `imLamBounds` : bounds for the lambda real and imaginary lambda values. Default is (-4, 0.5) and (-3, 3).
 - `eMin`, `eMax` : min. and max. error exponent for the contour plot, _i.e_ error is plotted between $10^{eMin}$ and $10^{eMax}$. Default is (-7, 0).
 
-## CP2 : contour plot for number of iteration to reach discretization error
+## P2 : contour plot for number of iteration to reach discretization error
 
 Plot how much iteration are required for each lambda in  the complex plane such that the maximum PinT error (PinT VS fine) algorithm on each block is lower than the discretization error (fine VS exact).
 

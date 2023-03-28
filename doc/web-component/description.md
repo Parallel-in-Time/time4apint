@@ -1,3 +1,0 @@
-# Components for the `Description` column in application pages
-
-TODO : documentation ...

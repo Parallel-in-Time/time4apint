@@ -9,8 +9,8 @@ import numpy as np
 
 from blockops.utils.vectorize import matMatMul
 from blockops.schemes import BlockScheme, register
-from blockops.utils.params import setParams, MultipleChoices, Integer
-    
+from blockops.utils.params import setParams, MultipleChoices, PositiveInteger
+
 
 
 STABILITY_FUNCTIONS = {
@@ -47,12 +47,12 @@ STABILITY_FUNCTIONS = {
 @register
 @setParams(
     rkScheme=MultipleChoices(*STABILITY_FUNCTIONS.keys()),
-    nStepsPerPoint=Integer()
-)
+    nStepsPerPoint=PositiveInteger()
+    )
 class RungeKutta(BlockScheme):
     """
     Generic class for Runge-Kutta schemes
-    
+
     Parameters
     ----------
     rkScheme : str, optional
@@ -64,7 +64,7 @@ class RungeKutta(BlockScheme):
                  rkScheme='BE', nStepsPerPoint=1):
         self.initialize(locals())
         super().__init__(nPoints, ptsType, quadType, form)
-        
+
     def getBlockMatrices(self, lamDt):
         """
         Generate matrices for the :math:`\phi` and :math:`\chi` block operators.
@@ -105,9 +105,9 @@ class RungeKutta(BlockScheme):
             T = np.tril(np.ones((nPoints, nPoints)))
             phi = matMatMul(T, phi)
             chi = matMatMul(T, chi)
-            
+
         return phi, chi
-        
+
     def getBlockCosts(self):
         """
         Generate costs fpr the :math:`\phi` and :math:`\chi` block operators.
