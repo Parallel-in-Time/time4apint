@@ -9,7 +9,7 @@ import numpy as np
 
 from blockops.utils.vectorize import matMatMul
 from blockops.schemes import BlockScheme, register
-from blockops.utils.params import setParams, MultipleChoices, PositiveNumber
+from blockops.utils.params import setParams, MultipleChoices, Integer
     
 
 
@@ -47,7 +47,7 @@ STABILITY_FUNCTIONS = {
 @register
 @setParams(
     rkScheme=MultipleChoices(*STABILITY_FUNCTIONS.keys()),
-    nStepsPerPoint=PositiveNumber()
+    nStepsPerPoint=Integer()
 )
 class RungeKutta(BlockScheme):
     """
