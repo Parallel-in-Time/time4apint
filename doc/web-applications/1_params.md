@@ -11,6 +11,8 @@ This application is decomposed into two consecutive stages :
 
 Each stages require the setting of many parameters, and allow the automatic generation of different results showing accuracy, numerical stability and performances.
 
+> 👻 Part of this documentation is deprecated and should be updated ...
+
 ## Stage 1 : definition of the block problems
 
 Done by instantiating a `BlockProblem` with specific parameters. Is decomposed in two steps :
