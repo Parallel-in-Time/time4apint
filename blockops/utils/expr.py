@@ -13,7 +13,8 @@ Mul = sy.core.mul.Mul
 Pow = sy.core.power.Pow
 Symbol = sy.core.symbol.Symbol
 
-def extractIndex(rest):
+
+def extractIndex(rest: str):
     """
     Function to extract upper- or lowerscript from a string containing
     a variable in latex format with double index.
@@ -33,14 +34,14 @@ def extractIndex(rest):
     """
     if rest.startswith('{'):
         idx = rest[1:].split('}')[0]
-        rest = rest[len(idx)+3:]
+        rest = rest[len(idx) + 3:]
     else:
         idx = rest[0]
         rest = rest[2:]
     return idx, rest
 
 
-def extractTerm(s):
+def extractTerm(s: str):
     """
     Extract the first block operator and its k & n dependencies from a
     given string.
@@ -67,7 +68,7 @@ def extractTerm(s):
     idx = idx1 if idx2 == -1 else idx2 if idx1 == -1 else min(idx1, idx2)
 
     # Separate block operator
-    blockOp, rest = s[:idx], s[idx+2:]
+    blockOp, rest = s[:idx], s[idx + 2:]
     blockOp = blockOp.strip()
     if blockOp.endswith('*'):
         blockOp = blockOp[:-1]
@@ -83,7 +84,7 @@ def extractTerm(s):
     return nIndex, kIndex, blockOp, rest
 
 
-def getCoeffsFromFormula(s, blockOps):
+def getCoeffsFromFormula(s: str, blockOps: dict) -> dict:
     """
     Extract block coefficients from an update formula of the form
     "(F - G) u_{n}^k + G u_{n}^{k+1}", or a predictor formula like
@@ -114,7 +115,22 @@ def getCoeffsFromFormula(s, blockOps):
 
 
 def getLeadingTerm(expr: Mul):
-    """Decompose a multiplication into its leading term and the rest"""
+    """
+
+    Decompose a multiplication into its leading term and the rest
+
+    Parameters
+    ----------
+    expr : sy.Mul
+        The expression to consider
+
+    Returns
+    -------
+    leading : sy.Symbol
+        The leading term
+    rest: sy.Mul
+        The rest of the expression
+    """
     try:
         float(expr.args[0])
 
@@ -133,30 +149,80 @@ def getLeadingTerm(expr: Mul):
 
     return leading, rest
 
-def powToMul(expr):
+
+def powToMul(expr: sy.Expr) -> sy.Expr:
     """
-    Convert integer powers in an expression to Muls, like a**2 => a*a.
+    Converts powers in an expression to multiplications, i.e., a**2 => a*a.
     """
     pows = list(expr.atoms(Pow))
     if any(not e.is_Integer for b, e in (i.as_base_exp() for i in pows)):
-
         raise ValueError("A power contains a non-integer exponent")
-    repl = zip(pows, (Mul(*[b]*e,evaluate=False) for b,e in (i.as_base_exp() for i in pows)))
+    repl = zip(pows, (Mul(*[b] * e, evaluate=False) for b, e in (i.as_base_exp() for i in pows)))
     return expr.subs(repl)
 
-def getFactorizedRule(rule, expand=True):
-    dico = decomposeAddition(rule, {})
+
+def getFactorizedRule(rule: sy.Mul, expand: bool = True):
+    """
+    Factorize a rule into a dictionary
+
+    Parameters
+    ----------
+    rule : sy.Mul
+        The rule to factorize
+    expand : bool
+        Flag expanding dictionary
+
+    Returns
+    ---------
+    dico: Dict
+        Factorized rule as dictionary
+    """
+    dico = decomposeRule(rule, {})
     if expand:
         expandTree(dico)
     return dico
 
+
 def expandPowers(leading, rest):
+    """
+    Expands "leading*rest" to "new leading * new rest" by
+    writing power as multiplication.
+
+    Parameters
+    ----------
+    leading : sy.Pow
+        Leading term containing power
+    rest : sy.Mul
+        Rest of expression
+
+    Returns
+    ---------
+    newLeading: sy.Symbol
+        New leading term after writing power as multiplication
+    newRest. sy.Mul
+        New rest
+    """
     leadingMul = powToMul(leading)
     newLeading, newRest = getLeadingTerm(leadingMul)
-    return newLeading, newRest*rest
+    return newLeading, newRest * rest
 
-def decomposeAddition(expr, dico: dict):
-    """Decompose an addition into a dictionnary with leading terms as key"""
+
+def decomposeRule(expr, dico: dict) -> dict:
+    """
+    Translate expression to dictionary representation
+
+    Parameters
+    ----------
+    expr : sy.Add, sy.Mul, sy.Symbol
+        Addition
+    dico : dict
+        Dictionary storing information about whole expression
+
+    Returns
+    ---------
+    newLeading: dico
+        Updated dictionary
+    """
     if type(expr) == sy.Mul:
         term = expr
         leading, rest = getLeadingTerm(term)
@@ -188,7 +254,14 @@ def decomposeAddition(expr, dico: dict):
 
 
 def expandTree(dico: dict):
-    """Expand an operation tree stored into a dictionnary"""
+    """
+    Expand an operation tree stored into a dictionary
+
+    Parameters
+    ----------
+    dico : dict
+        Dictionary to expand
+    """
     for leading, rest in dico.items():
         if rest == 1 or type(rest) == Symbol:
             continue
@@ -203,14 +276,24 @@ def expandTree(dico: dict):
                 expandTree(subDico)
                 dico[leading] = subDico
         elif type(rest) == Add:
-            subDico = decomposeAddition(rest, {})
+            subDico = decomposeRule(rest, {})
             expandTree(subDico)
             dico[leading] = subDico
         else:
             raise ValueError('got neither Add nor Mul')
 
 
-def printFacto(dico: dict, tab=0):
+def printFacto(dico: dict, tab: int = 0) -> None:
+    """
+    Prints factorized expression stored as dictionary
+
+    Parameters
+    ----------
+    dico : dict
+        Dictionary to print
+    tab: int
+        Number of tabs for printing
+    """
     indent = " " * 3 * tab + "(+)"
     for key, val in dico.items():
         if type(val) == dict:
@@ -218,18 +301,47 @@ def printFacto(dico: dict, tab=0):
             printFacto(val, tab + 1)
         else:
             print(f'{indent} {key} (x) {val}')
-            
-            
-class Generator:
-    def __init__(self, k, checks=2):
-        self.k = k
-        self.mode = 0
-        self.his = []
-        self.checks = checks
-        self.generater = ''
-        self.translate = {}
 
-    def check(self, expr, n):
+
+class Generator:
+    """
+    Helper class to generate block iterations.
+    If "checks" consecutive numbers of block iterations have the same
+    pattern, use this pattern to generate all following rules.
+    """
+
+    def __init__(self, k: int, checks: int = 2) -> None:
+        """
+        Prints factorized expression stored as dictionary
+
+        Parameters
+        ----------
+        k : int
+            Current iteration
+        checks: int
+            Number of checks before following pattern
+        """
+        self.k = k  # Current iteration
+        self.mode = 0  # Operation mode: 0: check | 1: Pattern found
+        self.his = []  # History of last block rules
+        self.checks = checks  # Number of checks
+        self.generater = ''  # String representing block iteration
+        self.translate = {}  # Helper string to symbols
+
+    def check(self, expr: sy.Expr, n: int):
+        """
+        Check if block rule of block *n* follows the
+        pattern of previous block rules
+
+        If pattern is equivalent, set mode to 1
+
+        Parameters
+        ----------
+        expr : sy.Expr
+            Newest rule for block n
+        n: int
+            Current block
+        """
         expr_str = f'{expr}'
         unknowns = list(set(re.findall(re.compile('u_\d+\^\d+'), expr_str)))
         tmpWildcard = {}
@@ -253,7 +365,15 @@ class Generator:
                     self.generater = self.generater.replace(lambda expr: re.match(val, str(expr)),
                                                             lambda expr: sy.Symbol(key, commutative=False))
 
-    def generatingExpr(self, n):
+    def generatingExpr(self, n: int):
+        """
+        Generate expression for block *n*
+
+        Parameters
+        ----------
+        n : int
+            Create iteration for block n
+        """
         tmp = self.generater
         for key, val in self.translate.items():
             tmp = tmp.replace(lambda expr: re.match(key, str(expr)),

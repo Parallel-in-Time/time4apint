@@ -16,7 +16,7 @@ class PintRun:
     block iteration.
     """
 
-    def __init__(self, blockIteration, nBlocks: int, kMax: list):
+    def __init__(self, blockIteration, nBlocks: int, kMax: list) -> None:
         """
         Constructor to initialize a parallel-in-time run.
 
@@ -61,6 +61,7 @@ class PintRun:
             Current block
         k : int
             Current iteration
+
         Returns
         -------
         expr : sy.Symbol
@@ -84,6 +85,7 @@ class PintRun:
             Current block
         k : int
             Current iteration
+
         Returns
         -------
         expr : sy.Symbol, sy.Mul, sy.Add
@@ -104,6 +106,7 @@ class PintRun:
         ----------
         n : int
             Current block
+
         Returns
         -------
         expr : sy.Symbol, sy.Mul, sy.Add
@@ -125,6 +128,7 @@ class PintRun:
             The expression to be simplified
         k : int
             Current iteration
+
         Returns
         -------
         expr : sy.Symbol, sy.Mul, sy.Add
@@ -234,13 +238,13 @@ class PintRun:
 
                     self.blockRules[(n + 1, k + 1)] = {'result': res, 'rule': rule}
 
-    def factorizeBlockRules(self):
+    def factorizeBlockRules(self) -> None:
         for key, value in self.blockRules.items():
             self.facBlockRules[key] = {'rule': self.factorize(rule=value['rule'], res=value['result']),
                                        'result': value['result']
                                        }
 
-    def factorize(self, rule, res: sy.Symbol):
+    def factorize(self, rule, res: sy.Symbol) -> dict:
         """
         Generates tasks based on a given rule.
 
