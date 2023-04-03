@@ -649,5 +649,9 @@
   </body>
 
   <script src="js/lib/Plotly.js"></script>
-  <script type="module" src="js/main.js"></script>
+
+  <!-- Dynamic modules -->
+  {% for js_module in js_modules %}
+  <script type="module" src="{{ js_module }}"></script>
+  {% endfor %}
 </html>

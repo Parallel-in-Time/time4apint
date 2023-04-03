@@ -1,33 +1,48 @@
 #!/usr/bin/env python3
 
 import json
+import glob
 
 from flask import Flask, jsonify, render_template, request
 
 from web.utilities import compute_plot
 
 import web.data as data
+import web.md_renderer as md_renderer
 
+STATIC_FOLDER = 'web/static'
 app = Flask(__name__,
             static_url_path='',
-            static_folder='web/static',
+            static_folder=STATIC_FOLDER,
             template_folder='web/templates')
 
 
 @app.route('/')
 def index():
-    text = data.markdown(open('web/index.md').read())
+    text = md_renderer.render(open('web/index.md').read())
     return render_template('index.html', text=text)
 
 
 @app.route('/app')
 def application():
-    return render_template('app.html', documentation=data.documentation)
+    # Find all js files in the static/js folder and inject them
+    # -> This way they can be rebuilt and found on each reload
+    js_files = filter(lambda f: '/lib/' not in f, [
+        file.replace(STATIC_FOLDER, '')
+        for file in glob.glob(f"{STATIC_FOLDER}/js/**/*.js", recursive=True)
+    ])
+    return render_template('app.html',
+                           js_modules=js_files,
+                           documentation=data.documentation)
 
 
-@app.route('/app/data')
-def app_data():
-    return jsonify({'algorithms': data.algorithms, 'schemes': data.schemes})
+@app.route('/app/components')
+def app_components():
+    return jsonify({
+        'docs': [1, 2, 3],
+        'settings': [data.stage_1_block_problem.serialize()],
+        'plots': []
+    })
 
 
 @app.route('/app/compute-stage-1', methods=['POST'])

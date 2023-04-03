@@ -1,100 +1,98 @@
-from .documentation import Documentation
+from blockops.schemes import SCHEMES
+from blockops.utils.params import Parameter, MultipleChoices
+from blockops.problem import BlockProblem
 
-# --- Schemes ---
-rk_type_params = {
-    'defaults': {
-        'points': 'EQUID',
-        'quadType': 'RADAU-RIGHT',
-        'form': 'N2N',
-    },
-    'nStepsPerPoint': {
-        'default': 1,
-        'type': 'int'
-    },
-}
+from typing import Any
 
-collocation_type_params = {
-    'defaults': {
-        'points': 'LEGENDRE',
-        'quadType': 'RADAU-RIGHT',
-        'form': 'Z2N',
-    },
-    'quadProlong': {
-        'default': False,
-        'type': 'bool'
-    },
-}
+# API definitions
 
-schemes = {
-    'BE': rk_type_params,
-    'FE': rk_type_params,
-    'TRAP': rk_type_params,
-    'RK2': rk_type_params,
-    'RK4': rk_type_params,
-    'EXACT': rk_type_params,
-    'COLLOCATION': collocation_type_params,
-}
+types = [
+    'PositiveInteger',
+    'StrictlyPositiveInteger',
+    'PositiveFloat',
+    'Float',
+    'Enumeration',
+    'FloatList',
+    'Boolean',
+]
 
-# --- Algorithms ---
-algorithms = {
-    'Parareal': [
-        'scheme-approx-form',
-    ],
-    'ABGS': [
-        'scheme-approx-form',
-    ],
-    'ABJ': [
-        'scheme-approx-form',
-    ],
-    'TMG': [
-        'MCoarse',
-    ],
-    'TMG-C': ['MCoarse', 'scheme-approx-form'],
-    'TMG-F': ['MCoarse', 'scheme-approx-form'],
-    'PFASST': ['MCoarse', 'scheme-approx-form'],
-    'MGRIT-FCF': [
-        'scheme-approx-form',
-    ],
-}
-
-# --- Documentation ---
-# Math equations in backticks: `a = b`
-# r'' to insert \ if needed
-
-docs = Documentation()
-
-docs.add('N', r'`N`: Number of blocks `N`, strictly positive integer.')
-docs.add('tEnd', r'`T`: Total simulation time `T`, strictly positive float. For generic analysis, current default is `T=N`.')
-docs.add('scheme', r'**Scheme**: Time discretization scheme to use.')
-docs.add('M', r'`M`: Number of time-points per blocks `M`, strictly positive integer.')
-docs.add('points', r'''**Points**: Time point distribution for each block, can be either a list of points in `[0,1]` (ignore `M`) or a string in:
-- EQUID: Equidistant point uniformly distributed on the block.
-- LEGENDRE: Points distribution from Legendre polynomials.
-- CHEBY-`\{i\}`: Points distribution from Chebychev polynomials of the `i`'th kind (`i \in \{1,2,3,4\}`).
-''')
-docs.add('quadType', r'''**QuadType**: quadrature type for each block, a string in:
-- GAUSS: don't include left and right block boundary in the points. For `\text{points}=\text{LEGENDRE}` and `\text{points}=\text{CHEBY-}\{i\}`, correspond to the standard Gauss nodes with those distributions. For `\text{points}=\text{EQUID}`, uniformly distribute the points inside `(0,1)`.
-- LOBATTO: include left and right block boundary points
-- RADAU: `\{ \text{LEFT},\text{RIGHT}}`: include either the left or right block boundary point (only).''')
-docs.add('form', r'''**Form**: Node formulation (generalized from collocation methods). This produce equivalent block operators, just written differently. It can be chosen from two values:
-- Z2N: zeros-to-nodes formulation, _i.e_ the `\chi` operator produces a vector of the form `[u_0, u_0, ..., u_0]` and `\phi` represents the integration from `u_{0}` to each block time points.
-- N2N: node-to-node formulation, _i.e_ the `\phi` operator produces a vector of the form `[u_0, 0, ..., 0]` and `\phi` represents the integration from one node to the next one.''')
-docs.add('algorithm', r'**Algorithm**: Selected PinT algorithm.')
-docs.add('schemeApproxPoints', r'**Scheme Approximation Points**: Defines the points of an approximate block operator.')
-docs.add('schemeApproxForm', r'**Scheme Approximation Form**: Defines the form of an approximate block operator.')
-docs.add('MCoarse', r'**MCoarse**: Define a coarse level using exactly the same discretization as the fine level, but with `\text{MCoarse} < M`.')
-
-documentation = docs.get()
-
-import mistune
-
-class MathRenderer(mistune.HTMLRenderer):
-
-    def codespan(self, text):
-        return '`' + mistune.escape(text) + '`'
+# webutils
 
 
-markdown = mistune.create_markdown(
-            renderer=MathRenderer(),
-            hard_wrap=True,
-        )
+def convert_to_web(param: Parameter) -> str | list[str]:
+    web_type = convert_to_web_inner(param)
+    if len(web_type) == 1:
+        return web_type[0]
+    return web_type
+
+
+def convert_to_web_inner(param: Parameter) -> list[str]:
+    from blockops.utils.params import PositiveInteger, ScalarNumber, VectorNumbers, MultipleChoices, CustomPoints, Boolean
+    if isinstance(param, PositiveInteger):
+        if param.strict:
+            return ['StrictlyPositiveInteger']
+        return ['PositiveInteger']
+    if isinstance(param, ScalarNumber):
+        if param.positive:
+            return ['PositiveFloat']
+        return ['Float']
+    if isinstance(param, VectorNumbers) or isinstance(param, CustomPoints):
+        return ['FloatList']
+    if isinstance(param, Boolean):
+        return ['Boolean']
+    if isinstance(param, MultipleChoices):
+        if len(param.pTypes) > 0:
+            return ['Enumeration'] + [
+                convert_to_web_inner(paramType)[0]
+                for paramType in param.pTypes
+            ]
+        return ['Enumeration']
+    return ['Unknown']
+
+
+# data
+
+
+class SettingsStage:
+
+    def __init__(self, title: str, unique_name: str,
+                 parameters: dict[str,
+                                  Parameter], dependency: str | None) -> None:
+        self.title: str = title
+        self.unique_name: str = unique_name
+        self.parameters: dict[str, Parameter] = parameters
+        self.dependency: str | None = dependency
+
+    def serialize(
+        self
+    ) -> dict[str, Any]:  # Returns a dictionary to be sent to the frontend
+        result = {}
+        for name, parameter in self.parameters.items():
+            web_type = convert_to_web(parameter)
+            choices = None
+            if isinstance(parameter, MultipleChoices):
+                choices = parameter.choices
+            result[name] = {
+                'values': parameter.__doc__,
+                'doc': parameter.docs,
+                'type': web_type,
+                'choices': choices,  # None, if thats the only one
+                'default': parameter.default,  # None if not optional
+            }
+        result['title'] = self.title
+        result['id'] = self.unique_name
+        result['dependency'] = self.dependency
+        return result
+
+
+stage_1_block_problem = SettingsStage('Definition of a Block Problem', 'S1',
+                                      BlockProblem.PARAMS, None)
+
+# Second stage will be created dynamically, when the results of the first stage are sent back
+# settings_stage_2_block_scheme = SettingStage('S2', BlockProblem.PARAMS, 'S1')
+
+documentation = {'abc': 'text'}
+
+import json
+
+print(json.dumps(stage_1_block_problem.serialize(), indent=4))
