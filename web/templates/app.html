@@ -10,7 +10,7 @@
     <!-- Math Equation Renderer -->
     <script>
       MathJax = {
-        loader: { load: ['input/asciimath', 'output/chtml'] },
+        loader: { load: ["input/asciimath", "output/chtml"] },
       };
     </script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -209,7 +209,7 @@
                           >
                           <div class="uk-width-expand@m uk-padding-remove-left">
                             <input
-                              uk-tooltip="title: Number of blocks N, strictly positive integer."
+                              uk-tooltip="title: Number of blocks N, strictly positive integer. (20)"
                               class="uk-input uk-align-right"
                               id="select-N"
                               type="number"
@@ -226,7 +226,7 @@
                           >
                           <div class="uk-width-expand@m uk-padding-remove-left">
                             <input
-                              uk-tooltip="title: Total simulation time T, strictly positive float."
+                              uk-tooltip="title: Total simulation time T, strictly positive float. (20)"
                               class="uk-input uk-align-right"
                               id="select-tEnd"
                               type="number"
@@ -270,7 +270,7 @@
                           >
                           <div class="uk-width-expand@m uk-padding-remove-left">
                             <input
-                              uk-tooltip="title: Number of time-points per blocks M, strictly positive integer."
+                              uk-tooltip="title: Number of time-points per blocks M, strictly positive integer. (5)"
                               class="uk-input uk-align-right"
                               id="select-M"
                               type="number"
@@ -505,12 +505,12 @@
                       </span>
                       <div class="uk-width-expand@m uk-padding-remove-left">
                         <input
-                          uk-tooltip="title: Number of lambda values to display in each direction of the complex plane (i.e looks at nVals*nVals Dahlquist problems)."
+                          uk-tooltip="title: Number of lambda values to compute in each direction of the complex plane (i.e looks at nVals*nVals Dahlquist problems)."
                           class="uk-input uk-align-right"
                           id="selection-plot-nVals"
                           type="number"
                           placeholder="nVals"
-                          value="500"
+                          value="128"
                         />
                       </div>
                     </div>
