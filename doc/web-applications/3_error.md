@@ -1,0 +1,3 @@
+# BlockOps application : Error of an approximate / coarse block operator
+
+TODO ...

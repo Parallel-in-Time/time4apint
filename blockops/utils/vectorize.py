@@ -3,7 +3,7 @@
 """
 Created on Thu Dec 29 17:18:03 2022
 
-@author: telu
+Utility functions for vector computations
 """
 import numpy as np
 

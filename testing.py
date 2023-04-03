@@ -20,8 +20,9 @@ nPoints = 1
 nPointsCoarse = 1
 algoName = 'PFASST'
 
-prob = BlockProblem(lam, tEnd, nBlocks, nPoints, 'BE', nStepsPerPoint=nStepsF)
-prob.setApprox('BE', nStepsPerPoint=nStepsG)
+prob = BlockProblem(lam, tEnd, nBlocks, nPoints, 
+                    'RungeKutta', rkScheme='BE', nStepsPerPoint=nStepsF)
+prob.setApprox('RungeKutta', rkScheme='BE', nStepsPerPoint=nStepsG)
 prob.setCoarseLevel(nPointsCoarse)
 
 

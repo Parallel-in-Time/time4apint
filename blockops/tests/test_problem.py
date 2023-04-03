@@ -13,10 +13,12 @@ lam = 1j
 N = 8
 
 def testBasics():
-    prob = BlockProblem(lam, tEnd, N, 5, 'BE',
-                        quadType='LOBATTO', form='N2N', nStepsPerPoint=5)
+    prob = BlockProblem(
+        lam, tEnd, N, 'RungeKutta',
+        nPoints=5, quadType='LOBATTO', form='N2N',
+        rkScheme='BE', nStepsPerPoint=5)
     prob.setCoarseLevel(3)
-    prob.setApprox('BE', nStepsPerPoint=1)
+    prob.setApprox('RungeKutta', rkScheme='BE', nStepsPerPoint=1)
     prob.setCoarseApprox()
 
     assert prob.noDeltaChi, "non null deltaChi operator"

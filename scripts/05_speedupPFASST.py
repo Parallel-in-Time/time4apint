@@ -1,34 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Dec 23 10:06:40 2022
-
-@author: telu
-"""
 import numpy as np
 
 from blockops import BlockProblem
 from blockops.plots import plotAccuracyContour, plotContour
 
 zoom = 1
-reLam = np.linspace(-3 / zoom, 0.5 / zoom, 512)
-imLam = np.linspace(-3 / zoom, 3 / zoom, 512)
-nBlocks = 10
-nPoints = 1
-schemeF = 'RK4'
-nStepsF = 20
-schemeG = 'RK4'
-nStepsG = 1
-algoName = 'Parareal'
+reLam = np.linspace(-3 / zoom, 0.5 / zoom, 256)
+imLam = np.linspace(-3 / zoom, 3 / zoom, 256)
+nBlocks = 6
 
 lam = reLam[:, None] + 1j * imLam[None, :]
 prob = BlockProblem(
-    lam.ravel(), tEnd=nBlocks, nBlocks=nBlocks, nPoints=nPoints, 
-    scheme='RungeKutta', rkScheme=schemeF,
-    nStepsPerPoint=nStepsF, ptsType='LEGENDRE', quadType='LOBATTO')
-prob.setApprox(scheme='RungeKutta', rkScheme=schemeG, nStepsPerPoint=nStepsG)
+    lam.ravel(), tEnd=nBlocks, nBlocks=nBlocks, nPoints=5, 
+    scheme='Collocation', quadType='LOBATTO')
+prob.setApprox('RungeKutta', rkScheme='BE')
+prob.setCoarseLevel(3)
 
-algo = prob.getBlockIteration(algoName)
+
+chi = prob.chi.matrix
+phi = prob.phi.matrix
+phiApprox = prob.phiApprox.matrix
+
+TFtoC = prob.TFtoC.matrix
+TCtoF = prob.TCtoF.matrix
+
+phiCoarse = prob.phiCoarse.matrix
+chiCoarse = prob.chiCoarse.matrix
+
+
+algo = prob.getBlockIteration('PFASST')
 
 # Compute fine solution
 uNum = prob.getSolution('fine')
@@ -63,26 +64,11 @@ for err in errPinTMax[-1::-1]:
     k -= 1
 
 # Plot number of iteration until discretization error
-plotContour(reLam=reLam, imLam=imLam, val=nIter, nLevels=nIterMax+1, figName='PinTIter')
+plotContour(reLam=reLam, imLam=imLam, val=nIter, nLevels=None, figName='PinTIter')
 
 reqIters = np.unique(nIter).tolist()
 reqIters.pop(0)
 
-
-# %% Lowest cost first scheduling
-speedupLCF = np.zeros(nBlocks + 1)
-efficiencyLCF = np.zeros(nBlocks + 1)
-for k in reqIters:
-    speedupLCF[k], efficiencyLCF[k], _ = algo.getPerformances(
-        N=nBlocks, K=k, nProc=nBlocks + 1, schedule_type='LCF')
-nSpeedup = speedupLCF[nIter]
-nEfficiency = efficiencyLCF[nIter]
-
-# Plotting
-plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, 
-            nLevels=None, figName='Lowest Cost First Schedule')
-plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, 
-            nLevels=None, figName='Lowest Cost First Schedule')
 
 # %% Block-by-Block scheduling
 speedupBbB = np.zeros(nBlocks + 1)
@@ -98,3 +84,4 @@ plotContour(reLam=reLam, imLam=imLam, val=nSpeedup,
             nLevels=None, figName='Block-by-Block Schedule')
 plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, 
             nLevels=None, figName='Block-by-Block Schedule')
+

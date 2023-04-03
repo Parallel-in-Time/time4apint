@@ -1,0 +1,3 @@
+# Components for the `Docs` column in application pages
+
+TODO : documentation ...

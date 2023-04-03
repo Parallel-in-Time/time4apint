@@ -1,0 +1,3 @@
+# BlockOps application : Convergence of local and global truncation error
+
+TODO ...
