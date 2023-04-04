@@ -1,37 +1,22 @@
-async function get(): Promise<any> {
-  // Fetch the initialization components
-  const response = await fetch('/app/components', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+import { generate } from "./ui/generate.js";
+import { fetch_components } from "./connection.js";
 
-  if (!response.ok) {
-    // TODO: Handle the error message
-    console.log('Error with the response:', response);
-    return { error: 'Error' };
-  }
+async function main(): Promise<void> {
+  // Fetch the components
+  const response = await fetch_components();
 
-  // Handle the response here
-  if (response.body !== null) {
-    const body = await response.json();
-    return body;
-  }
-}
-
-// Fetch the components
-get().then((response) => {
   // Alert if there is an error
-  if ('error' in response) {
+  if ("error" in response) {
     alert(response.response);
     return;
   }
 
   // Otherwise display the components properly
-  console.log(response);
-});
+  generate(response);
+}
+
+main();
 
 console.log(
-  'If this message is shown, everything is\n\n       ===> PinTastic <===\n '
+  "If this message is shown, everything is\n\n       ===> PinTastic <===\n "
 );

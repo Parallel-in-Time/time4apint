@@ -7,20 +7,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { generate } from "./ui/generate.js";
-import { fetch_components } from "./connection.js";
-function main() {
+function fetch_components() {
     return __awaiter(this, void 0, void 0, function* () {
-        // Fetch the components
-        const response = yield fetch_components();
-        // Alert if there is an error
-        if ("error" in response) {
-            alert(response.response);
-            return;
+        // Fetch the initialization components
+        const response = yield fetch("/app/components", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        if (!response.ok) {
+            // TODO: Handle the error message
+            console.log("Error with the response:", response);
+            return { error: "Error" };
         }
-        // Otherwise display the components properly
-        generate(response);
+        // Handle the response here
+        if (response.body !== null) {
+            const body = yield response.json();
+            return body;
+        }
     });
 }
-main();
-console.log("If this message is shown, everything is\n\n       ===> PinTastic <===\n ");
+export { fetch_components };

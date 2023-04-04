@@ -27,10 +27,14 @@ def index():
 def application():
     # Find all js files in the static/js folder and inject them
     # -> This way they can be rebuilt and found on each reload
-    js_files = filter(lambda f: '/lib/' not in f, [
-        file.replace(STATIC_FOLDER, '')
-        for file in glob.glob(f"{STATIC_FOLDER}/js/**/*.js", recursive=True)
-    ])
+    js_files = list(
+        filter(lambda f: '/lib/' not in f, [
+            file.replace(STATIC_FOLDER, '')
+            for file in glob.glob(f"{STATIC_FOLDER}/js/**/*.js",
+                                  recursive=True)
+        ]))
+    print(
+        f'JS module files are still loaded dynamically...\n >> {js_files} <<')
     return render_template('app.html',
                            js_modules=js_files,
                            documentation=data.documentation)

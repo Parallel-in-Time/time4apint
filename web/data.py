@@ -66,19 +66,20 @@ class SettingsStage:
     def serialize(
         self
     ) -> dict[str, Any]:  # Returns a dictionary to be sent to the frontend
-        result = {}
+        result: dict[str, Any] = {'parameters': []}
         for name, parameter in self.parameters.items():
             web_type = convert_to_web(parameter)
             choices = None
             if isinstance(parameter, MultipleChoices):
                 choices = parameter.choices
-            result[name] = {
+            result['parameters'].append({
+                'name': name,
                 'values': parameter.__doc__,
                 'doc': parameter.docs,
                 'type': web_type,
                 'choices': choices,  # None, if thats the only one
                 'default': parameter.default,  # None if not optional
-            }
+            })
         result['title'] = self.title
         result['id'] = self.unique_name
         result['dependency'] = self.dependency
