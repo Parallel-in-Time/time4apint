@@ -68,7 +68,7 @@ class Task(object):
             self.dep = [dep]
         elif type(dep) == sy.Mul:
             for item in dep.args:
-                if type(dep) == sy.Symbol:
+                if type(item) == sy.Symbol:
                     self.dep.append(item)
         elif dep is None:
             self.dep = []

@@ -1,4 +1,5 @@
 # Python imports
+import copy
 import re
 import sympy as sy
 
@@ -46,6 +47,15 @@ class PintRun:
         self.blockRules[(0, 0)] = {'result': self.createSymbolForUnk(0, 0),
                                    'rule': sy.core.numbers.Zero() * sy.core.numbers.Zero()}
 
+        self.multiStepRule = {}
+        for key, value in self.blockIteration.blockCoeffs.items():
+            if key[0] < 0:
+                for i in range(key[0], 0, 1):
+                    for z in range(max(kMax)):
+                        newKey = self.blockIteration.propagator.symbol * self.createSymbolForUnk(n=i, k=z)
+                        newValue = self.createSymbolForUnk(n=i+1, k=z)
+                        self.multiStepRule[newKey] = newValue
+
         # Iterate over all expression
         self.createExpressions()
 
@@ -67,9 +77,6 @@ class PintRun:
         expr : sy.Symbol
             Symbol for u_n_k
         """
-        # TODO: Workaround to make FCF work. But maybe this is not the way to go
-        if n < 0:
-            n = 0
         if k > self.kMax[n]:
             return sy.symbols(f'u_{n}^{self.kMax[n]}', commutative=False)
         else:
@@ -118,6 +125,13 @@ class PintRun:
         predictorRule = predictorRule.simplify().expand()
         return predictorRule
 
+    def checkForNegativBlocks(self,expr):
+        result = re.compile("u_-").search(str(expr))
+        if result is None:
+            return False
+        else:
+            return True
+
     def substituteAndSimplify(self, expr, k: int):
         """
         Simplifies expression
@@ -134,6 +148,9 @@ class PintRun:
         expr : sy.Symbol, sy.Mul, sy.Add
             Simplified expression
         """
+
+        if len(self.multiStepRule) and self.checkForNegativBlocks(expr):
+            expr = expr.subs(self.multiStepRule)
 
         # Check if rules for the block operation exist
         ruleSimplifaction = len(self.blockIteration.rules) > 0

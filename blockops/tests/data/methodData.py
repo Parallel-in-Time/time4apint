@@ -447,7 +447,7 @@ results['BlockJacobiPredictorI'] = {
          r"{u_0^0: 1, \phi_{\Delta}**(-1): {\phi: {-1: {u_0^0: 1, u_1^1: 1, u_1^2: 1, u_1^3: 1}}, \chi: {4: u_0^0}}}"],
         [r"u_2^4", r"{u_2^3: 1, \phi_{\Delta}**(-1): {\chi: u_1^3, \phi: {-1: u_2^3}}}"],
         [r"u_3^4", r"{u_3^3: 1, \phi_{\Delta}**(-1): {\chi: u_2^3, \phi: {-1: u_3^3}}}"],
-        [r"u_4^4", r"{u_4^3: 1, \phi_{\Delta}**(-1): {\chi: u_3^3, \phi: {-1: u_4^3}}}"]
+        [r"u_4^4", r"{u_3^3: 1, \phi_{\Delta}**(-1): {\chi: u_3^3, \phi: {-1: u_3^3}}}"]
     ],
     'taskPool': [
         [r"u_0^0", r"0"],
@@ -500,9 +500,8 @@ results['BlockJacobiPredictorI'] = {
         [r"u_3^4_37", r"\phi_{\Delta}**(-1)*(\chi*u_2^3 - \phi*u_3^3)"],
         [r"u_3^4", r"\phi_{\Delta}**(-1)*(\chi*u_2^3 - \phi*u_3^3) + 2*u_3^3"],
         [r"u_4^4_38", r"\chi*u_3^3"],
-        [r"u_4^4_40", r"-\phi*u_4^3"],
-        [r"u_4^4_41", r"\phi_{\Delta}**(-1)*(\chi*u_3^3 - \phi*u_4^3)"],
-        [r"u_4^4", r"\phi_{\Delta}**(-1)*(\chi*u_3^3 - \phi*u_4^3) + 2*u_4^3"]
+        [r"u_4^4_39", r"\phi_{\Delta}**(-1)*(\chi - \phi)*u_3^3"],
+        [r"u_4^4", r"\phi_{\Delta}**(-1)*(\chi - \phi)*u_3^3 + 2*u_3^3"]
 
     ]
 }
