@@ -10,6 +10,9 @@ from typing import Hashable, Callable
 import copy
 import numpy as np
 
+from blockops.taskPool import TaskPool
+
+
 # -----------------------------------------------------------------------------
 # Base classes
 # -----------------------------------------------------------------------------
@@ -34,7 +37,7 @@ class Parameter(object):
     value = None
 
     def error(self, value, reason):
-        reason+= f" ({self.pType})"
+        reason += f" ({self.pType})"
         raise ParamError(self.name, value, reason)
 
     @property
@@ -102,7 +105,7 @@ class ParamClass(object):
             docLines = docs[iStart:].splitlines()[2:]
             descr = []
             for line in docLines:
-                if line.startswith(8*' '):
+                if line.startswith(8 * ' '):
                     descr.append(line.strip())
                 elif line.strip() == '':
                     continue
@@ -131,7 +134,7 @@ def setParams(**kwargs) -> Callable[[ParamClass], ParamClass]:
 
         # Ignore **kwargs type arguments
         sigParams = {name: par for name, par in sig.parameters.items()
-                      if par.kind != par.VAR_KEYWORD}
+                     if par.kind != par.VAR_KEYWORD}
 
         # Add parameter object to the class PARAMS dictionnary
         for name, pType in kwargs.items():
@@ -271,4 +274,13 @@ class Boolean(Parameter):
     def check(self, value):
         if not isinstance(value, bool):
             self.error(value, "not of boolean type")
+        return True
+
+
+class TaskPoolParam(Parameter):
+    """Accepts a taskPool class"""
+
+    def check(self, value):
+        if not isinstance(value, TaskPool):
+            self.error(value, "not of TaskPool type")
         return True

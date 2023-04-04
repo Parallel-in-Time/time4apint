@@ -75,7 +75,7 @@ speedupBbB = np.zeros(nBlocks + 1)
 efficiencyBbB = np.zeros(nBlocks + 1)
 for k in reqIters:
     speedupBbB[k], efficiencyBbB[k], _ = algo.getPerformances(
-        N=nBlocks, K=k, schedule_type='BbB')
+        N=nBlocks, K=k, schedulerType='BbB')
 nSpeedup = speedupBbB[nIter]
 nEfficiency = efficiencyBbB[nIter]
 

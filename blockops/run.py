@@ -239,6 +239,9 @@ class PintRun:
                     self.blockRules[(n + 1, k + 1)] = {'result': res, 'rule': rule}
 
     def factorizeBlockRules(self) -> None:
+        """
+        Factorizes the block rules and saves everything in a dictionary
+        """
         for key, value in self.blockRules.items():
             self.facBlockRules[key] = {'rule': self.factorize(rule=value['rule'], res=value['result']),
                                        'result': value['result']
@@ -254,10 +257,11 @@ class PintRun:
             The rule to compute the block iteration for n and k
         res : sy.Symbol
             The name of the result
-        n : int
-            Current block
-        k : int
-            Current iteration
+
+        Returns
+        -------
+        ruleDict : dict
+            Dictionary representing factorized expression
         """
 
         # If rule is just a copy of another task
