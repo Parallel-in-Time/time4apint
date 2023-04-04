@@ -1,5 +1,6 @@
 import sympy as sy
 import re
+import warnings
 
 from blockops.run import PintRun
 
@@ -236,12 +237,13 @@ class TaskPool(object):
                 task = result
             # print(task, ':', ope, '--', inp)
             self.tasks[task] = (ope, inp, dep)
-            if type(ope) == sy.Integer or type(ope) == sy.core.numbers.Zero:
+            if type(ope) == sy.Integer or type(ope) == sy.core.numbers.Zero or type(ope) == sy.core.numbers.NegativeOne:
                 cost = 0
             elif str(ope) in self.blockIteration.blockOps:
                 cost = self.blockIteration.blockOps[str(ope)].cost
             else:
-                cost = 5
+                warnings.warn(f'Unknown costs for operation {str(ope)}, set to 1')
+                cost = 1
             self.pool[task] = self.createTask(op=ope, fullOp=res, result=task, cost=cost, n=n, k=k, dep=dep)
             self.results[res] = task
             self.counter.increment()
