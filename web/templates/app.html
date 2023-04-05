@@ -10,7 +10,7 @@
     <!-- Math Equation Renderer -->
     <script>
       MathJax = {
-        loader: { load: ["input/asciimath", "output/chtml"] },
+        loader: { load: ['input/asciimath', 'output/chtml'] },
       };
     </script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -39,6 +39,14 @@
         <span class="uk-margin-small-right" uk-icon="home"></span>
       </a>
     </div>
+    <div style="position: absolute; right: 5px; top: 5px">
+      <a href="/">
+        <a href="#documentation-modal" uk-toggle>
+          <span class="uk-margin-small-right" uk-icon="info"></span>
+        </a>
+      </a>
+    </div>
+
     <div class="uk-height-1-1 uk-padding uk-background-muted">
       <div class="uk-container uk-container-expand">
         <div uk-grid>
@@ -71,10 +79,7 @@
                         <span>Stage 1-A</span>
                       </h6>
                     </div>
-                    <div id="documentation-N">{{ documentation.N | safe }}</div>
-                    <div id="documentation-tEnd">
-                      {{ documentation.tEnd | safe }}
-                    </div>
+                    <div id="documentation-N">Text, text, text</div>
                   </div>
 
                   <!-- Stage 1-B -->
@@ -89,19 +94,11 @@
                         <span>Stage 1-B</span>
                       </h6>
                     </div>
-                    <div id="documentation-scheme">
-                      {{ documentation.scheme | safe }}
-                    </div>
-                    <div id="documentation-M">{{ documentation.M | safe }}</div>
-                    <div id="documentation-points">
-                      {{ documentation.points | safe }}
-                    </div>
-                    <div id="documentation-quadType">
-                      {{ documentation.quadType | safe }}
-                    </div>
-                    <div id="documentation-form">
-                      {{ documentation.form | safe }}
-                    </div>
+                    <div id="documentation-scheme">text text text</div>
+                    <div id="documentation-M">text text text</div>
+                    <div id="documentation-points">text text text</div>
+                    <div id="documentation-quadType">text text text</div>
+                    <div id="documentation-form">text text text</div>
                   </div>
 
                   <!-- Stage 1 Output-->
@@ -645,6 +642,21 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Documentation modal -->
+    <div id="documentation-modal" uk-modal>
+      <div class="uk-modal-dialog uk-modal-body">
+        {{ documentation | safe }}
+        <p class="uk-text-right">
+          <button
+            class="uk-button uk-button-default uk-modal-close"
+            type="button"
+          >
+            Close
+          </button>
+        </p>
       </div>
     </div>
   </body>

@@ -10,6 +10,7 @@ enum ParameterType {
 
 type Parameter = {
   name: string;
+  id: string;
   values: string;
   doc: string;
   type: ParameterType;

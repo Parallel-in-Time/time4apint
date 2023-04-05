@@ -7,8 +7,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { SettingsStage } from "./stages.js";
+import { SettingsStage, DocsStage } from './stages.js';
+/**
+ * The components class contains all the information about the
+ * received docs/settings/plots stages.
+ * It also converts them initially to individual classes
+ * and handles their generation, i.e., the HTML creation.
+ * In addition, it is able to collect the data from the stages,
+ * such as visible input parameters etc., that can then be
+ * sent back to the backend.
+ */
 class Components {
+    /**
+     * The constructor is empty so that a raw
+     * object can be assigned to this class.
+     */
     constructor() {
         Object.defineProperty(this, "docs", {
             enumerable: true,
@@ -32,23 +45,55 @@ class Components {
         this.settings = [];
         this.plots = [];
     }
+    /**
+     * Converts the stages initially from raw JSON objects
+     * to individual classes that can keep track of the
+     * application state.
+     */
     convertStages() {
         return __awaiter(this, void 0, void 0, function* () {
             // TODO: Probably make this asnyc
-            // TODO: Also for docs/plots
-            this.settings = this.settings.map((stage) => Object.assign(new SettingsStage(), stage));
+            // Convert the DocsStage
+            // and make sure that they are invisible, if
+            // the don't depend on any other stage.
+            this.docs = this.docs.map((stage) => {
+                // TODO: Don't overwrite existing ones
+                const newStage = Object.assign(new DocsStage(), stage);
+                newStage.initializeVisibility();
+                return newStage;
+            });
+            // Convert the settings stages to SettingsStage
+            this.settings = this.settings.map((stage) => {
+                const newStage = Object.assign(new SettingsStage(), stage);
+                newStage.initializeVisibility();
+                return newStage;
+            });
+            // TODO: Also for plots
         });
     }
+    /**
+     * Generate the docs HTML.
+     *
+     * @returns The generated docs HTML div.
+     */
     generateDocs() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("Generatings docs");
-            return "DOCS";
+            let docsDiv = '';
+            // TODO: Async, instead of sync await?
+            for (let i = 0; i < this.docs.length; i++) {
+                docsDiv += yield this.docs[i].generate();
+            }
+            return docsDiv;
         });
     }
+    /**
+     * Generate the settings HTML.
+     *
+     * @returns The generated settings HTML div.
+     */
     generateSettings() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("Generatings settings");
-            let settingsDiv = "";
+            let settingsDiv = '';
             // TODO: Async, instead of sync await?
             for (let i = 0; i < this.settings.length; i++) {
                 settingsDiv += yield this.settings[i].generate();
@@ -56,11 +101,31 @@ class Components {
             return settingsDiv;
         });
     }
+    /**
+     * Generate the plots HTML.
+     *
+     * @returns The generated plots HTML div.
+     */
     generatePlots() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("Generatings plots");
-            return "PLOTS";
+            console.log('Generatings plots');
+            return 'PLOTS';
         });
+    }
+    /**
+     * Collect the data from all visible stages.
+     *
+     * @returns All stage parameters that are visible.
+     */
+    collect() {
+        const settingStages = this.settings.filter((stage) => stage.visible);
+        const settingsData = {};
+        settingStages.forEach((stage) => {
+            settingsData[stage.id] = stage.collect();
+        });
+        return {
+            settings: settingsData,
+        };
     }
 }
 export { Components, SettingsStage };

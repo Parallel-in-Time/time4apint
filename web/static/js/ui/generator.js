@@ -17,11 +17,32 @@ class Generator {
             writable: true,
             value: void 0
         });
+        Object.defineProperty(this, "initialized", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
         this.components = new Components();
+        this.initialized = false;
     }
+    /**
+     * Generates the UI from the components that were sent by the server.
+     *
+     * @param response The components received from the backend.
+     */
     makeUI(response) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.components = Object.assign(this.components, response);
+            // Initialize the components for the first time
+            if (!this.initialized) {
+                this.components = Object.assign(this.components, response);
+            }
+            else {
+                // Otherwise append currently unknown components
+                const newComponents = new Components();
+                Object.assign(newComponents, response);
+                // TODO: Don't overwrite existing ones
+            }
             console.log(this.components);
             yield this.components.convertStages();
             this.generate();
@@ -34,6 +55,7 @@ class Generator {
                 this.components.generateSettings(),
                 this.components.generatePlots(),
             ]);
+            // Injecct all the HTML divs
             const documentationHTML = document.getElementById('documentation');
             if (documentationHTML !== null) {
                 documentationHTML.innerHTML = docsDiv;
@@ -46,7 +68,11 @@ class Generator {
             if (plotsHTML !== null) {
                 plotsHTML.innerHTML = plotsDiv;
             }
+            // Set the button callbacks to send the data back
             this.setButtonsCallback();
+            // Render math equations
+            // @ts-expect-error
+            MathJax.typesetPromise();
         });
     }
     /**

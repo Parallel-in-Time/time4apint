@@ -7,8 +7,9 @@ from flask import Flask, jsonify, render_template, request
 
 from web.utilities import compute_plot, fine_discretization_error
 
-import web.data as data
-import web.md_renderer as md_renderer
+import web.config.data as data
+import web.config.connect as config
+import web.utils as utils
 
 STATIC_FOLDER = 'web/static'
 app = Flask(__name__,
@@ -19,7 +20,7 @@ app = Flask(__name__,
 
 @app.route('/')
 def index():
-    text = md_renderer.render(open('web/index.md').read())
+    text = utils.render_md(open('web/index.md').read())
     return render_template('index.html', text=text)
 
 
@@ -35,18 +36,39 @@ def application():
         ]))
     print(
         f'JS module files are still loaded dynamically...\n >> {js_files} <<')
+    documentation = utils.render_md(open('web/documentation.md').read())
     return render_template('app.html',
                            js_modules=js_files,
-                           documentation=data.documentation)
+                           documentation=documentation)
 
 
 @app.route('/app/components')
 def app_components():
-    return jsonify({
-        'docs': [1, 2, 3],
-        'settings': [data.stage_1_block_problem.serialize()],
-        'plots': []
-    })
+    # Get the initial components
+    docs, settings, plots = config.initial_components()
+
+    # Serialize them to objects
+    docs = [stage.serialize() for stage in docs]
+    settings = [stage.serialize() for stage in settings]
+    plots = [stage for stage in plots]
+    return jsonify({'docs': docs, 'settings': settings, 'plots': plots})
+
+
+@app.route('/app/compute', methods=['POST'])
+def app_compute():
+    # Get the json data
+    request_data = request.get_json()
+    print(request_data)
+    # TODO: Make some 'is-this-alright'-checks
+
+    # Compute everything with the custom compute function
+    docs, settings, plots = config.compute(request_data)
+
+    # Serialize them to objects
+    docs = [stage.serialize() for stage in docs]
+    settings = [stage.serialize() for stage in settings]
+    plots = [stage for stage in plots]
+    return jsonify({'docs': docs, 'settings': settings, 'plots': plots})
 
 
 @app.route('/app/compute-stage-1', methods=['POST'])

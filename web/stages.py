@@ -1,20 +1,8 @@
-from blockops.schemes import SCHEMES
 from blockops.utils.params import Parameter, MultipleChoices
-from blockops.problem import BlockProblem
 
 from typing import Any
 
-# API definitions
-
-types = [
-    'PositiveInteger',
-    'StrictlyPositiveInteger',
-    'PositiveFloat',
-    'Float',
-    'Enumeration',
-    'FloatList',
-    'Boolean',
-]
+from web.utils import slugify
 
 # webutils
 
@@ -50,17 +38,55 @@ def convert_to_web_inner(param: Parameter) -> list[str]:
     return ['Unknown']
 
 
-# data
+# API definitions
+
+types = [
+    'PositiveInteger',
+    'StrictlyPositiveInteger',
+    'PositiveFloat',
+    'Float',
+    'Enumeration',
+    'FloatList',
+    'Boolean',
+]
+
+
+class DocsStage:
+
+    def __init__(
+        self,
+        unique_name: str,
+        title: str,
+        text: str,
+        dependency: str | None,
+    ) -> None:
+        self.unique_name: str = unique_name
+        self.title: str = title
+        self.text: str = text
+        self.dependency: str | None = dependency
+
+    def serialize(self) -> dict[str, Any]:
+        return {
+            'title': self.title,
+            'text': self.text,
+            'dependency': self.dependency,
+        }
 
 
 class SettingsStage:
 
-    def __init__(self, title: str, unique_name: str,
-                 parameters: dict[str,
-                                  Parameter], dependency: str | None) -> None:
+    def __init__(
+        self,
+        unique_name: str,
+        title: str,
+        parameters: dict[str, Parameter],
+        button_name: str,
+        dependency: str | None,
+    ) -> None:
         self.title: str = title
         self.unique_name: str = unique_name
         self.parameters: dict[str, Parameter] = parameters
+        self.button: str = button_name
         self.dependency: str | None = dependency
 
     def serialize(
@@ -72,28 +98,20 @@ class SettingsStage:
             choices = None
             if isinstance(parameter, MultipleChoices):
                 choices = parameter.choices
+            doc = parameter.docs
+            if isinstance(doc, str):
+                doc = doc.replace(':math:', '')
             result['parameters'].append({
                 'name': name,
+                'id': slugify(name),
                 'values': parameter.__doc__,
-                'doc': parameter.docs,
+                'doc': doc,
                 'type': web_type,
                 'choices': choices,  # None, if thats the only one
                 'default': parameter.default,  # None if not optional
             })
         result['title'] = self.title
         result['id'] = self.unique_name
+        result['button'] = self.button
         result['dependency'] = self.dependency
         return result
-
-
-stage_1_block_problem = SettingsStage('Definition of a Block Problem', 'S1',
-                                      BlockProblem.PARAMS, None)
-
-# Second stage will be created dynamically, when the results of the first stage are sent back
-# settings_stage_2_block_scheme = SettingStage('S2', BlockProblem.PARAMS, 'S1')
-
-documentation = {'abc': 'text'}
-
-import json
-
-print(json.dumps(stage_1_block_problem.serialize(), indent=4))

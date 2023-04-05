@@ -1,4 +1,16 @@
-function makeStageDiv(id: string, inner: string): string {
+function makeStageDiv(
+  id: string,
+  inner: string,
+  button: string | null
+): string {
+  const buttonDiv =
+    button !== null
+      ? `
+<button
+  id="${id}-button"
+  class="uk-width-expand uk-button uk-button-default data-callback-button"      
+>${button}</button>`
+      : '';
   return `
 <div
     id="${id}"
@@ -6,7 +18,17 @@ function makeStageDiv(id: string, inner: string): string {
     uk-grid
     >
     ${inner}
+    <div>
+    ${buttonDiv}
+    </div>
 </div>`;
+}
+function makeSettingDiv(id: string, inner: string, button: string): string {
+  return makeStageDiv(id, inner, button);
+}
+
+function makeDocDiv(id: string, inner: string): string {
+  return makeStageDiv(id, inner, null);
 }
 
 function makeTitleDiv(title: string): string {
@@ -17,24 +39,31 @@ ${title}
 `;
 }
 
-function makeNumberDiv(
+function makeNumberParameterDiv(
   id: string,
   name: string,
   doc: string,
   defaultValue: string,
   placeholder: string
 ): string {
-  return makeParameterDiv(id, "number", name, doc, defaultValue, placeholder);
+  return makeParameterDiv(id, 'number', name, doc, defaultValue, placeholder);
 }
 
-function makeTextDiv(
+function makeTextParameterDiv(
   id: string,
   name: string,
   doc: string,
   defaultValue: string,
   placeholder: string
 ): string {
-  return makeParameterDiv(id, "text", name, doc, defaultValue, placeholder);
+  return makeParameterDiv(id, 'text', name, doc, defaultValue, placeholder);
+}
+
+function makeTextDiv(text: string): string {
+  return `
+<div>
+  ${text}
+</div>`;
 }
 
 function makeParameterDiv(
@@ -54,7 +83,7 @@ function makeParameterDiv(
   </span>
   <div class="uk-width-expand@m uk-padding-remove-left">
     <input
-      uk-tooltip="title: ${doc}."
+      uk-tooltip="title: ${doc}"
       class="uk-input uk-align-right"
       id="select-${id}"
       type="${type}"
@@ -65,4 +94,22 @@ function makeParameterDiv(
 </div>`;
 }
 
-export { makeStageDiv, makeTitleDiv, makeNumberDiv, makeTextDiv };
+/**
+ * Gets the value from an HTML input field.
+ *
+ * @param id The unique id of the parameter.
+ * @returns The input values as a string.
+ */
+function getValueFromElement(id: string): string {
+  return (document.getElementById(`select-${id}`) as HTMLInputElement).value;
+}
+
+export {
+  makeSettingDiv,
+  makeDocDiv,
+  makeTitleDiv,
+  makeNumberParameterDiv,
+  makeTextParameterDiv,
+  makeTextDiv,
+  getValueFromElement,
+};

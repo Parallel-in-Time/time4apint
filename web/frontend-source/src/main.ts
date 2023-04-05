@@ -1,22 +1,23 @@
-import { generate } from "./ui/generate.js";
-import { fetch_components } from "./connection.js";
+import { Generator } from './ui/generator.js';
+import { fetchComponents } from './connection.js';
 
 async function main(): Promise<void> {
   // Fetch the components
-  const response = await fetch_components();
+  const response = await fetchComponents();
 
   // Alert if there is an error
-  if ("error" in response) {
+  if ('error' in response) {
     alert(response.response);
     return;
   }
 
   // Otherwise display the components properly
-  generate(response);
+  const generator = new Generator();
+  generator.makeUI(response);
 }
 
 main();
 
 console.log(
-  "If this message is shown, everything is\n\n       ===> PinTastic <===\n "
+  'If this message is shown, everything is\n\n       ===> PinTastic <===\n '
 );

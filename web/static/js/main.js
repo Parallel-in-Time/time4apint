@@ -7,20 +7,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { generate } from "./ui/generate.js";
-import { fetch_components } from "./connection.js";
+import { Generator } from './ui/generator.js';
+import { fetchComponents } from './connection.js';
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         // Fetch the components
-        const response = yield fetch_components();
+        const response = yield fetchComponents();
         // Alert if there is an error
-        if ("error" in response) {
+        if ('error' in response) {
             alert(response.response);
             return;
         }
         // Otherwise display the components properly
-        generate(response);
+        const generator = new Generator();
+        generator.makeUI(response);
     });
 }
 main();
-console.log("If this message is shown, everything is\n\n       ===> PinTastic <===\n ");
+console.log('If this message is shown, everything is\n\n       ===> PinTastic <===\n ');
