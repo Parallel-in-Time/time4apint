@@ -55,7 +55,7 @@ class Generator {
                 this.components.generateSettings(),
                 this.components.generatePlots(),
             ]);
-            // Injecct all the HTML divs
+            // Inject all the HTML divs
             const documentationHTML = document.getElementById('documentation');
             if (documentationHTML !== null) {
                 documentationHTML.innerHTML = docsDiv;
@@ -66,7 +66,8 @@ class Generator {
             }
             const plotsHTML = document.getElementById('plot');
             if (plotsHTML !== null) {
-                plotsHTML.innerHTML = plotsDiv;
+                console.log(`TODO: Should inject ${plotsDiv} here`);
+                // plotsHTML.innerHTML = plotsDiv;
             }
             // Set the button callbacks to send the data back
             this.setButtonsCallback();

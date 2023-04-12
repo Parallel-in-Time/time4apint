@@ -115,3 +115,45 @@ class SettingsStage:
         result['button'] = self.button
         result['dependency'] = self.dependency
         return result
+
+
+class PlotsStage:
+
+    def __init__(
+        self,
+        unique_name: str,
+        title: str,
+        parameters: dict[str, Parameter],
+        plot: dict[str, Any] | None,
+        dependency: str | None,
+    ) -> None:
+        self.title: str = title
+        self.unique_name: str = unique_name
+        self.parameters: dict[str, Parameter] = parameters
+        self.plot: dict[str, Any] | None = plot
+        self.dependency: str | None = dependency
+
+    def serialize(self) -> dict[str, Any]:
+        result: dict[str, Any] = {'parameters': []}
+        for name, parameter in self.parameters.items():
+            web_type = convert_to_web(parameter)
+            choices = None
+            if isinstance(parameter, MultipleChoices):
+                choices = parameter.choices
+            doc = parameter.docs
+            if isinstance(doc, str):
+                doc = doc.replace(':math:', '')
+            result['parameters'].append({
+                'name': name,
+                'id': slugify(name),
+                'values': parameter.__doc__,
+                'doc': doc,
+                'type': web_type,
+                'choices': choices,  # None, if thats the only one
+                'default': parameter.default,  # None if not optional
+            })
+        result['title'] = self.title
+        result['id'] = self.unique_name
+        result['plot'] = self.plot
+        result['dependency'] = self.dependency
+        return result

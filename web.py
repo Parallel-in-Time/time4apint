@@ -50,7 +50,7 @@ def app_components():
     # Serialize them to objects
     docs = [stage.serialize() for stage in docs]
     settings = [stage.serialize() for stage in settings]
-    plots = [stage for stage in plots]
+    plots = [stage.serialize() for stage in plots]
     return jsonify({'docs': docs, 'settings': settings, 'plots': plots})
 
 
@@ -67,7 +67,7 @@ def app_compute():
     # Serialize them to objects
     docs = [stage.serialize() for stage in docs]
     settings = [stage.serialize() for stage in settings]
-    plots = [stage for stage in plots]
+    plots = [stage.serialize() for stage in plots]
     return jsonify({'docs': docs, 'settings': settings, 'plots': plots})
 
 
