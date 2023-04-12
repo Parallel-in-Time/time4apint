@@ -66,8 +66,9 @@ class Generator {
             }
             const plotsHTML = document.getElementById('plot');
             if (plotsHTML !== null) {
-                console.log(`TODO: Should inject ${plotsDiv} here`);
-                // plotsHTML.innerHTML = plotsDiv;
+                // console.log(`TODO: Should inject ${plotsDiv} here`);
+                plotsHTML.innerHTML = plotsDiv;
+                this.components.renderPlots();
             }
             // Set the button callbacks to send the data back
             this.setButtonsCallback();

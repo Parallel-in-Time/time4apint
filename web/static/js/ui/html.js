@@ -24,6 +24,31 @@ function makeSettingDiv(id, inner, button) {
 function makeDocDiv(id, inner) {
     return makeStageDiv(id, inner, null);
 }
+function makePlotStageDiv(ids, titles, inner) {
+    let tabs = '';
+    for (let i = 0; i < ids.length; i++) {
+        tabs += makePlotTabTitleDiv(ids[i], titles[i], i == 0);
+    }
+    return `
+<ul id="plot-selection" class="uk-child-width-expand" uk-tab>
+  ${tabs}
+</ul>
+${inner}
+`;
+}
+function makePlotTabTitleDiv(id, title, active) {
+    return `
+  <li class="${active ? 'uk-active' : ''}">
+    <a id="${id}">${title}</a>
+  </li>`;
+}
+function makePlotTabDiv(id, parameter) {
+    return `
+<div id="${id}">
+  <div id="${id}-plot"></div>
+  ${parameter}
+</div>`;
+}
 function makeTitleDiv(title) {
     return `
 <div class="uk-heading-bullet uk-margin-small-top uk-text-bolder" >
@@ -72,4 +97,4 @@ function makeParameterDiv(id, type, name, doc, defaultValue, placeholder) {
 function getValueFromElement(id) {
     return document.getElementById(`select-${id}`).value;
 }
-export { makeSettingDiv, makeDocDiv, makeTitleDiv, makeNumberParameterDiv, makeTextParameterDiv, makeTextDiv, getValueFromElement, };
+export { makeSettingDiv, makeDocDiv, makeTitleDiv, makePlotTabDiv, makePlotStageDiv, makeNumberParameterDiv, makeTextParameterDiv, makeTextDiv, getValueFromElement, };

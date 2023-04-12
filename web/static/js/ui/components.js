@@ -7,7 +7,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { SettingsStage, DocsStage } from './stages.js';
+import { makePlotStageDiv } from './html.js';
+import { DocsStage, SettingsStage, PlotsStage } from './stages.js';
 /**
  * The components class contains all the information about the
  * received docs/settings/plots stages.
@@ -68,7 +69,12 @@ class Components {
                 newStage.initializeVisibility();
                 return newStage;
             });
-            // TODO: Also for plots
+            // And then for plots
+            this.plots = this.plots.map((stage) => {
+                const newStage = Object.assign(new PlotsStage(), stage);
+                newStage.initializeVisibility();
+                return newStage;
+            });
         });
     }
     /**
@@ -108,8 +114,27 @@ class Components {
      */
     generatePlots() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('Generatings plots');
-            return 'PLOTS';
+            let ids = [];
+            let titles = [];
+            let plotsDiv = '';
+            // TODO: Async, instead of sync await?
+            for (let i = 0; i < this.plots.length; i++) {
+                plotsDiv += yield this.plots[i].generate();
+                ids.push(this.plots[i].id);
+                titles.push(this.plots[i].title);
+            }
+            return makePlotStageDiv(ids, titles, plotsDiv);
+        });
+    }
+    /**
+     * Render all the plots into their divs, if there is plot data.
+     * This should be called after the `generatePlots()` already
+     * created the HTML and this HTML is already injected into
+     * the DOM.
+     */
+    renderPlots() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.plots.forEach((plot) => plot.createPlot());
         });
     }
     /**
@@ -128,4 +153,4 @@ class Components {
         };
     }
 }
-export { Components, SettingsStage };
+export { Components };

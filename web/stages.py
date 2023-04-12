@@ -124,13 +124,13 @@ class PlotsStage:
         unique_name: str,
         title: str,
         parameters: dict[str, Parameter],
-        plot: dict[str, Any] | None,
+        plot: Any | None,
         dependency: str | None,
     ) -> None:
         self.title: str = title
         self.unique_name: str = unique_name
         self.parameters: dict[str, Parameter] = parameters
-        self.plot: dict[str, Any] | None = plot
+        self.plot: Any | None = plot
         self.dependency: str | None = dependency
 
     def serialize(self) -> dict[str, Any]:

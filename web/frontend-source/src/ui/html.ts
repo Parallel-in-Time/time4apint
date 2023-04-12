@@ -31,6 +31,42 @@ function makeDocDiv(id: string, inner: string): string {
   return makeStageDiv(id, inner, null);
 }
 
+function makePlotStageDiv(
+  ids: string[],
+  titles: string[],
+  inner: string
+): string {
+  let tabs = '';
+  for (let i = 0; i < ids.length; i++) {
+    tabs += makePlotTabTitleDiv(ids[i], titles[i], i == 0);
+  }
+  return `
+<ul id="plot-selection" class="uk-child-width-expand" uk-tab>
+  ${tabs}
+</ul>
+${inner}
+`;
+}
+
+function makePlotTabTitleDiv(
+  id: string,
+  title: string,
+  active: boolean
+): string {
+  return `
+  <li class="${active ? 'uk-active' : ''}">
+    <a id="${id}">${title}</a>
+  </li>`;
+}
+
+function makePlotTabDiv(id: string, parameter: string): string {
+  return `
+<div id="${id}">
+  <div id="${id}-plot"></div>
+  ${parameter}
+</div>`;
+}
+
 function makeTitleDiv(title: string): string {
   return `
 <div class="uk-heading-bullet uk-margin-small-top uk-text-bolder" >
@@ -108,6 +144,8 @@ export {
   makeSettingDiv,
   makeDocDiv,
   makeTitleDiv,
+  makePlotTabDiv,
+  makePlotStageDiv,
   makeNumberParameterDiv,
   makeTextParameterDiv,
   makeTextDiv,

@@ -1,4 +1,5 @@
-import { SettingsStage, DocsStage } from './stages.js';
+import { makePlotStageDiv } from './html.js';
+import { DocsStage, SettingsStage, PlotsStage } from './stages.js';
 
 /**
  * The components class contains all the information about the
@@ -12,7 +13,7 @@ import { SettingsStage, DocsStage } from './stages.js';
 class Components {
   public docs: Array<DocsStage>;
   public settings: Array<SettingsStage>;
-  public plots: Array<number>;
+  public plots: Array<PlotsStage>;
 
   /**
    * The constructor is empty so that a raw
@@ -49,7 +50,12 @@ class Components {
       return newStage;
     });
 
-    // TODO: Also for plots
+    // And then for plots
+    this.plots = this.plots.map((stage) => {
+      const newStage = Object.assign(new PlotsStage(), stage);
+      newStage.initializeVisibility();
+      return newStage;
+    });
   }
 
   /**
@@ -86,8 +92,26 @@ class Components {
    * @returns The generated plots HTML div.
    */
   async generatePlots(): Promise<string> {
-    console.log('Generatings plots');
-    return 'PLOTS';
+    let ids: Array<string> = [];
+    let titles: Array<string> = [];
+    let plotsDiv: string = '';
+    // TODO: Async, instead of sync await?
+    for (let i = 0; i < this.plots.length; i++) {
+      plotsDiv += await this.plots[i].generate();
+      ids.push(this.plots[i].id);
+      titles.push(this.plots[i].title);
+    }
+    return makePlotStageDiv(ids, titles, plotsDiv);
+  }
+
+  /**
+   * Render all the plots into their divs, if there is plot data.
+   * This should be called after the `generatePlots()` already
+   * created the HTML and this HTML is already injected into
+   * the DOM.
+   */
+  async renderPlots(): Promise<void> {
+    this.plots.forEach((plot) => plot.createPlot());
   }
 
   /**
@@ -108,4 +132,4 @@ class Components {
   }
 }
 
-export { Components, SettingsStage };
+export { Components };
