@@ -1,5 +1,5 @@
-import web.stages as stages
-import web.utils as utils
+import web.stage.stages as stages
+import web.stage.utils as utils
 from blockops.problem import BlockProblem
 
 # ===================

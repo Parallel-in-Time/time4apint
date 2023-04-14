@@ -23,6 +23,7 @@ function makeStageDiv(
     </div>
 </div>`;
 }
+
 function makeSettingDiv(id: string, inner: string, button: string): string {
   return makeStageDiv(id, inner, button);
 }
@@ -41,10 +42,12 @@ function makePlotStageDiv(
     tabs += makePlotTabTitleDiv(ids[i], titles[i], i == 0);
   }
   return `
-<ul id="plot-selection" class="uk-child-width-expand" uk-tab>
+<ul id="plot-selection" class="uk-child-width-expand" uk-tab="animation: uk-animation-fade">
   ${tabs}
 </ul>
-${inner}
+<ul class="uk-switcher">
+  ${inner}
+</ul>
 `;
 }
 
@@ -55,16 +58,19 @@ function makePlotTabTitleDiv(
 ): string {
   return `
   <li class="${active ? 'uk-active' : ''}">
-    <a id="${id}">${title}</a>
+    <a href="#" id="${id}" onclick="setTimeout(() => {window.dispatchEvent(new Event('resize'));}, 150);">${title}</a>
   </li>`;
 }
 
-function makePlotTabDiv(id: string, parameter: string): string {
+function makePlotTabDiv(id: string, parameters: string): string {
   return `
-<div id="${id}">
-  <div id="${id}-plot"></div>
-  ${parameter}
-</div>`;
+<li>
+  <div id="${id}">
+    <div id="${id}-plot"></div>
+    <hr />
+    ${makeParameterGridDiv(parameters)}
+  </div>
+</li>`;
 }
 
 function makeTitleDiv(title: string): string {
@@ -100,6 +106,14 @@ function makeTextDiv(text: string): string {
 <div>
   ${text}
 </div>`;
+}
+
+function makeParameterGridDiv(inner: string) {
+  return `
+<div class="uk-grid-small uk-child-width-1-1" uk-grid>
+  ${inner}
+</div>
+  `;
 }
 
 function makeParameterDiv(
@@ -150,4 +164,5 @@ export {
   makeTextParameterDiv,
   makeTextDiv,
   getValueFromElement,
+  makeParameterGridDiv,
 };

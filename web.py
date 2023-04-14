@@ -9,7 +9,7 @@ from web.utilities import compute_plot, fine_discretization_error
 
 import web.config.data as data
 import web.config.connect as config
-import web.utils as utils
+import web.stage.utils as utils
 
 STATIC_FOLDER = 'web/static'
 app = Flask(__name__,

@@ -8,6 +8,7 @@ import {
   makeTextDiv,
   makeDocDiv,
   makePlotTabDiv,
+  makeParameterGridDiv,
 } from './html.js';
 
 class DocsStage {
@@ -143,7 +144,8 @@ class PlotsStage {
   public title: string;
   public id: string;
   public parameters: Array<Parameter>;
-  public plot: object;
+  public plot: string; // Sent as a string by the backend
+  public plotObject: { [k: string]: any }; // String should be parsed as JSON
   public dependency: string;
   visible: boolean;
 
@@ -155,7 +157,8 @@ class PlotsStage {
     this.title = '';
     this.id = '';
     this.parameters = [];
-    this.plot = {};
+    this.plot = '';
+    this.plotObject = {};
     this.dependency = '';
     this.visible = false;
   }
@@ -214,7 +217,8 @@ class PlotsStage {
       parameterDivs += parameterDiv;
     });
 
-    return makePlotTabDiv(this.id, parameterDivs);
+    const parameterGridDiv = makeParameterGridDiv(parameterDivs);
+    return makePlotTabDiv(this.id, parameterGridDiv);
   }
 
   /**
@@ -223,12 +227,20 @@ class PlotsStage {
    */
   createPlot() {
     if (this.plot !== null) {
-      document
-        .getElementById(`${this.id}-plot`)
-        ?.setAttribute('style', 'height: 50vh');
+      this.plotObject = JSON.parse(this.plot);
+      this.plotObject['config'] = { responsive: true };
+      // document
+      //   .getElementById(`${this.id}-plot`)
+      //   ?.setAttribute('style', 'height: 50vh');
       // Creatte the new plot and hope that plotly is loaded
       // @ts-expect-error
-      Plotly.newPlot(`${this.id}-plot`, this.plot);
+      Plotly.newPlot(`${this.id}-plot`, this.plotObject);
+      console.log(
+        `Created new Plot in '${this.id}-plot' with ${JSON.stringify(
+          Object.keys(this.plotObject)
+        )}`
+      );
+      window.dispatchEvent(new Event('resize')); // Call the resize to automatically adjust the plot sizes
     }
   }
 }

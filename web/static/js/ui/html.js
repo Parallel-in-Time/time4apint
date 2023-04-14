@@ -30,24 +30,29 @@ function makePlotStageDiv(ids, titles, inner) {
         tabs += makePlotTabTitleDiv(ids[i], titles[i], i == 0);
     }
     return `
-<ul id="plot-selection" class="uk-child-width-expand" uk-tab>
+<ul id="plot-selection" class="uk-child-width-expand" uk-tab="animation: uk-animation-fade">
   ${tabs}
 </ul>
-${inner}
+<ul class="uk-switcher">
+  ${inner}
+</ul>
 `;
 }
 function makePlotTabTitleDiv(id, title, active) {
     return `
   <li class="${active ? 'uk-active' : ''}">
-    <a id="${id}">${title}</a>
+    <a href="#" id="${id}" onclick="setTimeout(() => {window.dispatchEvent(new Event('resize'));}, 150);">${title}</a>
   </li>`;
 }
-function makePlotTabDiv(id, parameter) {
+function makePlotTabDiv(id, parameters) {
     return `
-<div id="${id}">
-  <div id="${id}-plot"></div>
-  ${parameter}
-</div>`;
+<li>
+  <div id="${id}">
+    <div id="${id}-plot"></div>
+    <hr />
+    ${makeParameterGridDiv(parameters)}
+  </div>
+</li>`;
 }
 function makeTitleDiv(title) {
     return `
@@ -67,6 +72,13 @@ function makeTextDiv(text) {
 <div>
   ${text}
 </div>`;
+}
+function makeParameterGridDiv(inner) {
+    return `
+<div class="uk-grid-small uk-child-width-1-1" uk-grid>
+  ${inner}
+</div>
+  `;
 }
 function makeParameterDiv(id, type, name, doc, defaultValue, placeholder) {
     // TODO: Count the tabindex up -> tabindex="5"
@@ -97,4 +109,4 @@ function makeParameterDiv(id, type, name, doc, defaultValue, placeholder) {
 function getValueFromElement(id) {
     return document.getElementById(`select-${id}`).value;
 }
-export { makeSettingDiv, makeDocDiv, makeTitleDiv, makePlotTabDiv, makePlotStageDiv, makeNumberParameterDiv, makeTextParameterDiv, makeTextDiv, getValueFromElement, };
+export { makeSettingDiv, makeDocDiv, makeTitleDiv, makePlotTabDiv, makePlotStageDiv, makeNumberParameterDiv, makeTextParameterDiv, makeTextDiv, getValueFromElement, makeParameterGridDiv, };

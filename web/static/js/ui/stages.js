@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { ParameterType } from './parameter.js';
-import { makeSettingDiv, makeTitleDiv, makeNumberParameterDiv, makeTextParameterDiv, getValueFromElement, makeTextDiv, makeDocDiv, makePlotTabDiv, } from './html.js';
+import { makeSettingDiv, makeTitleDiv, makeNumberParameterDiv, makeTextParameterDiv, getValueFromElement, makeTextDiv, makeDocDiv, makePlotTabDiv, makeParameterGridDiv, } from './html.js';
 class DocsStage {
     /**
      * The constructor is empty so that a raw
@@ -202,7 +202,13 @@ class PlotsStage {
             configurable: true,
             writable: true,
             value: void 0
-        });
+        }); // Sent as a string by the backend
+        Object.defineProperty(this, "plotObject", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        }); // String should be parsed as JSON
         Object.defineProperty(this, "dependency", {
             enumerable: true,
             configurable: true,
@@ -218,7 +224,8 @@ class PlotsStage {
         this.title = '';
         this.id = '';
         this.parameters = [];
-        this.plot = {};
+        this.plot = '';
+        this.plotObject = {};
         this.dependency = '';
         this.visible = false;
     }
@@ -261,7 +268,8 @@ class PlotsStage {
                 }
                 parameterDivs += parameterDiv;
             });
-            return makePlotTabDiv(this.id, parameterDivs);
+            const parameterGridDiv = makeParameterGridDiv(parameterDivs);
+            return makePlotTabDiv(this.id, parameterGridDiv);
         });
     }
     /**
@@ -269,13 +277,17 @@ class PlotsStage {
      * if this stage contains a plot.
      */
     createPlot() {
-        var _a;
         if (this.plot !== null) {
-            (_a = document
-                .getElementById(`${this.id}-plot`)) === null || _a === void 0 ? void 0 : _a.setAttribute('style', 'height: 50vh');
+            this.plotObject = JSON.parse(this.plot);
+            this.plotObject['config'] = { responsive: true };
+            // document
+            //   .getElementById(`${this.id}-plot`)
+            //   ?.setAttribute('style', 'height: 50vh');
             // Creatte the new plot and hope that plotly is loaded
             // @ts-expect-error
-            Plotly.newPlot(`${this.id}-plot`, this.plot);
+            Plotly.newPlot(`${this.id}-plot`, this.plotObject);
+            console.log(`Created new Plot in '${this.id}-plot' with ${JSON.stringify(Object.keys(this.plotObject))}`);
+            window.dispatchEvent(new Event('resize')); // Call the resize to automatically adjust the plot sizes
         }
     }
 }
