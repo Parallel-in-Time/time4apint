@@ -58,7 +58,7 @@ def app_components():
 def app_compute():
     # Get the json data
     request_data = request.get_json()
-    print(request_data)
+
     # TODO: Make some 'is-this-alright'-checks
 
     # Compute everything with the custom compute function

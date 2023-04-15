@@ -13,7 +13,8 @@ def compute(
     json_data
 ) -> tuple[list[stages.DocsStage], list[stages.SettingsStage],
            list[stages.PlotsStage]]:
-    # TODO: Create a test plot here and return it
+    print(json_data)
+
     import plotly.graph_objects as go
 
     fig = go.Figure(data=go.Contour(

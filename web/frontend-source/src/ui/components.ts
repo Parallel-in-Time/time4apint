@@ -1,5 +1,7 @@
-import { makePlotStageDiv } from './html.js';
-import { DocsStage, SettingsStage, PlotsStage } from './stages.js';
+import { makePlotStageDiv } from './stages/html.js';
+import { DocsStage } from './stages/docs.js';
+import { SettingsStage } from './stages/settings.js';
+import { PlotsStage } from './stages/plots.js';
 
 /**
  * The components class contains all the information about the
@@ -120,14 +122,23 @@ class Components {
    * @returns All stage parameters that are visible.
    */
   collect(): object {
+    // Collect all settings parameters that are visible.
     const settingStages = this.settings.filter((stage) => stage.visible);
     const settingsData: { [k: string]: object } = {};
     settingStages.forEach((stage) => {
       settingsData[stage.id] = stage.collect();
     });
 
+    // Collect all plot parameters.
+    const plotsStages = this.plots.filter((stage) => stage.visible);
+    const plotsData: { [k: string]: object } = {};
+    plotsStages.forEach((stage) => {
+      plotsData[stage.id] = stage.collect();
+    });
+
     return {
       settings: settingsData,
+      plots: plotsData,
     };
   }
 }

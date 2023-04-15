@@ -7,8 +7,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { makePlotStageDiv } from './html.js';
-import { DocsStage, SettingsStage, PlotsStage } from './stages.js';
+import { makePlotStageDiv } from './stages/html.js';
+import { DocsStage } from './stages/docs.js';
+import { SettingsStage } from './stages/settings.js';
+import { PlotsStage } from './stages/plots.js';
 /**
  * The components class contains all the information about the
  * received docs/settings/plots stages.
@@ -143,13 +145,21 @@ class Components {
      * @returns All stage parameters that are visible.
      */
     collect() {
+        // Collect all settings parameters that are visible.
         const settingStages = this.settings.filter((stage) => stage.visible);
         const settingsData = {};
         settingStages.forEach((stage) => {
             settingsData[stage.id] = stage.collect();
         });
+        // Collect all plot parameters.
+        const plotsStages = this.plots.filter((stage) => stage.visible);
+        const plotsData = {};
+        plotsStages.forEach((stage) => {
+            plotsData[stage.id] = stage.collect();
+        });
         return {
             settings: settingsData,
+            plots: plotsData,
         };
     }
 }
