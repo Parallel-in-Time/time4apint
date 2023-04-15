@@ -1,6 +1,7 @@
 import web.stage.stages as stages
 import web.stage.utils as utils
 from blockops.problem import BlockProblem
+from blockops.webutils import convert_to_web
 
 # ===================
 # Documentation Stage
@@ -26,63 +27,39 @@ stage_1_docs = stages.DocsStage('D1', 'Definition of a Block Problem', d1_text,
 # Settings Stage
 # ==============
 
+block_problem_web_params = convert_to_web(BlockProblem.PARAMS)
 stage_1_block_problem = stages.SettingsStage('S1',
                                              'Definition of a Block Problem',
-                                             BlockProblem.PARAMS, 'Compute',
-                                             None)
+                                             block_problem_web_params,
+                                             'Compute', None)
 
 # ===========
 # Plots Stage
 # ===========
 
+from web.stage.parameters import FloatList, StrictlyPositiveInteger, Float
 
-def p1_params():
-    from blockops.utils.params import (ParamClass, PositiveInteger,
-                                       ScalarNumber, VectorNumbers, setParams)
+p1_params = [
+    FloatList('p1-err', r'`\lambda` error', 'Lambda error values',
+              '2D array containing error value for each lambda values.', None),
+    FloatList(
+        'p1-stab', r'`\lambda` stab', 'Lambda amplification factor',
+        '2D array containing amplification factor for each lambda values.',
+        [0.0, 1.0]),
+    StrictlyPositiveInteger(
+        'p1-nvals', r'`n_\lambda`', 'Number of lambda values',
+        'Number of lambda values to display in each direction of the complex plane',
+        500),
+    FloatList('p1-relambounds', r'`\mathfrak{Re}(\lambda)` bounds',
+              'Real lambda bounds', 'Bounds for the real lambda values.',
+              [-4., 0.5]),
+    FloatList('p1-imlambounds', r'`\mathfrak{Im}(\lambda)` bounds',
+              'Imaginary lambda bounds',
+              'Bounds for the imaginary lambda values.', [-3., 3.]),
+    Float('p1-emin', r'`e_\{\min\}`', 'Min error exponent',
+          'Minimum error exponent for the contour plot.', -7.0),
+    Float('p1-emax', r'`e_\{\max\}`', 'Max error exponent',
+          'Maximum error exponent for the contour plot.', 0.0),
+]
 
-    @setParams(
-        err=VectorNumbers(),
-        stab=VectorNumbers(),
-        nVals=PositiveInteger(),
-        reLamBounds=VectorNumbers(),
-        imLamBounds=VectorNumbers(),
-        eMin=ScalarNumber(),
-        eMax=ScalarNumber(),
-    )
-    class P1Dummy(ParamClass):
-        '''Docs
-
-    Parameters
-    ----------
-    err : float, complex or np.1darray
-        Lambda values.
-    stab : float
-        End of simulation interval :math:`T`.
-    nVals : int
-        Number of blocks :math:`N`.
-    reLamBounds : str
-        Time discretization scheme used for the block operators.
-    imLamBounds : scalar, optional
-        The initial solution :math:`u_0`. The default is 1.
-    eMin : scalar
-        min
-    eMax : scalar
-        max
-        '''
-
-        def __init__(self,
-                     err,
-                     stab,
-                     nVals=500,
-                     reLamBounds=[-4., 0.5],
-                     imLamBounds=[-3., 3.],
-                     eMin=-7.,
-                     eMax=0.):
-            # Initialize parameters
-            self.initialize(locals())
-
-    import copy
-    return copy.deepcopy(P1Dummy.PARAMS)
-
-
-stage_1_plots = stages.PlotsStage('P1', 'Error', p1_params(), None, None)
+stage_1_plots = stages.PlotsStage('P1', 'Error', p1_params, None, None)

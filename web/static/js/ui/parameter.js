@@ -1,11 +1,12 @@
 var ParameterType;
 (function (ParameterType) {
-    ParameterType[ParameterType["PositiveInteger"] = 0] = "PositiveInteger";
-    ParameterType[ParameterType["StrictlyPositiveInteger"] = 1] = "StrictlyPositiveInteger";
-    ParameterType[ParameterType["PositiveFloat"] = 2] = "PositiveFloat";
-    ParameterType[ParameterType["Float"] = 3] = "Float";
-    ParameterType[ParameterType["Enumeration"] = 4] = "Enumeration";
-    ParameterType[ParameterType["FloatList"] = 5] = "FloatList";
-    ParameterType[ParameterType["Boolean"] = 6] = "Boolean";
+    ParameterType[ParameterType["Integer"] = 0] = "Integer";
+    ParameterType[ParameterType["PositiveInteger"] = 1] = "PositiveInteger";
+    ParameterType[ParameterType["StrictlyPositiveInteger"] = 2] = "StrictlyPositiveInteger";
+    ParameterType[ParameterType["PositiveFloat"] = 3] = "PositiveFloat";
+    ParameterType[ParameterType["Float"] = 4] = "Float";
+    ParameterType[ParameterType["Enumeration"] = 5] = "Enumeration";
+    ParameterType[ParameterType["FloatList"] = 6] = "FloatList";
+    ParameterType[ParameterType["Boolean"] = 7] = "Boolean";
 })(ParameterType || (ParameterType = {}));
 export { ParameterType };

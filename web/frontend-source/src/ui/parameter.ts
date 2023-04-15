@@ -1,4 +1,5 @@
 enum ParameterType {
+  Integer,
   PositiveInteger,
   StrictlyPositiveInteger,
   PositiveFloat,
@@ -9,9 +10,9 @@ enum ParameterType {
 }
 
 type Parameter = {
-  name: string;
   id: string;
-  values: string;
+  name: string;
+  placeholder: string;
   doc: string;
   type: ParameterType;
   choices: null | Array<string>;

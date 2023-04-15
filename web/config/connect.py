@@ -24,7 +24,7 @@ def compute(
     fig.update_layout(margin=dict(l=0, r=0, b=0, t=0))
     plot_data = fig.to_json()
 
-    plot_p1 = stages.PlotsStage('P1', 'Error', data.p1_params(), None, None)
+    plot_p1 = stages.PlotsStage('P1', 'Error', data.p1_params, None, None)
     plot_p1.plot = plot_data
 
     fig = go.Figure(data=go.Contour(
@@ -36,7 +36,7 @@ def compute(
     fig.update_layout(margin=dict(l=0, r=0, b=0, t=0), autosize=True)
     plot_data = fig.to_json()
 
-    plot_p2 = stages.PlotsStage('P2', 'Test', data.p1_params(), None, None)
+    plot_p2 = stages.PlotsStage('P2', 'Test', data.p1_params, None, None)
     plot_p2.plot = plot_data
 
     return ([data.stage_1_docs], [data.stage_1_block_problem],
