@@ -1,5 +1,6 @@
 import { sendData } from '../connection.js';
 import { Components } from './components.js';
+import { setInputOnChangeCallbacks } from './stages/parameter.js';
 
 class Generator {
   components: Components;
@@ -57,6 +58,9 @@ class Generator {
     // Set the button callbacks to send the data back
     this.setButtonsCallback();
 
+    // Set the input element onchange callbacks for type checking (>0 etc.)
+    setInputOnChangeCallbacks();
+
     // Render math equations
     // @ts-expect-error
     MathJax.typesetPromise();
@@ -89,6 +93,18 @@ class Generator {
     );
 
     for (let i = 0; i < stageButtons.length; i++) {
+      // On hover check whether there are any visible danger elements
+      stageButtons[i].addEventListener('mouseover', (event) => {
+        if (event.target instanceof HTMLButtonElement) {
+          if (document.getElementsByClassName('uk-form-danger').length > 0) {
+            event.target.disabled = true;
+          } else {
+            event.target.disabled = false;
+          }
+        }
+      });
+
+      // On click collect and send all the visible data elements
       stageButtons[i].addEventListener('click', () =>
         this.collectAndSendData()
       );

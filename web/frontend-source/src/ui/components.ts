@@ -1,4 +1,4 @@
-import { makePlotStageDiv } from './stages/html.js';
+import { makePlotStageDiv } from './stages/html/plots_html.js';
 import { DocsStage } from './stages/docs.js';
 import { SettingsStage } from './stages/settings.js';
 import { PlotsStage } from './stages/plots.js';
