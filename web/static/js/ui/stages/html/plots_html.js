@@ -22,7 +22,7 @@ function makePlotTabDiv(id, parameters) {
     return `
 <li>
   <div id="${id}">
-    <div id="${id}-plot"></div>
+    <div id="${id}-plot"><div class="uk-section uk-section-muted uk-text-center uk-text-muted">No plot computed</div></div>
     <hr />
     ${makeParameterGridDiv(parameters)}
   </div>

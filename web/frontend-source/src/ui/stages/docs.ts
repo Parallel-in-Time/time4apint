@@ -6,6 +6,7 @@ class DocsStage {
   public id: string;
   public text: string;
   public dependency: string;
+  public activated: boolean;
   visible: boolean;
 
   /**
@@ -16,16 +17,25 @@ class DocsStage {
     this.title = '';
     this.id = '';
     this.text = '';
+    this.activated = false;
     this.dependency = '';
-    this.visible = false;
+    this.visible = true;
   }
 
   /**
-   * Initialize the visibility, which depends on whether
-   * a dependency is set.
+   * Sets the visibility.
+   * @param visibility Visibility of this stage.
    */
-  initializeVisibility(): void {
-    this.visible = this.dependency === null || this.dependency === '';
+  setVisibility(visibility: boolean): void {
+    this.visible = visibility;
+  }
+
+  /**
+   * Whether this stage depends on another.
+   * @returns True if this stage has a dependency.
+   */
+  hasDependency(): boolean {
+    return !(this.dependency === null || this.dependency === '');
   }
 
   /**
@@ -34,7 +44,6 @@ class DocsStage {
    * @returns The HTML div string.
    */
   async generate(): Promise<string> {
-    // TODO: Dependency hook is ignored right now
     const titleDiv = makeTitleDiv(this.title);
     const textDiv = makeTextDiv(this.text);
 

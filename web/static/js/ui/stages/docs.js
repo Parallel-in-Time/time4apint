@@ -39,6 +39,12 @@ class DocsStage {
             writable: true,
             value: void 0
         });
+        Object.defineProperty(this, "activated", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
         Object.defineProperty(this, "visible", {
             enumerable: true,
             configurable: true,
@@ -48,15 +54,23 @@ class DocsStage {
         this.title = '';
         this.id = '';
         this.text = '';
+        this.activated = false;
         this.dependency = '';
-        this.visible = false;
+        this.visible = true;
     }
     /**
-     * Initialize the visibility, which depends on whether
-     * a dependency is set.
+     * Sets the visibility.
+     * @param visibility Visibility of this stage.
      */
-    initializeVisibility() {
-        this.visible = this.dependency === null || this.dependency === '';
+    setVisibility(visibility) {
+        this.visible = visibility;
+    }
+    /**
+     * Whether this stage depends on another.
+     * @returns True if this stage has a dependency.
+     */
+    hasDependency() {
+        return !(this.dependency === null || this.dependency === '');
     }
     /**
      * Generate the HTML divs of this stage.
@@ -65,7 +79,6 @@ class DocsStage {
      */
     generate() {
         return __awaiter(this, void 0, void 0, function* () {
-            // TODO: Dependency hook is ignored right now
             const titleDiv = makeTitleDiv(this.title);
             const textDiv = makeTextDiv(this.text);
             // Create the inner html by concatenating the divs

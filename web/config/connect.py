@@ -1,3 +1,5 @@
+from typing import Any
+
 import web.stage.stages as stages
 import web.config.data as data
 
@@ -5,39 +7,33 @@ import web.config.data as data
 def initial_components(
 ) -> tuple[list[stages.DocsStage], list[stages.SettingsStage],
            list[stages.PlotsStage]]:
-    return ([data.stage_1_docs], [data.stage_1_block_problem],
-            [data.stage_1_plots])
+    return ([data.d1_docs,
+             data.d2_docs], [data.s1_settings,
+                             data.s2_settings], [data.p1_plots, data.p2_plots])
 
 
 def compute(
-    json_data
+    response_data: dict[str, Any]
 ) -> tuple[list[stages.DocsStage], list[stages.SettingsStage],
            list[stages.PlotsStage]]:
-    print(json_data)
 
-    import plotly.graph_objects as go
+    docs_d1 = data.d1_docs
+    docs_d2 = data.d2_docs
 
-    fig = go.Figure(data=go.Contour(
-        z=[[10, 10.625, 12.5, 15.625, 20], [5.625, 6.25, 8.125, 11.25, 15.625],
-           [2.5, 3.125, 5., 8.125, 12.5], [0.625, 1.25, 3.125, 6.25, 10.625],
-           [0, 0.625, 2.5, 5.625, 10]], ))
-    fig.update_layout(margin=dict(l=0, r=0, b=0, t=0))
-    plot_data = fig.to_json()
+    settings_s1 = data.s1_settings.copy_from_response(response_data)
+    settings_s1.activated = True
+    settings_s2 = data.s2_settings
 
-    plot_p1 = stages.PlotsStage('P1', 'Error', data.p1_params, None, None)
-    plot_p1.plot = plot_data
+    plot_p1 = data.p1_plots.copy_from_response(response_data)
+    plot_p1.plot = data.dummy_fig_1()
 
-    fig = go.Figure(data=go.Contour(
-        z=[[10, 10.625, 12.5, 15.625, 20], [5.625, 6.25, 8.125, 11.25, 15.625],
-           [2.5, 3.125, 5., 8.125, 12.5], [0.625, 1.25, 3.125, 6.25, 10.625],
-           [0, 0.625, 2.5, 5.625, 10]],
-        x=[-9, -6, -5, -3, -1],
-        y=[0, 1, 4, 5, 7]))
-    fig.update_layout(margin=dict(l=0, r=0, b=0, t=0), autosize=True)
-    plot_data = fig.to_json()
+    if not 'P2' in response_data['plots']:  # If plot doesn't exist yet
+        docs_d1 = data.d1_docs.copy()
+        docs_d1.activated = True
 
-    plot_p2 = stages.PlotsStage('P2', 'Test', data.p1_params, None, None)
-    plot_p2.plot = plot_data
+        plot_p2 = data.p2_plots
+    else:  # Otherwise fill it
+        plot_p2 = data.p2_plots.copy_from_response(response_data)
+        plot_p2.plot = data.dummy_fig_2()
 
-    return ([data.stage_1_docs], [data.stage_1_block_problem],
-            [plot_p1, plot_p2])
+    return ([docs_d1, docs_d2], [settings_s1, settings_s2], [plot_p1, plot_p2])

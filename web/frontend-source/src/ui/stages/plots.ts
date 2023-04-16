@@ -8,6 +8,7 @@ class PlotsStage {
   public parameters: Array<Parameter>;
   public plot: string; // Sent as a string by the backend
   public plotObject: { [k: string]: any }; // String should be parsed as JSON
+  public activated: boolean;
   public dependency: string;
   visible: boolean;
 
@@ -21,16 +22,25 @@ class PlotsStage {
     this.parameters = [];
     this.plot = '';
     this.plotObject = {};
+    this.activated = false;
     this.dependency = '';
-    this.visible = false;
+    this.visible = true;
   }
 
   /**
-   * Initialize the visibility, which depends on whether
-   * a dependency is set.
+   * Sets the visibility.
+   * @param visibility Visibility of this stage.
    */
-  initializeVisibility(): void {
-    this.visible = this.dependency === null || this.dependency === '';
+  setVisibility(visibility: boolean): void {
+    this.visible = visibility;
+  }
+
+  /**
+   * Whether this stage depends on another.
+   * @returns True if this stage has a dependency.
+   */
+  hasDependency(): boolean {
+    return !(this.dependency === null || this.dependency === '');
   }
 
   /**
@@ -50,8 +60,6 @@ class PlotsStage {
    * @returns The HTML div string.
    */
   async generate(): Promise<string> {
-    // TODO: Dependency hook is ignored right now
-
     // Go through each parameter, get their values
     // and create their div.
     let parameterDivs = '';
@@ -72,9 +80,14 @@ class PlotsStage {
       this.plotObject = JSON.parse(this.plot);
       this.plotObject['config'] = { responsive: true };
 
-      // Create the new plot and hope that plotly is loaded
-      // @ts-expect-error
-      Plotly.newPlot(`${this.id}-plot`, this.plotObject);
+      // Empty the plot div and create a new plot and hope that plotly is loaded
+      const plotDiv = document.getElementById(`${this.id}-plot`);
+      if (plotDiv !== null) {
+        plotDiv.innerHTML = '';
+        // @ts-expect-error
+        Plotly.newPlot(plotDiv, this.plotObject);
+        // Plotly.newPlot(`${this.id}-plot`, this.plotObject);
+      }
 
       // Call the resize to automatically adjust the plot sizes
       setTimeout(() => {

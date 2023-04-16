@@ -24,10 +24,8 @@ class Generator {
       // Otherwise append currently unknown components
       const newComponents: Components = new Components();
       Object.assign(newComponents, response);
-      // TODO: Don't overwrite existing ones
     }
 
-    console.log(this.components);
     await this.components.convertStages();
     this.generate();
   }
@@ -50,7 +48,6 @@ class Generator {
     }
     const plotsHTML = document.getElementById('plot');
     if (plotsHTML !== null) {
-      // console.log(`TODO: Should inject ${plotsDiv} here`);
       plotsHTML.innerHTML = plotsDiv;
       this.components.renderPlots();
     }
@@ -71,7 +68,6 @@ class Generator {
    * make the UI again with the response.
    */
   collectAndSendData(): void {
-    console.log('Sending data...');
     sendData(this.components.collect()).then((response) => {
       // Alert if there is an error
       if ('error' in response) {

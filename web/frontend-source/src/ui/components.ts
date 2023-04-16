@@ -39,24 +39,34 @@ class Components {
     // and make sure that they are invisible, if
     // the don't depend on any other stage.
     this.docs = this.docs.map((stage) => {
-      // TODO: Don't overwrite existing ones
       const newStage = Object.assign(new DocsStage(), stage);
-      newStage.initializeVisibility();
       return newStage;
     });
 
     // Convert the settings stages to SettingsStage
     this.settings = this.settings.map((stage) => {
       const newStage = Object.assign(new SettingsStage(), stage);
-      newStage.initializeVisibility();
       return newStage;
     });
 
     // And then for plots
     this.plots = this.plots.map((stage) => {
       const newStage = Object.assign(new PlotsStage(), stage);
-      newStage.initializeVisibility();
       return newStage;
+    });
+
+    // And then check the the dependencies of all stages
+    const docsList: Array<DocsStage | SettingsStage | PlotsStage> = this.docs;
+    const stages = docsList.concat(this.settings).concat(this.plots);
+    stages.forEach((stage) => {
+      if (stage.hasDependency()) {
+        const dependency = stages.filter((s) => {
+          return s.id === stage.dependency;
+        });
+        if (dependency.length > 0) {
+          stage.setVisibility(dependency[0].activated);
+        }
+      }
     });
   }
 
@@ -69,7 +79,9 @@ class Components {
     let docsDiv: string = '';
     // TODO: Async, instead of sync await?
     for (let i = 0; i < this.docs.length; i++) {
-      docsDiv += await this.docs[i].generate();
+      if (this.docs[i].visible) {
+        docsDiv += await this.docs[i].generate();
+      }
     }
     return docsDiv;
   }
@@ -83,7 +95,9 @@ class Components {
     let settingsDiv: string = '';
     // TODO: Async, instead of sync await?
     for (let i = 0; i < this.settings.length; i++) {
-      settingsDiv += await this.settings[i].generate();
+      if (this.settings[i].visible) {
+        settingsDiv += await this.settings[i].generate();
+      }
     }
     return settingsDiv;
   }
@@ -99,9 +113,11 @@ class Components {
     let plotsDiv: string = '';
     // TODO: Async, instead of sync await?
     for (let i = 0; i < this.plots.length; i++) {
-      plotsDiv += await this.plots[i].generate();
-      ids.push(this.plots[i].id);
-      titles.push(this.plots[i].title);
+      if (this.plots[i].visible) {
+        plotsDiv += await this.plots[i].generate();
+        ids.push(this.plots[i].id);
+        titles.push(this.plots[i].title);
+      }
     }
     return makePlotStageDiv(ids, titles, plotsDiv);
   }
