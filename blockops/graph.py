@@ -83,7 +83,7 @@ class PintGraph:
         self.graph = nx.DiGraph()  # Graph
         self.pool = taskPool  # Pool
         self.nBlocks = nBlocks  # Number of blocks
-        self.maxK = maxK  # Maximum number of iterations over all blocks
+        self.maxK = min(maxK, self.pool.maxIter)  # Maximum number of iterations over all blocks
         self.counter = 0  # Helper to have unique names per node
         self.lookup = {}  # Lookup counter to task
         self.pos = Position(nBlocks=nBlocks, k=maxK)  # Helper to get position of tasks

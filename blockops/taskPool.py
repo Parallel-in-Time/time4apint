@@ -118,6 +118,7 @@ class TaskPool(object):
         self.highestLevelStorage = []  # Helper to set dependencies on highest expression level
         self.blockIteration = run.blockIteration  # Block iteration
         self.facBlockRules = run.facBlockRules  # factorized block rules
+        self.maxIter = 0  # Maximum iteration number
 
         # Create tasks from factorized block rules
         for key, value in self.facBlockRules.items():
@@ -282,6 +283,8 @@ class TaskPool(object):
         for item in newTask.dep:
             task = self.getTask(item)
             task.followingTasks.append(newTask.result)
+        if k > self.maxIter:
+            self.maxIter = k
         return newTask
 
     def createTasks(self, dico: dict, n: int, k: int, res: sy.Symbol):
