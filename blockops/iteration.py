@@ -252,6 +252,17 @@ class BlockIteration(object):
         efficiency = speedup / nProc
         return speedup, efficiency, nProc
 
+    def plotGraphForOneBlock(self, N: int, K: int, plotBlock: int, plotIter: int, figSize: tuple = (6.4, 4.8),
+                             saveFig: str = ""):
+        K = self.checkK(N=N, K=K)
+        run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
+        pool = TaskPool(run=run)
+        pintGraph = PintGraph(N, max(K), pool)
+        pintGraph.plotGraphForOneBlock(k=plotIter, n=plotBlock,
+                                       figName=None if self.name is None else self.name + ' (graph)',
+                                       figSize=figSize, saveFig=saveFig)
+        return run, pool, pintGraph
+
     def plotGraph(self, N: int, K, figSize: tuple = (6.4, 4.8), saveFig: str = ""):
         K = self.checkK(N=N, K=K)
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
