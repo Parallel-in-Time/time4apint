@@ -1,8 +1,8 @@
-import web.stage.stages as stages
-import web.stage.utils as utils
+import dynamic_site.stage.stages as stages
+import dynamic_site.stage.utils as utils
 from blockops.problem import BlockProblem
 from blockops.webutils import convert_to_web
-from web.stage.parameters import Float, FloatList, StrictlyPositiveInteger
+from dynamic_site.stage.parameters import Float, FloatList, StrictlyPositiveInteger
 
 # ===================
 # Documentation Stage

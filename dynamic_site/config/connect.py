@@ -1,7 +1,7 @@
 from typing import Any
 
-import web.stage.stages as stages
-import web.config.data as data
+import dynamic_site.stage.stages as stages
+import dynamic_site.config.data as data
 
 
 def initial_components(

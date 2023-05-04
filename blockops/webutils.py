@@ -1,10 +1,10 @@
 from blockops.utils.params import Parameter as BlockParameter
-from web.stage.parameters import Parameter as WebParameter
+from dynamic_site.stage.parameters import Parameter as WebParameter
 
-from web.stage import parameters as web_params
+from dynamic_site.stage import parameters as web_params
 from blockops.utils import params as block_params
 
-from web.stage.utils import slugify
+from dynamic_site.stage.utils import slugify
 
 # Note: M = nPoints
 

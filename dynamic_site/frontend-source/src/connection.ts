@@ -1,6 +1,8 @@
 async function fetchComponents(): Promise<any> {
+  const body = await sendData({});
+  return body;
   // Fetch the initialization components
-  const response = await fetch('/app/components', {
+  const response = await fetch(`${window.location.href}/compute`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -28,7 +30,7 @@ async function fetchComponents(): Promise<any> {
  */
 async function sendData(data: object): Promise<any> {
   // Post the data to the given url
-  const response = await fetch('/app/compute', {
+  const response = await fetch(`${window.location.href}/compute`, {
     method: 'POST',
     credentials: 'same-origin',
     headers: {

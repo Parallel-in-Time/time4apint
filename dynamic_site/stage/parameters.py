@@ -1,7 +1,7 @@
 from typing import Any
 from enum import Enum
 
-from web.stage.utils import slugify
+from dynamic_site.stage.utils import slugify
 
 
 class WebType(Enum):

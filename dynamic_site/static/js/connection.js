@@ -9,8 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 function fetchComponents() {
     return __awaiter(this, void 0, void 0, function* () {
+        const body = yield sendData({});
+        return body;
         // Fetch the initialization components
-        const response = yield fetch('/app/components', {
+        const response = yield fetch(`${window.location.href}/compute`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -37,7 +39,7 @@ function fetchComponents() {
 function sendData(data) {
     return __awaiter(this, void 0, void 0, function* () {
         // Post the data to the given url
-        const response = yield fetch('/app/compute', {
+        const response = yield fetch(`${window.location.href}/compute`, {
             method: 'POST',
             credentials: 'same-origin',
             headers: {

@@ -3,7 +3,7 @@
 from typing import Any
 from copy import deepcopy
 
-from web.stage.parameters import Parameter
+from dynamic_site.stage.parameters import Parameter
 # TODO: Integrate the stage parameters and replace the blockops params
 
 
