@@ -11,7 +11,12 @@
     <script>
       MathJax = {
         loader: { load: ['input/asciimath', 'output/chtml'] },
-        tex: { inlineMath: [['$', '$']] },
+        tex: {
+          inlineMath: [
+            ['$', '$'],
+            ['\\(', '\\)'],
+          ],
+        },
       };
     </script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -41,45 +46,7 @@
           <!-- Description -->
           <div class="uk-width-1-1">
             <div class="uk-card uk-card-body uk-card-default uk-card-hover">
-              <div class="uk-container">
-                {{ text | safe }}
-
-                <div
-                  class="uk-child-width-1-3@s uk-text-center"
-                  uk-grid="masonry: true"
-                >
-                  <div>
-                    <div class="uk-card uk-card-default uk-card-body">
-                      <img src="/images/logo_BUW_black.png" />
-                    </div>
-                  </div>
-                  <div>
-                    <div class="uk-card uk-card-default uk-card-body">
-                      <img src="/images/tuhh-logo.png" />
-                    </div>
-                  </div>
-                  <div>
-                    <div class="uk-card uk-card-default uk-card-body">
-                      <img src="/images/LogoTime-X.png" />
-                    </div>
-                  </div>
-                  <div>
-                    <div class="uk-card uk-card-default uk-card-body">
-                      <img src="/images/EuroHPC.jpg" />
-                    </div>
-                  </div>
-                  <div>
-                    <div class="uk-card uk-card-default uk-card-body">
-                      <img src="/images/logo_eu.png" />
-                    </div>
-                  </div>
-                  <div>
-                    <div class="uk-card uk-card-default uk-card-body">
-                      <img src="/images/BMBF_gefoerdert_2017_en.jpg" />
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <div class="uk-container">{{ text | safe }}</div>
             </div>
           </div>
         </div>

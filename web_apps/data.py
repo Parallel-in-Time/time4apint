@@ -8,21 +8,19 @@ from dynamic_site.stage.parameters import Float, FloatList, StrictlyPositiveInte
 # Documentation Stage
 # ===================
 
-d1_text = utils.render_md(r'''
-- lam : the value(s) for `\lambda`
-- tEnd : total simulation time `T`
-- nBlocks : number of blocks `N` for the global problem
-- u0 : the initial solution `u_0` (default=1)
+d1_docs = stages.DocsStage(
+    'D1', 'Definition of a Block Problem', r'''
+- lam : the value(s) for $\lambda$
+- tEnd : total simulation time $T$
+- nBlocks : number of blocks $N$ for the global problem
+- u0 : the initial solution $u_0$ (default=1)
 - scheme : the chosen BlockScheme for fine level
 
 A test equation
 $$
 a = 5^n.
 $$
-''')
-
-d1_docs = stages.DocsStage('D1', 'Definition of a Block Problem', d1_text,
-                           False, None)
+''', False, None)
 
 d2_docs = stages.DocsStage('D2', 'Very informative docs', r'''
 $$

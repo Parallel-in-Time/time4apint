@@ -1,10 +1,9 @@
-# from blockops.utils.params import Parameter, MultipleChoices
-
-from typing import Any
 from copy import deepcopy
+from typing import Any
 
 from dynamic_site.stage.parameters import Parameter
-# TODO: Integrate the stage parameters and replace the blockops params
+
+import mistune
 
 
 class DocsStage:
@@ -16,10 +15,13 @@ class DocsStage:
         text: str,
         activated: bool,
         dependency: str | None,
+        md_to_html: bool = True,
     ) -> None:
         self.unique_name: str = unique_name
         self.title: str = title
         self.text: str = text
+        if md_to_html:
+            self.text = str(mistune.create_markdown(plugins=['math'])(text))
         self.activated: bool = activated
         self.dependency: str | None = dependency
 

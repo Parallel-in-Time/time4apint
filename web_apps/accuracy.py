@@ -8,12 +8,10 @@ from dynamic_site.app import App, StagesMessage
 class Accuracy(App):
 
     def __init__(self) -> None:
-        super().__init__()
-        self.initialized = False
+        super().__init__(title='Accuracy')
 
-    def compute(self, response_data: dict[str, Any]) -> StagesMessage:
-        if not self.initialized:
-            self.initialized = True
+    def compute(self, response_data: dict[str, Any] | None) -> StagesMessage:
+        if not response_data:
             return StagesMessage([data.d1_docs, data.d2_docs],
                                  [data.s1_settings, data.s2_settings],
                                  [data.p1_plots, data.p2_plots])

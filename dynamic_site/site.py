@@ -8,7 +8,9 @@ from flask import Flask, jsonify, render_template, abort, request
 
 import dynamic_site
 from dynamic_site.app import App
-import dynamic_site.stage.utils as utils
+
+import mistune
+from mistune.directives import Image, Figure, FencedDirective
 
 
 def import_module(path):
@@ -22,9 +24,24 @@ def import_module(path):
 
 class Site:
 
-    def __init__(self, apps_path: str = 'web_apps') -> None:
+    def __init__(self,
+                 apps_path: str = 'web_apps',
+                 escape_html_in_md: bool = True) -> None:
         self.apps_path = apps_path
         self.dynamic_site_path = os.path.dirname(dynamic_site.__file__)
+        self.render_md = mistune.create_markdown(
+            plugins=[
+                'math',
+                'table',
+                'footnotes',
+                'strikethrough',
+                FencedDirective([
+                    Image(),
+                    Figure(),
+                ]),
+            ],
+            escape=escape_html_in_md,
+        )
 
         self.generate_apps()
 
@@ -61,7 +78,7 @@ class Site:
 
         @self.flask_app.route('/')
         def index():
-            text = utils.render_md(open(self.index_file).read())
+            text = self.render_md(open(self.index_file).read())
             return render_template('index.html', text=text)
 
         @self.flask_app.route('/<app_name>')
@@ -70,7 +87,7 @@ class Site:
             if app_name not in self.apps.keys():
                 abort(404)
 
-                # Find all js files in the static/js folder and inject them
+            # Find all js files in the static/js folder and inject them
             # -> This way they can be rebuilt and found on each reload
             js_files = list(
                 filter(lambda f: '/lib/' not in f, [
@@ -81,12 +98,20 @@ class Site:
             print(
                 f'JS module files are still loaded dynamically...\n >> {js_files} <<'
             )
+
+            # Fetch the documentation which should have the same name as the app
             documentation = ''
-            if os.path.exists(f'{self.dynamic_site_path}/{app_name}.md'):
-                documentation = utils.render_md(
-                    open(f'{self.dynamic_site_path}/{app_name}.md').read())
+            if os.path.exists(f'{self.apps_path}/{app_name}.md'):
+                documentation = self.render_md(
+                    open(f'{self.apps_path}/{app_name}.md').read())
+
+            # Get the app title (raises an error if empty)
+            app_title = self.apps[app_name].title
+
+            # Then render the template and inject the corresponding documentation
             return render_template('app.html',
                                    js_modules=js_files,
+                                   title=app_title,
                                    documentation=documentation)
 
         @self.flask_app.route('/<app_name>/compute', methods=['POST'])
@@ -96,8 +121,10 @@ class Site:
                 abort(404)
 
             # Otherwise get the correct app
+            request_json = request.json
+            request_data = None if not request_json else request_json
             docs, settings, plots = self.apps[app_name].compute(
-                request.json).get_stages()
+                request_data).get_stages()
 
             # Serialize them to objects
             docs = [stage.serialize() for stage in docs]
