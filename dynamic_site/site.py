@@ -66,7 +66,7 @@ class Site:
             elif len(apps) > 1:
                 raise RuntimeError(
                     f'In {name} are multiple apps defined! Only define one!')
-        print(self.apps)
+        print(f'Found apps: {list(self.apps.keys())}')
 
     def initialize_flask_server(self) -> None:
         STATIC_FOLDER = f'{self.dynamic_site_path}/static'
@@ -87,18 +87,6 @@ class Site:
             if app_name not in self.apps.keys():
                 abort(404)
 
-            # Find all js files in the static/js folder and inject them
-            # -> This way they can be rebuilt and found on each reload
-            js_files = list(
-                filter(lambda f: '/lib/' not in f, [
-                    file.replace(STATIC_FOLDER, '')
-                    for file in glob.glob(f"{STATIC_FOLDER}/js/**/*.js",
-                                          recursive=True)
-                ]))
-            print(
-                f'JS module files are still loaded dynamically...\n >> {js_files} <<'
-            )
-
             # Fetch the documentation which should have the same name as the app
             documentation = ''
             if os.path.exists(f'{self.apps_path}/{app_name}.md'):
@@ -110,7 +98,6 @@ class Site:
 
             # Then render the template and inject the corresponding documentation
             return render_template('app.html',
-                                   js_modules=js_files,
                                    title=app_title,
                                    documentation=documentation)
 

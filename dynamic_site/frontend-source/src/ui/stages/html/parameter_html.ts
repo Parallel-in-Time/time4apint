@@ -133,6 +133,11 @@ function makePositiveFloatParameterDiv(
   );
 }
 
+// @ts-expect-error
+function floatListParameterChange() {
+  console.log('Hello');
+}
+
 function makeFloatListParameterDiv(
   id: string,
   name: string,

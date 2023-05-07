@@ -2,7 +2,7 @@ import dynamic_site.stage.stages as stages
 import dynamic_site.stage.utils as utils
 from blockops.problem import BlockProblem
 from blockops.webutils import convert_to_web
-from dynamic_site.stage.parameters import Float, FloatList, StrictlyPositiveInteger
+from dynamic_site.stage.parameters import Float, FloatList, StrictlyPositiveInteger, Boolean, Enumeration
 
 # ===================
 # Documentation Stage
@@ -34,8 +34,7 @@ $$
 
 block_problem_web_params = convert_to_web(BlockProblem.PARAMS)
 s1_settings = stages.SettingsStage('S1', 'Definition of a Block Problem',
-                                   block_problem_web_params, 'Compute', False,
-                                   None)
+                                   block_problem_web_params, True, None)
 
 s2_params = [
     StrictlyPositiveInteger('s2-nu', r'`\nu_\lambda`', 'Something',
@@ -46,8 +45,8 @@ s2_params = [
           4.0),
 ]
 
-s2_settings = stages.SettingsStage('S2', 'Another Stage', s2_params, 'Compute',
-                                   False, 'S1')
+s2_settings = stages.SettingsStage('S2', 'Another Stage', s2_params, False,
+                                   'S1')
 
 # ===========
 # Plots Stage
@@ -74,6 +73,10 @@ p1_params = [
           'Minimum error exponent for the contour plot.', -7.0),
     Float('p1-emax', r'`e_\{\max\}`', 'Max error exponent',
           'Maximum error exponent for the contour plot.', 0.0),
+    # Delete:
+    Enumeration('p1-choices', r'`\phi`', 'Test', 'Hello.',
+                ['Option 1', 'Anderes', 'Neu']),
+    Boolean('p1-bool', r'`\Phi`', 'Test', 'Hello.'),
 ]
 
 p1_plots = stages.PlotsStage('P1', 'Error', p1_params, None, False, None)

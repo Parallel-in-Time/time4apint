@@ -56,14 +56,12 @@ class SettingsStage:
         unique_name: str,
         title: str,
         parameters: list[Parameter],
-        button_name: str,
         activated: bool,
         dependency: str | None,
     ) -> None:
         self.unique_name: str = unique_name
         self.title: str = title
         self.parameters: list[Parameter] = parameters
-        self.button: str = button_name
         self.activated: bool = activated
         self.dependency: str | None = dependency
 
@@ -98,7 +96,7 @@ class SettingsStage:
             parameter.default = data[parameter.id]
 
         return SettingsStage(self.unique_name, self.title, parameters,
-                             self.button, self.activated, self.dependency)
+                             self.activated, self.dependency)
 
     def serialize(
         self
@@ -106,7 +104,6 @@ class SettingsStage:
         return {
             'title': self.title,
             'id': self.unique_name,
-            'button': self.button,
             'activated': self.activated,
             'dependency': self.dependency,
             'parameters':

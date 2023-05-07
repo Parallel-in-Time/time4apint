@@ -169,7 +169,11 @@ class FloatList(Parameter):
 
 class Boolean(Parameter):
 
-    def __init__(self, unique_id: str, name: str, placeholder: str, doc: str,
-                 default: bool | None) -> None:
+    def __init__(self,
+                 unique_id: str,
+                 name: str,
+                 placeholder: str,
+                 doc: str,
+                 default: bool | None = None) -> None:
         super().__init__(unique_id, name, placeholder, doc, WebType.Boolean,
                          None, default)
