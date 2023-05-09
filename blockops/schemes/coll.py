@@ -15,7 +15,7 @@ from blockops.utils.params import setParams, Boolean
 
 @register
 @setParams(
-    collUpdate=Boolean()
+    collUpdate=Boolean(latexName=r'\text{Collocation Update}')
     )
 class Collocation(BlockScheme):
     """
@@ -26,8 +26,8 @@ class Collocation(BlockScheme):
     collUpdate : bool, optional
         Wether to use or not the collocation update at the end of the step.
     """
-    def __init__(self, nPoints, ptsType='LEGENDRE', quadType='LOBATTO', form='Z2N',
-                 collUpdate=False):
+    def __init__(self, nPoints, ptsType='LEGENDRE', quadType='LOBATTO', 
+                 form='Z2N', collUpdate=False):
         self.initialize(locals())
 
         nNodes = nPoints-1 if collUpdate else nPoints
