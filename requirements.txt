@@ -4,6 +4,6 @@ numpy==1.23.5
 pytest==7.2.1
 scipy==1.10.0
 sympy==1.11.1
-Flask==2.2.2
+Flask==2.2.5
 plotly==5.13.1
 mistune==2.0.5
