@@ -7,22 +7,22 @@ function Enumeration(props: {
   placeholder: string;
   choices: Array<string>;
   doc: string;
+  updateParameter: Function;
 }) {
   const initialValue = props.defaultValue == null ? '' : props.defaultValue;
   const [value, setValue] = useState(initialValue);
 
-  const changeCallback = (e) => {
+  const onChangeCallback = (e) => {
     setValue(e.target.value);
+    props.updateParameter({
+      id: props.id,
+      name: props.name,
+      value: e.target.value,
+      isValid: true,
+    });
   };
 
   const options = props.choices.map((choice, i) => {
-    // if (props.defaultValue === choice) {
-    //   return (
-    //     <option selected={true} value={choice} key={i}>
-    //       {choice}
-    //     </option>
-    //   );
-    // }
     return (
       <option value={choice} key={i}>
         {choice}
@@ -34,7 +34,7 @@ function Enumeration(props: {
     <select
       id={`select-${props.id}`}
       className='uk-select'
-      onChange={changeCallback}
+      onChange={onChangeCallback}
       data-uk-tooltip={`title: ${props.doc}`}
       value={value}
     >

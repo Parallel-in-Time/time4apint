@@ -2,19 +2,27 @@ import { PlotsComponent, PlotsTabComponent } from './PlotsComponent';
 
 import { PlotsProp } from './Interfaces';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 function Plots(props: PlotsProp) {
-  const tabComponents = props.plots.map((element, i) => (
-    <PlotsTabComponent data={element} active={i === 0} key={i} />
-  ));
-  const innerComponents = props.plots.map((element, i) => (
-    <PlotsComponent
-      data={element}
-      parameterCallback={props.parameterCallback}
-      key={i}
-    />
-  ));
+  const tabComponents = useMemo(
+    () =>
+      props.plots.map((element, i) => (
+        <PlotsTabComponent data={element} active={i === 0} key={i} />
+      )),
+    [props.computeIndex]
+  );
+  const innerComponents = useMemo(
+    () =>
+      props.plots.map((element, i) => (
+        <PlotsComponent
+          data={element}
+          updateParameter={props.updateParameter}
+          key={i}
+        />
+      )),
+    [] // [props.computeIndex]
+  );
 
   useEffect(() => {
     // On new render, check for new math formulas

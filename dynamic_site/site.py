@@ -109,6 +109,7 @@ class Site:
 
             # Otherwise get the correct app
             request_json = request.json
+            print(request_json)
             request_data = None if not request_json else request_json
             docs, settings, plots = self.apps[app_name].compute(
                 request_data).get_stages()

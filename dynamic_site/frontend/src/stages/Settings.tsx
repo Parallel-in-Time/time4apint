@@ -1,12 +1,20 @@
 import SettingsComponent from './SettingsComponent';
 import { SettingsProp } from './Interfaces';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 function Settings(props: SettingsProp) {
-  const components = props.settings.map((element, i) => (
-    <SettingsComponent data={element} key={i} />
-  ));
+  const components = useMemo(
+    () =>
+      props.settings.map((element, i) => (
+        <SettingsComponent
+          data={element}
+          updateParameter={props.updateParameter}
+          key={i}
+        />
+      )),
+    [] // [props.computeIndex]
+  );
 
   useEffect(() => {
     // On new render, check for new math formulas
@@ -25,7 +33,7 @@ function Settings(props: SettingsProp) {
             <div>
               <button
                 className='uk-width-expand uk-button uk-button-default'
-                onClick={props.computeCallback}
+                onClick={() => props.computeCallback()}
               >
                 Compute
               </button>

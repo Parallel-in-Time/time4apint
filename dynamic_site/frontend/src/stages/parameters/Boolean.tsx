@@ -6,18 +6,28 @@ function Boolean(props: {
   defaultValue: string;
   placeholder: string;
   doc: string;
+  updateParameter: Function;
 }) {
-  const [value, setValue] = useState('');
-  const changeCallback = (e) => {
+  const initialValue = props.defaultValue != null ? props.defaultValue : '';
+  const [value, setValue] = useState(initialValue);
+
+  function onChangeCallback(e) {
     setValue(e.target.value);
-  };
+    props.updateParameter({
+      id: props.id,
+      name: props.name,
+      value: e.target.value,
+      isValid: true,
+    });
+  }
+  // console.log(props.updateParameter);
 
   return (
     <input
       uk-tooltip={`title: ${props.doc}`}
       className={`uk-checkbox uk-align-right`}
       value={value}
-      onChange={changeCallback}
+      onChange={onChangeCallback}
       placeholder={props.placeholder}
       type='checkbox'
     />

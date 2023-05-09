@@ -78,22 +78,16 @@ class SettingsStage:
         Returns:
             SettingsStage: A new SettingsStage.
         """
-        if 'settings' not in response_data.keys():
-            raise KeyError(
-                '"settings" not in response data. Should only be called with a frontend response!'
-            )
-        settings_data = response_data['settings']
-        if self.unique_name not in settings_data.keys():
-            raise KeyError(
-                f'"{self.unique_name}" not in response settings data. Should only be called with a frontend response!'
-            )
-        data = settings_data[self.unique_name]
 
         # Copy all parameters and set new default values
         parameters = deepcopy(self.parameters)
-        for parameter in parameters:
-            # Might raise another KeyError
-            parameter.default = data[parameter.id]
+        for parameter in self.parameters:
+            try:
+                # Might raise another KeyError
+                parameter.default = response_data[parameter.id]
+            except KeyError:  # If its from another
+                raise KeyError(
+                    f'"{parameter.id}" not in response settings data!')
 
         return SettingsStage(self.unique_name, self.title, parameters,
                              self.activated, self.dependency)
@@ -142,23 +136,15 @@ class PlotsStage:
         Returns:
             PlotsStage: A new PlotsStage.
         """
-        if 'plots' not in response_data.keys():
-            raise KeyError(
-                '"plots" not in response data. Should only be called with a frontend response!'
-            )
-        settings_data = response_data['plots']
-        if self.unique_name not in settings_data.keys():
-            raise KeyError(
-                f'"{self.unique_name}" not in response plots data. Should only be called with a frontend response!'
-            )
-        data = settings_data[self.unique_name]
 
         # Copy all parameters and set new default values
         parameters = deepcopy(self.parameters)
-        for parameter in parameters:
-            # Might raise another KeyError
-            parameter.default = data[parameter.id]
-
+        for parameter in self.parameters:
+            try:
+                # Might raise another KeyError
+                parameter.default = response_data[parameter.id]
+            except KeyError:  # If its from another
+                raise KeyError(f'"{parameter.id}" not in response plots data!')
         return PlotsStage(self.unique_name, self.title, parameters, self.plot,
                           self.activated, self.dependency)
 

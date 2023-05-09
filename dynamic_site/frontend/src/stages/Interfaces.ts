@@ -20,8 +20,9 @@ export interface SettingsComponentProp {
 
 export interface SettingsProp {
   settings: Array<SettingsComponentProp>;
-  parameterCallback: Function;
+  updateParameter: Function;
   computeCallback: Function;
+  computeIndex: number;
 }
 
 export interface PlotsComponentProp {
@@ -29,12 +30,14 @@ export interface PlotsComponentProp {
   id: string;
   activated: boolean;
   dependency: string;
+  plot: string;
   parameters: Array<ParameterProp>;
 }
 
 export interface PlotsProp {
   plots: Array<PlotsComponentProp>;
-  parameterCallback: Function;
+  updateParameter: Function;
+  computeIndex: number;
 }
 
 export interface ParameterProp {
@@ -45,7 +48,7 @@ export interface ParameterProp {
   type: ParameterType;
   choices: Array<string>;
   default: string;
-  changeCallback: Function;
+  updateParameter: Function;
 }
 
 export enum ParameterType {

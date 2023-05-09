@@ -1,4 +1,7 @@
 import { useState } from 'react';
+function checkValidity(v: string) {
+  return v !== '' && !isNaN(+v);
+}
 
 function Float(props: {
   id: string;
@@ -6,18 +9,20 @@ function Float(props: {
   defaultValue: string;
   placeholder: string;
   doc: string;
-  changeCallback: Function;
+  updateParameter: Function;
 }) {
-  const [value, setValue] = useState('');
-  const [valid, setValid] = useState(false);
+  const initialValue = props.defaultValue != null ? props.defaultValue : '';
+  const [value, setValue] = useState(initialValue);
+  const [valid, setValid] = useState(checkValidity(initialValue));
 
   const onChangeCallback = (e) => {
     setValue(e.target.value);
     // Valid if not empty, a number, and greater or equal 0
-    const isValid = e.target.value !== '' && !isNaN(+e.target.value);
+    const isValid = checkValidity(e.target.value);
     setValid(isValid);
-    props.changeCallback({
+    props.updateParameter({
       id: props.id,
+      name: props.name,
       value: isValid ? e.target.value : '',
       isValid: isValid,
     });

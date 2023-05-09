@@ -15,6 +15,7 @@ class Accuracy(App):
             return StagesMessage([data.d1_docs, data.d2_docs],
                                  [data.s1_settings, data.s2_settings],
                                  [data.p1_plots, data.p2_plots])
+
         docs_d1 = data.d1_docs
         docs_d2 = data.d2_docs
 
@@ -25,14 +26,11 @@ class Accuracy(App):
         plot_p1 = data.p1_plots.copy_from_response(response_data)
         plot_p1.plot = data.dummy_fig_1()
 
-        if not 'P2' in response_data['plots']:  # If plot doesn't exist yet
-            docs_d1 = data.d1_docs.copy()
-            docs_d1.activated = True
+        docs_d1 = data.d1_docs.copy()
+        docs_d1.activated = True
 
-            plot_p2 = data.p2_plots
-        else:  # Otherwise fill it
-            plot_p2 = data.p2_plots.copy_from_response(response_data)
-            plot_p2.plot = data.dummy_fig_2()
+        plot_p2 = data.p2_plots
+        plot_p2.plot = data.dummy_fig_2()
 
         return StagesMessage([docs_d1, docs_d2], [settings_s1, settings_s2],
                              [plot_p1, plot_p2])

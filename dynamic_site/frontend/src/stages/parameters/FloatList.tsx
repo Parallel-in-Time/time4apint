@@ -1,4 +1,10 @@
 import { useState } from 'react';
+function checkValidity(vl: string) {
+  const validity = vl
+    .split(',')
+    .map((v) => v.replace(/\s/g, '') !== '' && !isNaN(+v));
+  return validity.every((v) => v === true);
+}
 
 function FloatList(props: {
   id: string;
@@ -6,17 +12,23 @@ function FloatList(props: {
   defaultValue: string;
   placeholder: string;
   doc: string;
+  updateParameter: Function;
 }) {
-  const [value, setValue] = useState('');
-  const [valid, setValid] = useState(false);
+  const initialValue = props.defaultValue != null ? props.defaultValue : '';
+  const [value, setValue] = useState(initialValue);
+  const [valid, setValid] = useState(initialValue !== '');
 
-  const changeCallback = (e) => {
+  const onChangeCallback = (e) => {
     setValue(e.target.value);
     // Valid if not empty, and comma-separated numbers
-    const validity = e.target.value
-      .split(',')
-      .map((v) => v.replace(/\s/g, '') !== '' && !isNaN(+v));
-    setValid(validity.every((v) => v === true));
+    const isValid = checkValidity(e.target.value);
+    setValid(isValid);
+    props.updateParameter({
+      id: props.id,
+      name: props.name,
+      value: isValid ? e.target.value : '',
+      isValid: isValid,
+    });
   };
 
   return (
@@ -24,7 +36,7 @@ function FloatList(props: {
       uk-tooltip={`title: ${props.doc}`}
       className={`uk-input uk-align-right ${valid ? '' : 'uk-form-danger'}`}
       value={value}
-      onChange={changeCallback}
+      onChange={onChangeCallback}
       placeholder={props.placeholder}
     />
   );

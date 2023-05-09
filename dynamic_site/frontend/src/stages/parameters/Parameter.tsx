@@ -8,91 +8,98 @@ import Float from './Float';
 import Enumeration from './Enumeration';
 import FloatList from './FloatList';
 import Boolean from './Boolean';
+import { useMemo } from 'react';
 
-function Parameter(prop: ParameterProp) {
+function Parameter(props: ParameterProp) {
   function getParameterType() {
-    switch (prop.type) {
+    switch (props.type) {
       case ParameterType.Integer:
         return (
           <Integer
-            id={prop.id}
-            name={prop.name}
-            defaultValue={prop.default}
-            placeholder={prop.placeholder}
-            doc={prop.doc}
-            changeCallback={prop.changeCallback}
+            id={props.id}
+            name={props.name}
+            defaultValue={props.default}
+            placeholder={props.placeholder}
+            doc={props.doc}
+            updateParameter={props.updateParameter}
           />
         );
       case ParameterType.PositiveInteger:
         return (
           <PositiveInteger
-            id={prop.id}
-            name={prop.name}
-            defaultValue={prop.default}
-            placeholder={prop.placeholder}
-            doc={prop.doc}
+            id={props.id}
+            name={props.name}
+            defaultValue={props.default}
+            placeholder={props.placeholder}
+            doc={props.doc}
+            updateParameter={props.updateParameter}
           />
         );
       case ParameterType.StrictlyPositiveInteger:
         return (
           <StrictlyPositiveInteger
-            id={prop.id}
-            name={prop.name}
-            defaultValue={prop.default}
-            placeholder={prop.placeholder}
-            doc={prop.doc}
+            id={props.id}
+            name={props.name}
+            defaultValue={props.default}
+            placeholder={props.placeholder}
+            doc={props.doc}
+            updateParameter={props.updateParameter}
           />
         );
       case ParameterType.PositiveFloat:
         return (
           <PositiveFloat
-            id={prop.id}
-            name={prop.name}
-            defaultValue={prop.default}
-            placeholder={prop.placeholder}
-            doc={prop.doc}
+            id={props.id}
+            name={props.name}
+            defaultValue={props.default}
+            placeholder={props.placeholder}
+            doc={props.doc}
+            updateParameter={props.updateParameter}
           />
         );
       case ParameterType.Float:
         return (
           <Float
-            id={prop.id}
-            name={prop.name}
-            defaultValue={prop.default}
-            placeholder={prop.placeholder}
-            doc={prop.doc}
-            changeCallback={prop.changeCallback}
+            id={props.id}
+            name={props.name}
+            defaultValue={props.default}
+            placeholder={props.placeholder}
+            doc={props.doc}
+            updateParameter={props.updateParameter}
           />
         );
       case ParameterType.Enumeration:
         return (
           <Enumeration
-            id={prop.id}
-            name={prop.name}
-            defaultValue={prop.default}
-            placeholder={prop.placeholder}
-            choices={prop.choices}
-            doc={prop.doc}
+            id={props.id}
+            name={props.name}
+            defaultValue={props.default}
+            placeholder={props.placeholder}
+            choices={props.choices}
+            doc={props.doc}
+            updateParameter={props.updateParameter}
           />
         );
       case ParameterType.FloatList:
         return (
           <FloatList
-            id={prop.id}
-            name={prop.name}
-            defaultValue={prop.default}
-            placeholder={prop.placeholder}
-            doc={prop.doc}
+            id={props.id}
+            name={props.name}
+            defaultValue={props.default}
+            placeholder={props.placeholder}
+            doc={props.doc}
+            updateParameter={props.updateParameter}
           />
         );
       case ParameterType.Boolean:
         return (
           <Boolean
-            id={prop.id}
-            name={prop.name}
-            defaultValue={prop.default}
-            placeholder={prop.placeholder}
-            doc={prop.doc}
+            id={props.id}
+            name={props.name}
+            defaultValue={props.default}
+            placeholder={props.placeholder}
+            doc={props.doc}
+            updateParameter={props.updateParameter}
           />
         );
       default:
@@ -101,14 +108,16 @@ function Parameter(prop: ParameterProp) {
     }
   }
 
+  const parameter = useMemo(() => getParameterType(), []);
+
   return (
     <div className='uk-margin-small-left uk-padding-small-left' data-uk-grid>
       <span className='uk-padding-remove-left uk-margin-small-right uk-margin-small-top'>
-        {prop.name}
+        {props.name}
       </span>
 
       <div className='uk-width-expand@m uk-padding-remove-left'>
-        {getParameterType()}
+        {parameter}
       </div>
     </div>
   );
