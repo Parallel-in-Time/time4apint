@@ -6,7 +6,6 @@ import InfoBar from '../infobar/InfoBar';
 
 import axios from 'axios';
 import { useCallback, useEffect, useState } from 'react';
-import { ParameterProp } from './Interfaces';
 
 interface ParameterValue {
   id: string;
@@ -16,14 +15,17 @@ interface ParameterValue {
 }
 
 function Stages() {
-  const [data, setData] = useState({
-    docs: [],
-    settings: [],
-    plots: [],
-  });
+  const [docsData, setDocsData] = useState([]);
+  const [settingsData, setSettingsData] = useState([]);
+  const [plotsData, setPlotsData] = useState([]);
 
   const initialParameters: { [id: string]: ParameterValue } = {};
   const [parameters, setParameters] = useState(initialParameters);
+
+  const initialInvalidParameters: string[] = [];
+  const [invalidParameters, setInvalidParameters] = useState(
+    initialInvalidParameters
+  );
 
   // Compute sends the data and sets the returned data into this stage
   const computeCallback = () => {
@@ -31,13 +33,13 @@ function Stages() {
     const validKeys = Object.keys(parameters).filter(
       (k) => parameters[k].isValid
     );
-    const parameterData = {};
+    const parameterData: { [id: string]: string } = {};
     validKeys.forEach(
       (k) => (parameterData[parameters[k].id] = parameters[k].value)
     );
 
     axios
-      .post(`${window.location.href}/compute`, parameterData)
+      .post(`${window.location.pathname}/compute`, parameterData)
       .then((response) => {
         // Filter data here for dependencies
         const docsUnfiltered = response.data.docs;
@@ -50,80 +52,75 @@ function Stages() {
           .concat(plotsUnfiltered);
 
         // A function to filter the dependencies
-        const filterDependency = (d) => {
+        const filterDependency = (d: { dependency: string }) => {
           // If it doesn't have a dependency simply return it
           if (!d.dependency) {
             return true;
           }
           // Otherwise have a look in all stages if the dependency is activated
           return (
-            concat.filter((e) => e.id === d.dependency)[0].activated === true
+            concat.filter((e: { id: string }) => e.id === d.dependency)[0]
+              .activated === true
           );
         };
 
-        // Then filter everything
-        const docs = docsUnfiltered.filter(filterDependency);
-        const settings = settingsUnfiltered.filter(filterDependency);
-        const plots = plotsUnfiltered.filter(filterDependency);
-
-        // Then loop through all parameters and add callback/change function
-
-        const tempParameters: { [id: string]: ParameterValue } = {};
-        settings.concat(plots).forEach((stage) => {
-          stage.parameters.forEach((parameter: ParameterProp) => {
-            tempParameters[parameter.id] = {
-              id: parameter.id,
-              name: parameter.name,
-              value: parameter.default,
-              isValid: parameter.default != null,
-            };
-          });
-        });
-        setParameters(tempParameters);
-
-        setData({
-          docs: docs,
-          settings: settings,
-          plots: plots,
-        });
+        // Then filter everything and set the data
+        setDocsData(() => docsUnfiltered.filter(filterDependency));
+        setSettingsData(() => settingsUnfiltered.filter(filterDependency));
+        setPlotsData(() => plotsUnfiltered.filter(filterDependency));
       });
   };
 
-  const [computeIndex, setComputeIndex] = useState(1);
+  useEffect(() => computeCallback(), []);
 
-  useEffect(() => {
-    console.log(computeIndex);
-    setComputeIndex(computeIndex + 1);
-    computeCallback();
+  const updateParameter = useCallback((parameter: ParameterValue) => {
+    setParameters((params) => {
+      return { ...params, [parameter.id]: parameter };
+    });
   }, []);
 
-  const [updateInfoBar, setUpdateInfoBar] = useState(0);
+  useEffect(() => {
+    Object.keys(parameters).forEach((k) => {
+      const parameter = parameters[k];
 
-  function updateParameter(parameter: ParameterValue) {
-    // If the new parameter changed its validity, then update the info bar
-    if (parameter.isValid !== parameters[parameter.id].isValid) {
-      setUpdateInfoBar(updateInfoBar + 1);
-    }
-    setParameters({ ...parameters, [parameter.id]: parameter });
-  }
+      // Check if its not included but invalid
+      const exists = invalidParameters.indexOf(parameter.name);
+      if (exists === -1 && !parameter.isValid) {
+        // Then add it
+        setInvalidParameters((p) => [...p, parameter.name]);
+      } else if (
+        invalidParameters.indexOf(parameter.name) !== -1 &&
+        parameter.isValid
+      ) {
+        // Check if this parameters is already included but is actually valid
+        // Then remove it
+        setInvalidParameters((p) => p.filter((e) => e !== parameter.name));
+      }
+    });
+  }, [parameters]);
 
   return (
     <>
-      <InfoBar parameters={parameters} updateFlag={updateInfoBar} />
+      <InfoBar
+        invalidParameters={invalidParameters}
+        computeCallback={computeCallback}
+      />
 
-      <div className='uk-width-1-1 uk-child-width-1-3@m' data-uk-grid>
-        <Docs docs={data.docs} />
-        <Settings
-          settings={data.settings}
-          updateParameter={updateParameter}
-          computeCallback={computeCallback}
-          computeIndex={computeIndex}
-        />
-        <Plots
-          plots={data.plots}
-          updateParameter={updateParameter}
-          computeIndex={computeIndex}
-        />
+      <div className='uk-width-1-1'>
+        <div className='uk-child-width-1-3@m uk-grid-column-small' data-uk-grid>
+          <div>
+            <Docs docs={docsData} />
+          </div>
+          <div>
+            <Settings
+              settings={settingsData}
+              updateParameter={updateParameter}
+            />
+          </div>
+          <div>
+            <Plots plots={plotsData} updateParameter={updateParameter} />
+          </div>
+        </div>
       </div>
     </>
   );

@@ -1,25 +1,20 @@
+import { useMemo } from 'react';
 import { SettingsComponentProp } from './Interfaces';
-import Parameter from './parameters/Parameter';
+import ParameterList from './parameters/ParameterList';
 
 function SettingsComponent(props: {
   data: SettingsComponentProp;
   updateParameter: Function;
 }) {
-  const parameters = props.data.parameters.map((element, i) => {
-    return (
-      <Parameter
-        id={element.id}
-        name={element.name}
-        placeholder={element.placeholder}
-        doc={element.doc}
-        type={element.type}
-        choices={element.choices}
-        default={element.default}
+  const parameterList = useMemo(
+    () => (
+      <ParameterList
+        parameters={props.data.parameters}
         updateParameter={props.updateParameter}
-        key={i}
       />
-    );
-  });
+    ),
+    [props.data]
+  );
 
   return (
     <>
@@ -27,7 +22,7 @@ function SettingsComponent(props: {
         {props.data.title}
       </div>
 
-      {parameters}
+      {parameterList}
     </>
   );
 }

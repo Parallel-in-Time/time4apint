@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { PlotsComponentProp } from './Interfaces';
-import Parameter from './parameters/Parameter';
 
 import Plot from 'react-plotly.js';
+import ParameterList from './parameters/ParameterList';
 
-function PlotsTabComponent(props: {
+function PlotsTabSelectionComponent(props: {
   data: PlotsComponentProp;
   active: boolean;
 }) {
@@ -23,10 +23,12 @@ function PlotsComponent(props: {
   data: PlotsComponentProp;
   updateParameter: Function;
 }) {
-  const plot = useMemo(() => {
+  function makePlot() {
     if (props.data.plot != null) {
       const p = JSON.parse(props.data.plot);
-      return <Plot data={p.data} layout={p.layout} />;
+      return (
+        <Plot data={p.data} layout={p.layout} config={{ responsive: true }} />
+      );
     } else {
       return (
         <div>
@@ -36,25 +38,11 @@ function PlotsComponent(props: {
         </div>
       );
     }
-  }, []);
+  }
+  const plot = useMemo(() => {
+    return makePlot();
+  }, [props.data]);
 
-  const parameters = // useMemo(() => {
-    props.data.parameters.map((element, i) => {
-      return (
-        <Parameter
-          id={element.id}
-          name={element.name}
-          placeholder={element.placeholder}
-          doc={element.doc}
-          type={element.type}
-          choices={element.choices}
-          default={element.default}
-          updateParameter={props.updateParameter}
-          key={i}
-        />
-      );
-    });
-  // }, []); // [props.updateParameter]);
   return (
     <>
       <li>
@@ -62,7 +50,10 @@ function PlotsComponent(props: {
           {plot}
           <hr />
           <div className='uk-grid-small uk-child-width-1-1' data-uk-grid>
-            {parameters}
+            <ParameterList
+              parameters={props.data.parameters}
+              updateParameter={props.updateParameter}
+            />
           </div>
         </div>
       </li>
@@ -70,4 +61,4 @@ function PlotsComponent(props: {
   );
 }
 
-export { PlotsComponent, PlotsTabComponent };
+export { PlotsComponent, PlotsTabSelectionComponent };

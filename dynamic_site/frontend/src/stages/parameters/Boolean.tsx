@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function Boolean(props: {
   id: string;
@@ -11,23 +11,24 @@ function Boolean(props: {
   const initialValue = props.defaultValue != null ? props.defaultValue : '';
   const [value, setValue] = useState(initialValue);
 
-  function onChangeCallback(e) {
-    setValue(e.target.value);
+  const onChangeCallback = (v: string) => {
+    setValue(v);
     props.updateParameter({
       id: props.id,
       name: props.name,
-      value: e.target.value,
+      value: v,
       isValid: true,
     });
-  }
-  // console.log(props.updateParameter);
+  };
+
+  useEffect(() => onChangeCallback(initialValue), []);
 
   return (
     <input
       uk-tooltip={`title: ${props.doc}`}
       className={`uk-checkbox uk-align-right`}
       value={value}
-      onChange={onChangeCallback}
+      onChange={(e) => onChangeCallback(e.target.value)}
       placeholder={props.placeholder}
       type='checkbox'
     />

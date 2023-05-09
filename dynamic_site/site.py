@@ -1,7 +1,7 @@
 import importlib
 import os
 import pkgutil
-import glob
+import json
 from inspect import getmembers, isclass
 
 from flask import Flask, jsonify, render_template, abort, request
@@ -26,8 +26,10 @@ class Site:
 
     def __init__(self,
                  apps_path: str = 'web_apps',
+                 enforce_dev_mode: bool = False,
                  escape_html_in_md: bool = True) -> None:
         self.apps_path = apps_path
+        self.enforce_dev_mode = enforce_dev_mode
         self.dynamic_site_path = os.path.dirname(dynamic_site.__file__)
         self.render_md = mistune.create_markdown(
             plugins=[
@@ -96,9 +98,21 @@ class Site:
             # Get the app title (raises an error if empty)
             app_title = self.apps[app_name].title
 
+            json_file = ''
+            css_file = ''
+            if not self.enforce_dev_mode and os.path.exists(
+                    f'{STATIC_FOLDER}/manifest.json'):
+                manifest = json.load(
+                    open(f'{STATIC_FOLDER}/manifest.json', 'r'))
+                json_file = manifest['src/main.tsx']['file']
+                css_file = manifest['src/main.css']['file']
+                print('Using built js/css files!')
+
             # Then render the template and inject the corresponding documentation
             return render_template('app.html',
                                    title=app_title,
+                                   json_file=json_file,
+                                   css_file=css_file,
                                    documentation=documentation)
 
         @self.flask_app.route('/<app_name>/compute', methods=['POST'])
@@ -123,6 +137,17 @@ class Site:
                 'settings': settings,
                 'plots': plots
             })
+
+        @self.flask_app.route('/<app_name>/documentation', methods=['GET'])
+        def app_documentation(app_name):
+            # If the app_name doesn't exist raise a 404
+            if app_name not in self.apps.keys():
+                abort(404)
+
+            documentation = 'Sorry, but it seems that there is no dedicated documentation.'
+            if os.path.exists(f'{self.apps_path}/{app_name}.md'):
+                documentation = open(f'{self.apps_path}/{app_name}.md').read()
+            return jsonify({'text': documentation})
 
     def run(self) -> None:
         self.flask_app.run(debug=True, host="0.0.0.0", port=8000)

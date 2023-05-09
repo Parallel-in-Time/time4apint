@@ -21,8 +21,6 @@ export interface SettingsComponentProp {
 export interface SettingsProp {
   settings: Array<SettingsComponentProp>;
   updateParameter: Function;
-  computeCallback: Function;
-  computeIndex: number;
 }
 
 export interface PlotsComponentProp {
@@ -37,7 +35,6 @@ export interface PlotsComponentProp {
 export interface PlotsProp {
   plots: Array<PlotsComponentProp>;
   updateParameter: Function;
-  computeIndex: number;
 }
 
 export interface ParameterProp {

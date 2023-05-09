@@ -1,14 +1,14 @@
 import { ParameterProp, ParameterType } from '../Interfaces';
 
-import StrictlyPositiveInteger from './StrictlyPositiveInteger';
-import Integer from './Integer';
-import PositiveInteger from './PositiveInteger';
-import PositiveFloat from './PositiveFloat';
-import Float from './Float';
-import Enumeration from './Enumeration';
-import FloatList from './FloatList';
-import Boolean from './Boolean';
 import { useMemo } from 'react';
+import Boolean from './Boolean';
+import Enumeration from './Enumeration';
+import Float from './Float';
+import FloatList from './FloatList';
+import Integer from './Integer';
+import PositiveFloat from './PositiveFloat';
+import PositiveInteger from './PositiveInteger';
+import StrictlyPositiveInteger from './StrictlyPositiveInteger';
 
 function Parameter(props: ParameterProp) {
   function getParameterType() {

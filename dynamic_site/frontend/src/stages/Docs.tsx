@@ -1,19 +1,23 @@
 import DocsComponent from './DocsComponent';
 import { DocsProp } from './Interfaces';
 
-import { useEffect } from 'react';
+import { useMemo } from 'react';
 
 function Docs(props: DocsProp) {
-  // console.log(props.docs);
-  const components = props.docs.map((element, i) => (
-    <DocsComponent data={element} key={i} />
-  ));
-
-  useEffect(() => {
-    // On new render, check for new math formulas
-    // @ts-expect-error
-    MathJax.typeset();
-  });
+  const components = useMemo(
+    () =>
+      props.docs.map((element, i) => (
+        <DocsComponent
+          title={element.title}
+          id={element.id}
+          text={element.text}
+          activated={element.activated}
+          dependency={element.dependency}
+          key={i}
+        />
+      )),
+    [props.docs]
+  );
 
   return (
     <div

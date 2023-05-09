@@ -15,7 +15,7 @@ class DocsStage:
         text: str,
         activated: bool,
         dependency: str | None,
-        md_to_html: bool = True,
+        md_to_html: bool = False,
     ) -> None:
         self.unique_name: str = unique_name
         self.title: str = title

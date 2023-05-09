@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function Enumeration(props: {
   id: string;
@@ -12,15 +12,17 @@ function Enumeration(props: {
   const initialValue = props.defaultValue == null ? '' : props.defaultValue;
   const [value, setValue] = useState(initialValue);
 
-  const onChangeCallback = (e) => {
-    setValue(e.target.value);
+  const onChangeCallback = (v: string) => {
+    setValue(v);
     props.updateParameter({
       id: props.id,
       name: props.name,
-      value: e.target.value,
+      value: v,
       isValid: true,
     });
   };
+
+  useEffect(() => onChangeCallback(initialValue), []);
 
   const options = props.choices.map((choice, i) => {
     return (
@@ -34,7 +36,7 @@ function Enumeration(props: {
     <select
       id={`select-${props.id}`}
       className='uk-select'
-      onChange={onChangeCallback}
+      onChange={(e) => onChangeCallback(e.target.value)}
       data-uk-tooltip={`title: ${props.doc}`}
       value={value}
     >

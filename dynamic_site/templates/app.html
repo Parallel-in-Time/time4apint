@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Call of PinTy</title>
+    <title>{{ title }}</title>
     <link rel="icon" type="image/svg+xml" href="favicon.ico" />
     <meta name="description" content="description" />
     <meta name="author" content="author" />
@@ -12,6 +12,7 @@
     <!-- React -->
     <div id="root"></div>
 
+    {% if not json_file %}
     <!-- Dev Mode for Vite -->
     <script type="module">
       import RefreshRuntime from 'http://localhost:5173/@react-refresh';
@@ -22,6 +23,10 @@
     </script>
     <script type="module" src="http://localhost:5173/@vite/client"></script>
     <script type="module" src="http://localhost:5173/src/main.tsx"></script>
+    {% else %}
+    <link rel="stylesheet" href="{{ css_file }}" />
+    <script type="module" src="{{ json_file }}"></script>
+    {% endif %}
 
     <!-- Math Equation Renderer -->
     <script>
