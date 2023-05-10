@@ -8,7 +8,7 @@ function Boolean(props: {
   doc: string;
   updateParameter: Function;
 }) {
-  const initialValue = props.defaultValue != null ? props.defaultValue : '';
+  const initialValue = props.defaultValue != null ? props.defaultValue : false;
   const [value, setValue] = useState(initialValue);
 
   const onChangeCallback = (v: string) => {
@@ -21,13 +21,13 @@ function Boolean(props: {
     });
   };
 
-  useEffect(() => onChangeCallback(initialValue), []);
+  useEffect(() => onChangeCallback(String(initialValue)), []);
 
   return (
     <input
       uk-tooltip={`title: ${props.doc}`}
       className={`uk-checkbox uk-align-right`}
-      value={value}
+      value={String(value)}
       onChange={(e) => onChangeCallback(e.target.value)}
       placeholder={props.placeholder}
       type='checkbox'

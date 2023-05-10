@@ -23,35 +23,32 @@ def convert_to_web(params: dict[str, BlockParameter]) -> list[WebParameter]:
 
 # Note that it converts the MultipleChoices to two different WebParameters
 def convert_block_param_to_web(param: BlockParameter) -> WebParameter:
-    slugified_name = slugify(str(param.name))
-    name = str(param.name)
+    id_name = str(param.uniqueID)
+    name = f'`{param.latexName}`'
     placeholder = str(param.__doc__)
     doc = str(param.docs)
     default = param.default
     if isinstance(param, block_params.PositiveInteger):
         if param.strict:
-            return web_params.StrictlyPositiveInteger(slugified_name, name,
+            return web_params.StrictlyPositiveInteger(id_name, name,
                                                       placeholder, doc,
                                                       default)
-        return web_params.PositiveInteger(slugified_name, name, placeholder,
-                                          doc, default)
+        return web_params.PositiveInteger(id_name, name, placeholder, doc,
+                                          default)
     if isinstance(param, block_params.ScalarNumber):
         if param.positive:
-            return web_params.PositiveFloat(slugified_name, name, placeholder,
-                                            doc, default)
-        return web_params.Float(slugified_name, name, placeholder, doc,
-                                default)
+            return web_params.PositiveFloat(id_name, name, placeholder, doc,
+                                            default)
+        return web_params.Float(id_name, name, placeholder, doc, default)
     if isinstance(param, block_params.VectorNumbers) or isinstance(
             param, block_params.CustomPoints):
-        return web_params.FloatList(slugified_name, name, placeholder, doc,
-                                    default)
+        return web_params.FloatList(id_name, name, placeholder, doc, default)
     if isinstance(param, block_params.Boolean):
-        return web_params.Boolean(slugified_name, name, placeholder, doc,
-                                  default)
+        return web_params.Boolean(id_name, name, placeholder, doc, default)
     if isinstance(param, block_params.MultipleChoices):
         if len(param.pTypes) > 0:
             raise NotImplementedError(
                 'Yep... "MultipleChoices" currently not implemented')
-        return web_params.Enumeration(slugified_name, name, placeholder, doc,
+        return web_params.Enumeration(id_name, name, placeholder, doc,
                                       param.choices, default)
     raise RuntimeError('Unknown WebType: {param}')

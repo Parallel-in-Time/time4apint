@@ -64,18 +64,14 @@ class Parameter:
 
     @classmethod
     def check_id_uniqueness(cls, i: str):
-        """Checks for parameter id uniqueness and also for a slugified id.
+        """Checks for parameter id uniqueness.
 
         Args:
-            i (str): The (hopefully) slugified id.
+            i (str): The (hopefully) unique id.
 
         Raises:
-            RuntimeError: If the id is not slugified.
             RuntimeError: If the id is not unique.
         """
-        if slugify(i) != i:
-            raise RuntimeError(
-                f'id "{i}" is not slugified. Should be "{slugify(i)}".')
         if i in cls.ids:
             raise RuntimeError(f'id "{i}" not unique. Must be unique!')
         else:

@@ -9,7 +9,8 @@ function Enumeration(props: {
   doc: string;
   updateParameter: Function;
 }) {
-  const initialValue = props.defaultValue == null ? '' : props.defaultValue;
+  const initialValue =
+    props.defaultValue == null ? props.choices[0] : props.defaultValue;
   const [value, setValue] = useState(initialValue);
 
   const onChangeCallback = (v: string) => {

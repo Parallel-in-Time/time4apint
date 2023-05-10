@@ -20,12 +20,12 @@ function Docs(props: DocsProp) {
   );
 
   return (
-    <div
-      style={{
-        overflow: 'auto',
-      }}
-    >
-      <div className='uk-card uk-card-body uk-card-default uk-card-hover'>
+    <div className='uk-card uk-card-body uk-card-default uk-card-hover'>
+      <div
+        style={{
+          overflow: 'auto',
+        }}
+      >
         <div className='uk-child uk-child-width-1-1' data-uk-grid>
           {components}
         </div>
