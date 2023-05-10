@@ -3,6 +3,7 @@ from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+from math import floor, ceil
 
 from blockops.taskPool import TaskPool, Task
 
@@ -82,7 +83,7 @@ class PintGraph:
         self.graph = nx.DiGraph()  # Graph
         self.pool = taskPool  # Pool
         self.nBlocks = nBlocks  # Number of blocks
-        self.maxK = maxK  # Maximum number of iterations over all blocks
+        self.maxK = min(maxK, self.pool.maxIter)  # Maximum number of iterations over all blocks
         self.counter = 0  # Helper to have unique names per node
         self.lookup = {}  # Lookup counter to task
         self.pos = Position(nBlocks=nBlocks, k=maxK)  # Helper to get position of tasks
@@ -125,6 +126,73 @@ class PintGraph:
                 # Put subtasks of u_x_y on specific positions
                 self.addTaskToGraph(pos=self.pos.getPosition(value.block, value.iteration), task=value)
 
+    def plotGraphForOneBlock(self, k: int, n: int, figName: str = "", figSize: tuple = (6.4, 4.8), saveFig: str = ""):
+        """
+        Plots subgraph containing only nodes for one given block and iteration
+
+        Parameters
+        ----------
+        k  : int
+            Iteration to plot
+        n : int
+            Block to plot
+        figName : str
+            Name of the figure
+        figSize: tuple
+            Figure size
+        saveFig : str
+            Save figure to path represented by str. No saving if str == ""
+        """
+        fig, ax = plt.subplots(num=figName, figsize=figSize)
+
+        # Compute subgraph
+        tasks = nx.get_node_attributes(self.graph, 'task')
+        a = {}
+        nodes = set()
+        for key, value in tasks.items():
+            if value.block == n and value.iteration == k:
+                nodes.add(key)
+                for item in value.dep:
+                    nodes.add(a[item])
+
+            a[value.result] = key
+        sub = self.graph.subgraph(nodes)
+        pos = nx.get_node_attributes(sub, 'pos')
+        labels = nx.get_node_attributes(sub, 'res')
+        color = [node[1]['task'].color for node in sub.nodes(data=True)]
+
+        # Compute boundaries of graph
+        minx = min([floor(value[0]) for key, value in pos.items()])
+        miny = min([floor(value[1]) for key, value in pos.items()])
+        maxx = max([ceil(value[0]) for key, value in pos.items()])
+        maxy = max([ceil(value[1]) for key, value in pos.items()])
+
+        # Plot subgraph
+        nx.draw_networkx(sub, pos, labels=labels, with_labels=True, ax=ax,
+                         node_color=color, node_size=50, width=.5)
+
+        # Add legend
+        leg = [Line2D([0], [0], marker='o', color='w', label=key, markerfacecolor=value, markersize=15)
+               for key, value in self.pool.colorLookup.items() if value in color]
+        plt.legend(handles=leg, title='Task description', loc='upper center', bbox_to_anchor=(0.5, 1.17),
+                   ncol=5, fancybox=True, shadow=True, numpoints=1)
+
+        limits = plt.axis('on')  # turns on axis
+        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
+        ax.set_xlabel(xlabel='Time block n')
+        ax.set_ylabel(ylabel='Iteration k')
+        ax.set_xticks(ticks=np.arange(minx, maxx + 1))
+        ax.set_xticklabels(labels=np.arange(minx, maxx + 1))
+        ax.set_yticks(ticks=np.arange(miny, maxy + 1))
+        ax.set_yticklabels(labels=np.arange(miny, maxy + 1))
+        plt.grid()
+
+        # Save to file
+        if saveFig != "":
+            fig.savefig(saveFig, bbox_inches='tight', pad_inches=0.5)
+
+        plt.show()
+
     def plotGraph(self, figName: str = "", figSize: tuple = (6.4, 4.8), saveFig: str = ""):
         """
         Plots the graph
@@ -141,20 +209,6 @@ class PintGraph:
 
         # Setup graph
         fig, ax = plt.subplots(num=figName, figsize=figSize)
-        for k in range(self.maxK + 1):
-            plt.axhline(y=k, color='gray', linestyle='-', alpha=0.3)
-        for n in range(self.nBlocks + 1):
-            plt.axvline(x=n, color='gray', linestyle='-', alpha=0.3)
-        limits = plt.axis('on')  # turns on axis
-        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-        ax.set_xlim(left=-0.2, right=self.nBlocks + 0.2)
-        ax.set_ylim(bottom=-.6, top=self.maxK + .2)
-        ax.set_xlabel(xlabel='Time block n')
-        ax.set_ylabel(ylabel='Iteration k')
-        ax.set_xticks(ticks=np.arange(-1, self.nBlocks + 1))
-        ax.set_xticklabels(labels=np.arange(-1, self.nBlocks + 1))
-        ax.set_yticks(ticks=np.arange(-1, self.maxK + 1))
-        ax.set_yticklabels(labels=np.arange(-1, self.maxK + 1))
 
         # Add nodes
         pos = nx.get_node_attributes(self.graph, 'pos')
@@ -167,6 +221,18 @@ class PintGraph:
                for key, value in self.pool.colorLookup.items() if value in color]
         plt.legend(handles=leg, title='Task description', loc='upper center', bbox_to_anchor=(0.5, 1.17),
                    ncol=5, fancybox=True, shadow=True, numpoints=1)
+
+        limits = plt.axis('on')  # turns on axis
+        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
+        ax.set_xlim(left=-0.2, right=self.nBlocks + 0.2)
+        ax.set_ylim(bottom=-.6, top=self.maxK + .2)
+        ax.set_xlabel(xlabel='Time block n')
+        ax.set_ylabel(ylabel='Iteration k')
+        ax.set_xticks(ticks=np.arange(-1, self.nBlocks + 1))
+        ax.set_xticklabels(labels=np.arange(-1, self.nBlocks + 1))
+        ax.set_yticks(ticks=np.arange(-1, self.maxK + 1))
+        ax.set_yticklabels(labels=np.arange(-1, self.maxK + 1))
+        plt.grid()
 
         # Save to file
         if saveFig != "":

@@ -74,7 +74,7 @@ speedupLCF = np.zeros(nBlocks + 1)
 efficiencyLCF = np.zeros(nBlocks + 1)
 for k in reqIters:
     speedupLCF[k], efficiencyLCF[k], _ = algo.getPerformances(
-        N=nBlocks, K=k, nProc=nBlocks + 1, schedule_type='LCF')
+        N=nBlocks, K=k, nProc=nBlocks + 1, schedulerType='LCF')
 nSpeedup = speedupLCF[nIter]
 nEfficiency = efficiencyLCF[nIter]
 
@@ -89,7 +89,7 @@ speedupBbB = np.zeros(nBlocks + 1)
 efficiencyBbB = np.zeros(nBlocks + 1)
 for k in reqIters:
     speedupBbB[k], efficiencyBbB[k], _ = algo.getPerformances(
-        N=nBlocks, K=k, schedule_type='BbB')
+        N=nBlocks, K=k, schedulerType='BbB')
 nSpeedup = speedupBbB[nIter]
 nEfficiency = efficiencyBbB[nIter]
 

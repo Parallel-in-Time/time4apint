@@ -16,11 +16,11 @@ class ProblemError(Exception):
 
 
 @setParams(
-    lam=VectorNumbers(),
-    tEnd=ScalarNumber(positive=True),
-    nBlocks=PositiveInteger(),
+    lam=VectorNumbers(latexName=r'\lambda'),
+    tEnd=ScalarNumber(positive=True, latexName=r'T_{end}'),
+    nBlocks=PositiveInteger(latexName='N'),
     scheme=MultipleChoices(*SCHEMES.keys()),
-    u0=ScalarNumber(),
+    u0=ScalarNumber(latexName=r'u_0'),
     )
 class BlockProblem(ParamClass):
     r"""

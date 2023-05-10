@@ -310,7 +310,7 @@ class Generator:
     pattern, use this pattern to generate all following rules.
     """
 
-    def __init__(self, k: int, checks: int = 2) -> None:
+    def __init__(self, k: int, checks: int = 3) -> None:
         """
         Prints factorized expression stored as dictionary
 

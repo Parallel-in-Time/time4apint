@@ -1,4 +1,5 @@
 # Python imports
+import copy
 import re
 import sympy as sy
 
@@ -42,9 +43,20 @@ class PintRun:
         self.generator = [Generator(i) for i in range(max(kMax) + 1)]  # Rule generator for reduced computation times
         self.blockRules = {}
         self.facBlockRules = {}
+        self.exactPropagated = self.createSymbolForUnk(0, 0)
+        self.startBlock = 0
 
         self.blockRules[(0, 0)] = {'result': self.createSymbolForUnk(0, 0),
                                    'rule': sy.core.numbers.Zero() * sy.core.numbers.Zero()}
+
+        self.multiStepRule = {}
+        for key, value in self.blockIteration.blockCoeffs.items():
+            if key[0] < 0:
+                for i in range(key[0], 0, 1):
+                    for z in range(max(kMax)):
+                        newKey = self.blockIteration.propagator.symbol * self.createSymbolForUnk(n=i, k=z)
+                        newValue = self.createSymbolForUnk(n=i + 1, k=z)
+                        self.multiStepRule[newKey] = newValue
 
         # Iterate over all expression
         self.createExpressions()
@@ -67,9 +79,6 @@ class PintRun:
         expr : sy.Symbol
             Symbol for u_n_k
         """
-        # TODO: Workaround to make FCF work. But maybe this is not the way to go
-        if n < 0:
-            n = 0
         if k > self.kMax[n]:
             return sy.symbols(f'u_{n}^{self.kMax[n]}', commutative=False)
         else:
@@ -118,7 +127,14 @@ class PintRun:
         predictorRule = predictorRule.simplify().expand()
         return predictorRule
 
-    def substituteAndSimplify(self, expr, k: int):
+    def checkForNegativBlocks(self, expr):
+        result = re.compile("u_-").search(str(expr))
+        if result is None:
+            return False
+        else:
+            return True
+
+    def substituteAndSimplify(self, expr, res, k: int):
         """
         Simplifies expression
 
@@ -134,6 +150,9 @@ class PintRun:
         expr : sy.Symbol, sy.Mul, sy.Add
             Simplified expression
         """
+
+        if len(self.multiStepRule) and self.checkForNegativBlocks(expr):
+            expr = expr.subs(self.multiStepRule)
 
         # Check if rules for the block operation exist
         ruleSimplifaction = len(self.blockIteration.rules) > 0
@@ -152,7 +171,8 @@ class PintRun:
         # for the first two iterations. For these iterations it is necessary, since everything can go
         # back to the initial condition. Afterwards, we use a reduced version of computationToApprox
         # where we only consider entries that contain an u_x^y present in the expr.
-        if k in [0, 1]:
+        # if k in [0, 1,2,3,4,5]:
+        if True: # TODO: Make this cheaper again
             for key, value in self.computationToApprox.items():
                 expr = expr.subs({key: self.computationToApprox[key]})
         else:
@@ -177,6 +197,16 @@ class PintRun:
                     expr = expr.subs(self.blockIteration.rules)
         else:
             expr = tmp
+
+        # If the block iteration of this block contains the exact propagation
+        # from an exact state, only this propagation is used and all other
+        # computation of the block are discared. Further, the last exact state
+        # and the latest exact block index is updated.
+        if str(self.blockIteration.propagator.symbol * self.exactPropagated) in str(expr):
+            expr = self.blockIteration.propagator.symbol * self.exactPropagated
+            self.exactPropagated = res
+            self.startBlock = int(str(res).replace('^', '_').split('_')[1])
+
         return expr
 
     def createExpressions(self):
@@ -186,59 +216,64 @@ class PintRun:
 
         # Iterate over all blocks
         for n in range(self.nBlocks):
-            # If no prediction is given, set rule to zero
-            if self.blockIteration.predictor is None:
-                self.blockRules[(n + 1, 0)] = {'result': self.createSymbolForUnk(n + 1, 0),
-                                               'rule': sy.core.numbers.Zero()}
-            # If predictor is given:
-            else:
-                # Create results
-                res = self.createSymbolForUnk(n=n + 1, k=0)
-                # Create rule for block n
-
-                # If no patterns is detected (mode == 0), substitute
-                # all existing rules and simplify as much as possible
-                if self.generator[0].mode == 0:
-                    # If pattern is not detected
-                    rule = self.substituteAndSimplify(self.createPredictionRule(n=n + 1), 0)
-                    self.generator[0].check(rule, n + 1)
-                # Else create rule based on pattern
+            if n >= self.startBlock:
+                # If no prediction is given, set rule to zero
+                if self.blockIteration.predictor is None:
+                    self.blockRules[(n + 1, 0)] = {'result': self.createSymbolForUnk(n + 1, 0),
+                                                   'rule': sy.core.numbers.Zero()}
+                # If predictor is given:
                 else:
-                    rule = self.generator[0].generatingExpr(n=n + 1)
-                # Save rule and results in dictionaries for next iterations and blocks
-                if len(rule.args) > 0:
-                    self.approxToComputation[res] = rule
-                    self.computationToApprox[rule] = res
-                else:
-                    self.equBlockCoeff[res] = rule
-                self.blockRules[(n + 1, 0)] = {'result': res, 'rule': rule}
-
-        # Iterate over iterations and blocks
-        for k in range(max(self.kMax)):
-            for n in range(self.nBlocks):
-                if k < self.kMax[n + 1]:
                     # Create results
-                    res = self.createSymbolForUnk(n=n + 1, k=k + 1)
+                    res = self.createSymbolForUnk(n=n + 1, k=0)
                     # Create rule for block n
 
                     # If no patterns is detected (mode == 0), substitute
                     # all existing rules and simplify as much as possible
-                    if self.generator[k + 1].mode == 0:
-                        rule = self.substituteAndSimplify(self.createIterationRule(n=n + 1, k=k + 1), k + 1)
-                        self.generator[k + 1].check(rule, n + 1)
+                    if self.generator[0].mode == 0:
+                        # If pattern is not detected
+                        rule = self.substituteAndSimplify(self.createPredictionRule(n=n + 1), res, 0)
+                        self.generator[0].check(rule, n + 1)
                     # Else create rule based on pattern
                     else:
-                        rule = self.generator[k + 1].generatingExpr(n=n + 1)
+                        rule = self.generator[0].generatingExpr(n=n + 1)
                     # Save rule and results in dictionaries for next iterations and blocks
                     if len(rule.args) > 0:
-                        self.computationToApprox[rule] = res
                         self.approxToComputation[res] = rule
+                        self.computationToApprox[rule] = res
                     else:
                         self.equBlockCoeff[res] = rule
+                    self.blockRules[(n + 1, 0)] = {'result': res, 'rule': rule}
 
-                    self.blockRules[(n + 1, k + 1)] = {'result': res, 'rule': rule}
+        # Iterate over iterations and blocks
+        for k in range(max(self.kMax)):
+            for n in range(self.nBlocks):
+                if n >= self.startBlock:
+                    if k < self.kMax[n + 1]:
+                        # Create results
+                        res = self.createSymbolForUnk(n=n + 1, k=k + 1)
+                        # Create rule for block n
+
+                        # If no patterns is detected (mode == 0), substitute
+                        # all existing rules and simplify as much as possible
+                        if self.generator[k + 1].mode == 0:
+                            rule = self.substituteAndSimplify(self.createIterationRule(n=n + 1, k=k + 1), res, k + 1)
+                            self.generator[k + 1].check(rule, n + 1)
+                        # Else create rule based on pattern
+                        else:
+                            rule = self.generator[k + 1].generatingExpr(n=n + 1)
+                        # Save rule and results in dictionaries for next iterations and blocks
+                        if len(rule.args) > 0:
+                            self.computationToApprox[rule] = res
+                            self.approxToComputation[res] = rule
+                        else:
+                            self.equBlockCoeff[res] = rule
+
+                        self.blockRules[(n + 1, k + 1)] = {'result': res, 'rule': rule}
 
     def factorizeBlockRules(self) -> None:
+        """
+        Factorizes the block rules and saves everything in a dictionary
+        """
         for key, value in self.blockRules.items():
             self.facBlockRules[key] = {'rule': self.factorize(rule=value['rule'], res=value['result']),
                                        'result': value['result']
@@ -254,10 +289,11 @@ class PintRun:
             The rule to compute the block iteration for n and k
         res : sy.Symbol
             The name of the result
-        n : int
-            Current block
-        k : int
-            Current iteration
+
+        Returns
+        -------
+        ruleDict : dict
+            Dictionary representing factorized expression
         """
 
         # If rule is just a copy of another task

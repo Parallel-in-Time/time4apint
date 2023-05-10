@@ -1,5 +1,6 @@
 import sympy as sy
 import re
+import warnings
 
 from blockops.run import PintRun
 
@@ -68,7 +69,7 @@ class Task(object):
             self.dep = [dep]
         elif type(dep) == sy.Mul:
             for item in dep.args:
-                if type(dep) == sy.Symbol:
+                if type(item) == sy.Symbol:
                     self.dep.append(item)
         elif dep is None:
             self.dep = []
@@ -117,6 +118,7 @@ class TaskPool(object):
         self.highestLevelStorage = []  # Helper to set dependencies on highest expression level
         self.blockIteration = run.blockIteration  # Block iteration
         self.facBlockRules = run.facBlockRules  # factorized block rules
+        self.maxIter = 0  # Maximum iteration number
 
         # Create tasks from factorized block rules
         for key, value in self.facBlockRules.items():
@@ -236,12 +238,13 @@ class TaskPool(object):
                 task = result
             # print(task, ':', ope, '--', inp)
             self.tasks[task] = (ope, inp, dep)
-            if type(ope) == sy.Integer or type(ope) == sy.core.numbers.Zero:
+            if type(ope) == sy.Integer or type(ope) == sy.core.numbers.Zero or type(ope) == sy.core.numbers.NegativeOne:
                 cost = 0
             elif str(ope) in self.blockIteration.blockOps:
                 cost = self.blockIteration.blockOps[str(ope)].cost
             else:
-                cost = 5
+                warnings.warn(f'Unknown costs for operation {str(ope)}, set to 1')
+                cost = 1
             self.pool[task] = self.createTask(op=ope, fullOp=res, result=task, cost=cost, n=n, k=k, dep=dep)
             self.results[res] = task
             self.counter.increment()
@@ -280,6 +283,8 @@ class TaskPool(object):
         for item in newTask.dep:
             task = self.getTask(item)
             task.followingTasks.append(newTask.result)
+        if k > self.maxIter:
+            self.maxIter = k
         return newTask
 
     def createTasks(self, dico: dict, n: int, k: int, res: sy.Symbol):

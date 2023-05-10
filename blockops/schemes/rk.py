@@ -46,8 +46,8 @@ STABILITY_FUNCTIONS = {
 
 @register
 @setParams(
-    rkScheme=MultipleChoices(*STABILITY_FUNCTIONS.keys()),
-    nStepsPerPoint=PositiveInteger()
+    rkScheme=MultipleChoices(*STABILITY_FUNCTIONS.keys(), latexName=r'\text{Scheme}'),
+    nStepsPerPoint=PositiveInteger(latexName=r'\ell')
     )
 class RungeKutta(BlockScheme):
     """

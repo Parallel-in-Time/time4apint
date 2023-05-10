@@ -39,5 +39,5 @@ for nBlocks in [50]:
             for blockIter in [parareal,pararealSC,abj, abgs]:
                 print(f'N: {nBlocks}, K: {k}, method: {method}, blockIter {blockIter.name}')
                 start = time.time()
-                a = blockIter.getRuntime(N=nBlocks, K=k, nProc=nBlocks, schedule_type=method)
+                a = blockIter.getRuntime(N=nBlocks, K=k, nProc=nBlocks, schedulerType=method)
                 print(f'{blockIter.name} runtime for N={nBlocks}, K={k}: {time.time()-start}, {a}')

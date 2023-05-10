@@ -192,7 +192,7 @@ class LowestCostFirst(Schedule):
     that the cheapest tasks corresponds to lower lever tasks which helps most to enable new computations.
     """
     NAME = "LowestCostFirst"
-    IDS = {"LOWEST-COST-FIRST", "LCF"}
+    IDS = {"LOWEST-COST-FIRST", "LCF", "LowestCostFirst"}
 
     def __init__(self, *args: object, **kwargs: object):
         super().__init__(*args, **kwargs)
@@ -313,12 +313,12 @@ class Optimal(Schedule):
         self.nProc = len(np.where(self.startPointProc != 0)[0])
 
 
-def getSchedule(taskPool: TaskPool, nProc: int, nPoints: int, schedule_type: str
+def getSchedule(taskPool: TaskPool, nProc: int, nPoints: int, scheduleType: str
                 ) -> Schedule:
-    if schedule_type not in SCHEDULE_TYPES:
+    if scheduleType not in SCHEDULE_TYPES:
         raise Exception(f"Schedule {type} not implemented, must be in {list(SCHEDULE_TYPES.keys())}")
     else:
-        ScheduleClass = SCHEDULE_TYPES[schedule_type]
+        ScheduleClass = SCHEDULE_TYPES[scheduleType]
         nProc = ScheduleClass.getDefaultNProc(nPoints - 1) if nProc is None else nProc
         schedule = ScheduleClass(taskPool=taskPool, nProc=nProc, nPoints=nPoints)
         schedule.computeSchedule()
