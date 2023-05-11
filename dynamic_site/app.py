@@ -19,7 +19,7 @@ class StagesMessage:
 
 class App:
 
-    def __init__(self, title: str) -> None:
+    def __init__(self, title) -> None:
         self.title = title
         if self.title == '':
             raise NotImplementedError('App has no title')

@@ -15,13 +15,16 @@ interface ParameterValue {
 }
 
 function Stages() {
+  // The received data which are only changed, whenever the compute request is sent
   const [docsData, setDocsData] = useState([]);
   const [settingsData, setSettingsData] = useState([]);
   const [plotsData, setPlotsData] = useState([]);
 
+  // The parameter values which are sent back to the server
   const initialParameters: { [id: string]: ParameterValue } = {};
   const [parameters, setParameters] = useState(initialParameters);
 
+  // The invalid parameters that define the errors in the info bar
   const initialInvalidParameters: string[] = [];
   const [invalidParameters, setInvalidParameters] = useState(
     initialInvalidParameters
@@ -29,7 +32,7 @@ function Stages() {
 
   // Compute sends the data and sets the returned data into this stage
   const computeCallback = () => {
-    // Collect all the data, if there are any
+    // Collect all the valid data from the parameter input fields, if there are any
     const validKeys = Object.keys(parameters).filter(
       (k) => parameters[k].isValid
     );
@@ -71,14 +74,17 @@ function Stages() {
       });
   };
 
+  // On startup, send one initial compute request
   useEffect(() => computeCallback(), []);
 
+  // The update parameter callback function that is passed down to the input fields
   const updateParameter = useCallback((parameter: ParameterValue) => {
     setParameters((params) => {
       return { ...params, [parameter.id]: parameter };
     });
   }, []);
 
+  // Whenever the parametrs change, look out for the invalid parameters
   useEffect(() => {
     Object.keys(parameters).forEach((k) => {
       const parameter = parameters[k];

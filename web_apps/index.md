@@ -4,6 +4,8 @@ Develop a python code based on a generic framework allowing to investigate and a
 
 Implement a graphical user interface that could be exposed through a [**demonstration website (web api)**](./accuracy).
 
+> Take a look at the [API Demonstration](./demo)
+
 ## Base convention
 
 Represent an iterative PinT algorithm with a **block iteration** of the form

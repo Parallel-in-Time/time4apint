@@ -27,6 +27,15 @@ function NumberField(props: {
     });
   };
 
+  // Set the default value if it changed in the props
+  useEffect(() => {
+    if (props.defaultValue !== value) {
+      const v = props.defaultValue != null ? props.defaultValue : '';
+      setValue(v);
+      props.checkValidity(v);
+    }
+  }, [props.defaultValue]);
+
   useEffect(() => onChangeCallback(initialValue), []);
 
   return (

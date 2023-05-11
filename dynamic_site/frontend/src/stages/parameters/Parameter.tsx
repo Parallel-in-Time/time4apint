@@ -108,7 +108,7 @@ function Parameter(props: ParameterProp) {
     }
   }
 
-  const parameter = useMemo(() => getParameterType(), []);
+  const parameter = useMemo(() => getParameterType(), [props]);
 
   return (
     <div className='uk-margin-small-left uk-padding-small-left' data-uk-grid>
