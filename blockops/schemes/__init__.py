@@ -3,7 +3,7 @@ import numpy as np
 from typing import Dict
 
 from blockops.utils.params import ParamClass, setParams
-from blockops.utils.params import PositiveInteger, MultipleChoices, CustomPoints
+from blockops.utils.params import PositiveInteger, MultipleChoices
 from blockops.utils.poly import NodesGenerator, NODE_TYPES, QUAD_TYPES
 from blockops.utils.poly import LagrangeApproximation
 from blockops.block import BlockOperator
@@ -23,10 +23,10 @@ def getTransferMatrices(nodesFine, nodesCoarse, vectorized=False):
 
 
 @setParams(
-    nPoints=PositiveInteger(),
-    ptsType=MultipleChoices(*NODE_TYPES, CustomPoints()),
-    quadType=MultipleChoices(*QUAD_TYPES),
-    form=MultipleChoices('Z2N', 'N2N')
+    nPoints=PositiveInteger(latexName='M'),
+    ptsType=MultipleChoices(*NODE_TYPES, latexName=r'\text{Distribution}'),
+    quadType=MultipleChoices(*QUAD_TYPES, latexName=r'\text{Quadrature Type}'),
+    form=MultipleChoices('Z2N', 'N2N', latexName=r'\text{Formulation}')
 )
 class BlockScheme(ParamClass):
     """
@@ -38,8 +38,7 @@ class BlockScheme(ParamClass):
         Number of time points in the block. Ignored if a custom list of points
         is given for `ptsType`.
     ptsType : str of list of float, optional
-        Either the type of points (EQUID, LEGENDRE, ...), or a list of given time
-        points in [0, 1]. For string values, possibilities are :
+        Type of points distribution (EQUID, LEGENDRE, ...). Possibilities are :
 
         - `EQUID` : equidistant point uniformly distributed on the block
         - `LEGENDRE` : points distribution from Legendre polynomials

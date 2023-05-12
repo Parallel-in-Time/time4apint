@@ -30,24 +30,56 @@ class ParamError(Exception):
 
 class Parameter(object):
     """Base class to describe a parameter"""
-
-    name = None
-    docs = None
-    default = None
-    value = None
-
+    
+    def __init__(self, latexName=None):
+        
+        self.name = None
+        self.docs = None
+        self.default = None
+        self.value = None
+        
+        self._latexName = latexName
+        self._uniqueID = None
+        
+        
+    @property
+    def latexName(self):
+        if self._latexName is None:
+            if self.name is None:
+                return None
+            else:
+                return r"\text{"f"{self.name[0].upper() + self.name[1:]}""}"
+        else:
+            return self._latexName
+        
+        
+    @property
+    def uniqueID(self):
+        if self._uniqueID is None:
+            return self.name
+        else:
+            return self._uniqueID
+        
+    @uniqueID.setter
+    def uniqueID(self, value):
+        self._uniqueID = value
+            
+    
     def error(self, value, reason):
         reason += f" ({self.pType})"
         raise ParamError(self.name, value, reason)
+
 
     @property
     def pType(self):
         """str: name of the Parameter object"""
         return self.__class__.__name__
 
+
     def check(self, value):
         """Default check method, accept all parameters"""
         return True
+
 
     def __repr__(self):
         if self.value is None:
@@ -78,15 +110,11 @@ class ParamClass(object):
 
     def initialize(self, params: dict):
         """Check given parameter values and store them in PARAMS elements"""
-        self._copyParams()
+        self.PARAMS = copy.deepcopy(self.PARAMS)
         for name, value in params.items():
             if name in self.PARAMS:
                 self.PARAMS[name].check(value)
                 self.PARAMS[name].value = value
-
-    def _copyParams(self):
-        """Copy PARAMS to an attribute specific for the instance"""
-        self.PARAMS = copy.deepcopy(self.PARAMS)
 
     @classmethod
     def extractParamDocs(cls, *names):
@@ -132,14 +160,15 @@ def setParams(**kwargs) -> Callable[[ParamClass], ParamClass]:
         # Get constructor signature
         sig = inspect.signature(cls.__init__)
 
-        # Ignore **kwargs type arguments
+        # Retrieve argument names, and Ignore **kwargs type arguments
         sigParams = {name: par for name, par in sig.parameters.items()
                      if par.kind != par.VAR_KEYWORD}
 
         # Add parameter object to the class PARAMS dictionnary
-        for name, pType in kwargs.items():
-            pType.name = name
-            cls.PARAMS[name] = pType
+        for name, param in kwargs.items():
+            param.name = name
+            param.uniqueID = f'{cls.__name__}_{param.uniqueID}'
+            cls.PARAMS[name] = param
 
         # Check if signature of the constructor corresponds to given parameters
         clsParams = set(sigParams.keys())
@@ -172,8 +201,10 @@ def setParams(**kwargs) -> Callable[[ParamClass], ParamClass]:
 class PositiveInteger(Parameter):
     """Accepts one (default strictly) positive integer"""
 
-    def __init__(self, strict=True):
+    def __init__(self, strict=True, latexName=None):
         self.strict = strict
+        super().__init__(latexName)
+        
 
     def check(self, value):
         try:
@@ -194,8 +225,10 @@ class PositiveInteger(Parameter):
 class ScalarNumber(Parameter):
     """Accepts one scalar number (eventually a strict positive float)"""
 
-    def __init__(self, positive=False):
+    def __init__(self, positive=False, latexName=None):
         self.positive = positive
+        super().__init__(latexName)
+        
 
     def check(self, value):
         dtype = float if self.positive else complex
@@ -232,9 +265,11 @@ class VectorNumbers(Parameter):
 class MultipleChoices(Parameter):
     """Accepts different parameter values or parameter types"""
 
-    def __init__(self, *choices):
+    def __init__(self, *choices, latexName=None):
         self.pTypes = [c for c in choices if isinstance(c, Parameter)]
         self.choices = [c for c in choices if not isinstance(c, Parameter)]
+        super().__init__(latexName)
+        
 
     def check(self, value):
         choices = [c for c in self.choices]
