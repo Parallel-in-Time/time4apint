@@ -5,11 +5,11 @@ Display the discretization error for one given problem
 
 Parameters
 ----------
-nBlocks : 
+nBlocks :
     number of blocks (N)
-nPoints : 
+nPoints :
     number of time points per block
-scheme : 
+scheme :
     type of time scheme used
 
 Other arguments can be given
@@ -21,7 +21,7 @@ from blockops.plots import plotAccuracyContour
 
 reLam = np.linspace(-4, 0.5, 128)
 imLam = np.linspace(-3, 3, 128)
-nBlocks = 20
+nBlocks = 10
 
 params = {
     "RungeKutta": {

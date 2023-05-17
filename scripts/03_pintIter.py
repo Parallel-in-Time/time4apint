@@ -6,13 +6,11 @@ Created on Fri Dec 23 10:06:40 2022
 @author: telu
 """
 import numpy as np
+import matplotlib.pyplot as plt
 
 from blockops import BlockProblem
 from blockops.plots import plotAccuracyContour, plotContour
 
-zoom = 1
-reLam = np.linspace(-3 / zoom, 0.5 / zoom, 512)
-imLam = np.linspace(-3 / zoom, 3 / zoom, 512)
 nBlocks = 10
 nPoints = 1
 schemeF = 'RK4'
@@ -20,6 +18,17 @@ nStepsF = 20
 schemeG = 'RK4'
 nStepsG = 1
 algoName = 'Parareal'
+
+suffix = f'r={nStepsF/nStepsG}, G={schemeG}'
+
+plotFineDiscrError = False
+plotApproxError = False
+plotNumIter = True
+computeLCF = False
+
+zoom = 1
+reLam = np.linspace(-3 / zoom, 0.5 / zoom, 512)
+imLam = np.linspace(-3 / zoom, 3 / zoom, 512)
 
 lam = reLam[:, None] + 1j * imLam[None, :]
 prob = BlockProblem(
@@ -38,14 +47,18 @@ uExact = prob.getSolution('exact')
 errDiscr = np.abs(uExact - uNum)
 errDiscrMax = np.max(errDiscr, axis=(0, -1)).reshape(lam.shape)
 stab = np.abs(uNum)[0, :, -1].reshape(lam.shape)
-plotAccuracyContour(reLam, imLam, errDiscrMax, stab, figName='discrErr')
+if plotFineDiscrError:
+    plotAccuracyContour(reLam, imLam, errDiscrMax, stab, 
+                        figName=f'discrErr, {suffix}')
 
 # Compute approximate solution and error
 uApprox = prob.getSolution('approx')
 errApprox = np.abs(uNum - uApprox)
 errApproxMax = np.max(errApprox, axis=(0, -1)).reshape(lam.shape)
 stab = np.abs(uApprox)[0, :, -1].reshape(lam.shape)
-plotAccuracyContour(reLam, imLam, errApproxMax, stab, figName='coarseErr')
+if plotApproxError:
+    plotAccuracyContour(reLam, imLam, errApproxMax, stab, 
+                        figName=f'coarseErr, {suffix}')
 
 # Compute PinT solution and error
 nIterMax = nBlocks
@@ -62,27 +75,32 @@ for err in errPinTMax[-1::-1]:
     nIter[err < errDiscrMax] = k
     k -= 1
 
-# Plot number of iteration until discretization error
-plotContour(reLam=reLam, imLam=imLam, val=nIter, nLevels=nIterMax+1, figName='PinTIter')
+if plotNumIter:
+    # Plot number of iteration until discretization error
+    plotContour(reLam=reLam, imLam=imLam, val=nIter, levels=None, 
+                figName=f'PinTIter, {suffix}')
+    plt.gcf().set_size_inches(7.56, 8.72)
 
 reqIters = np.unique(nIter).tolist()
-reqIters.pop(0)
-
+if 0 in reqIters:
+    reqIters.remove(0)
 
 # %% Lowest cost first scheduling
-speedupLCF = np.zeros(nBlocks + 1)
-efficiencyLCF = np.zeros(nBlocks + 1)
-for k in reqIters:
-    speedupLCF[k], efficiencyLCF[k], _ = algo.getPerformances(
-        N=nBlocks, K=k, nProc=nBlocks + 1, schedulerType='LCF')
-nSpeedup = speedupLCF[nIter]
-nEfficiency = efficiencyLCF[nIter]
-
-# Plotting
-plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, 
-            nLevels=None, figName='Lowest Cost First Schedule')
-plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, 
-            nLevels=None, figName='Lowest Cost First Schedule')
+if computeLCF:
+    speedupLCF = np.zeros(nBlocks + 1)
+    efficiencyLCF = np.zeros(nBlocks + 1)
+    for k in reqIters:
+        speedupLCF[k], efficiencyLCF[k], _ = algo.getPerformances(
+            N=nBlocks, K=k, nProc=nBlocks + 1, schedulerType='LCF')
+    nSpeedup = speedupLCF[nIter]
+    nEfficiency = efficiencyLCF[nIter]
+    
+    # Plotting
+    plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, 
+                levels=None, figName=f'Lowest Cost First Schedule, {suffix}')
+    plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, 
+                levels=None, figName=f'Lowest Cost First Schedule, {suffix}')
+    plt.gcf().set_size_inches(7.56, 8.72)
 
 # %% Block-by-Block scheduling
 speedupBbB = np.zeros(nBlocks + 1)
@@ -95,6 +113,7 @@ nEfficiency = efficiencyBbB[nIter]
 
 # Plotting
 plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, 
-            nLevels=None, figName='Block-by-Block Schedule')
+            levels=None, figName=f'Block-by-Block Schedule, {suffix}')
 plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, 
-            nLevels=None, figName='Block-by-Block Schedule')
+            levels=None, figName=f'Block-by-Block Schedule, {suffix}')
+plt.gcf().set_size_inches(7.56, 8.72)
