@@ -242,6 +242,9 @@ class TaskPool(object):
                 cost = 0
             elif str(ope) in self.blockIteration.blockOps:
                 cost = self.blockIteration.blockOps[str(ope)].cost
+            elif str(ope**(-1)) in self.blockIteration.blockOps:
+                cost = self.blockIteration.blockOps[str(ope**(-1))].cost
+                warnings.warn(f'Using cost of the inverse for {ope}')
             else:
                 warnings.warn(f'Unknown costs for operation {str(ope)}, set to 1')
                 cost = 1

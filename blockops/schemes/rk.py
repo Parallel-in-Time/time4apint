@@ -43,6 +43,15 @@ STABILITY_FUNCTIONS = {
     # Exact integration (infinite order)
     'EXACT': lambda z: np.exp(z)}
 
+N_STAGES = {
+    'FE': 2,
+    'RK21': 2,
+    'RK2': 2,
+    'RK3': 3,
+    'RK53': 5,
+    'RK4': 4,
+    'RK65': 6}
+
 
 @register
 @setParams(
@@ -120,5 +129,7 @@ class RungeKutta(BlockScheme):
             The (estimated) cost for :math:`\chi`.
         """
         costPhi = self.PARAMS['nStepsPerPoint'].value * self.nPoints
+        if self.PARAMS['rkScheme'] in N_STAGES:
+            costPhi *= N_STAGES[self.PARAMS['rkScheme']]
         costChi = 0
         return costPhi, costChi
