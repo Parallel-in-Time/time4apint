@@ -141,3 +141,7 @@ scratch.py
 
 # PDF files
 scripts/*.pdf
+
+# Temporary files
+*.swp
+*~
