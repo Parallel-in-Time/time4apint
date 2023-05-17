@@ -51,12 +51,12 @@ This project has received funding from the [European High-Performance Computing 
     </div>
     <div>
     <div class="uk-card uk-card-default uk-card-body">
-        <img src="/images/LogoTime-X.png" />
+        <img src="/images/EuroHPC.jpg" />
     </div>
     </div>
     <div>
     <div class="uk-card uk-card-default uk-card-body">
-        <img src="/images/EuroHPC.jpg" />
+        <img src="/images/LogoTime-X.png" />
     </div>
     </div>
     <div>
@@ -70,33 +70,3 @@ This project has received funding from the [European High-Performance Computing 
     </div>
     </div>
 </div>
-
-```{image} /images/EuroHPC.jpg
-:alt: alt Text
-:width: 300
-```
-
-```{image} /images/logo_BUW_black.png
-:alt: alt Text
-:width: 300
-```
-
-```{image} /images/tuhh-logo.png
-:alt: alt Text
-:width: 300
-```
-
-```{figure} /images/LogoTime-X.png
-:alt: alt Text
-:width: 300
-```
-
-```{figure} /images/logo_eu.png
-:alt: alt Text
-:width: 300
-```
-
-```{figure} /images/BMBF_gefoerdert_2017_en.jpg
-:alt: alt Text
-:width: 300
-```
