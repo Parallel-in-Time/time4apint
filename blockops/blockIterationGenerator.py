@@ -63,7 +63,7 @@ class BlockIterationGenerator():
             else:
                 gen.check(expr=u[i], n=i + 1)
 
-    def generateData(self, n, L):
+    def generateData(self, n, L, pre_s=1, post_s=0):
         save_symbols = {}
         u_0 = sy.Symbol(r'u_0', commutative=False)
         phi = [sy.Symbol(f'\phi^{i}', commutative=False) for i in range(L)]
@@ -83,7 +83,8 @@ class BlockIterationGenerator():
             range(L)]
         f = [sy.Matrix([[chi[0] * u_0 if i == 0 else 0 for i in range(n)]]).transpose() if i == 0 else None for i in
              range(L)]
-        smoothing = [2 for _ in range(L)]
+        pre_smoothing = [pre_s for _ in range(L)]
+        post_smoothing = [post_s for _ in range(L)]
         return {
             'L': L,
             'n': n,
@@ -95,7 +96,8 @@ class BlockIterationGenerator():
             'u_k': u_k,
             'u_k_1': u_k_1,
             'f': f,
-            'smoothing': smoothing,
+            'pre_smoothing': pre_smoothing,
+            'post_smoothing': post_smoothing,
         }
 
 
@@ -120,9 +122,10 @@ class PararealGenerator(BlockIterationGenerator):
 
 
 class MultilevelGenerator(BlockIterationGenerator):
-    def __init__(self, n, L):
+    def __init__(self, n, L, pre_smoothing=1, post_smoothing=1):
         super().__init__()
-        res = self.multilevel(setting=self.generateData(n=n, L=L))
+        res = self.multilevel(
+            setting=self.generateData(n=n, L=L, pre_s=pre_smoothing, post_s=post_smoothing))
         self.checkResults(res)
 
     def multilevel(self, setting, l=0):
@@ -133,7 +136,8 @@ class MultilevelGenerator(BlockIterationGenerator):
         u_k = setting['u_k']
         u_k_1 = setting['u_k_1']
         f = setting['f']
-        smoothingSteps = setting['smoothing']
+        pre = setting['pre_smoothing']
+        post = setting['post_smoothing']
         chi = setting['chi']
 
         state = {}
@@ -148,10 +152,10 @@ class MultilevelGenerator(BlockIterationGenerator):
         if l == L:
             u_k_1[l][1] = self.solve(lhs=A[l] * u_k_1[l][0], rhs=f[l], u=u_k_1[l][0])
         else:
-            if smoothingSteps[l] == 0:
+            if pre[l] == 0:
                 u_k_1[l][1] = copy.deepcopy(u_k[l][1])
             else:
-                for i in range(smoothingSteps[l]):
+                for i in range(pre[l]):
                     if i == 0:
                         u_k_1[l][1] = self.jacobi(u=u_k[l][1], A=A[l], f=f[l])
                     else:
@@ -166,7 +170,10 @@ class MultilevelGenerator(BlockIterationGenerator):
             u_k_1[l][1] = self.solve(lhs=u_k_1[l][0],
                                      rhs=u_k_1[l][1] + T_c_f_s[l] * u_k_1[l + 1][1],
                                      u=u_k_1[l][0]).subs(state).expand().subs(state3).expand().subs(state4).expand()
+            for i in range(post[l]):
+                u_k_1[l][1] = self.jacobi(u=u_k_1[l][1], A=A[l], f=f[l])
             return u_k_1[l][1]
+
 
 class Generator:
     """
@@ -273,6 +280,9 @@ class Generator:
                               lambda expr: sy.symbols(st, commutative=False))
         return tmp
 
-PararealGenerator(n=6)
-MultilevelGenerator(n=6, L=2)
 
+PararealGenerator(n=6)
+MultilevelGenerator(n=6, L=2, pre_smoothing=1, post_smoothing=0)
+MultilevelGenerator(n=6, L=3, pre_smoothing=1, post_smoothing=0)
+MultilevelGenerator(n=6, L=2, pre_smoothing=2, post_smoothing=0)
+MultilevelGenerator(n=6, L=2, pre_smoothing=1, post_smoothing=1)
