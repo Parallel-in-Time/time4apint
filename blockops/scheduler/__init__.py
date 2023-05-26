@@ -5,6 +5,7 @@ from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from abc import ABC, abstractmethod
+import plotly.graph_objects as go
 
 from blockops.utils.params import ParamClass, setParams
 from blockops.utils.params import PositiveInteger, TaskPoolParam
@@ -98,6 +99,69 @@ class Scheduler(ABC, ParamClass):
         """
         return self.makespan
 
+    def plotPlotly(self) -> None:
+        """
+        Helper function to plot a schedule using plotly
+        """
+        fig = go.Figure(data=[],
+                        layout=go.Layout(
+                            titlefont_size=16,
+                            showlegend=True,
+                            hovermode='closest',
+                            margin=dict(b=20, l=5, r=5, t=40),
+                        )
+                        )
+        colors = {}
+        for key, value in self.schedule.items():
+            if value.color not in colors:
+                colors[value.color] = [[],[], value.name, value.end - value.start]
+        for key, value in self.schedule.items():
+            time = value.end - value.start
+            if time > 0:
+                shapes_x = colors[value.color][0]
+                shapes_y = colors[value.color][1]
+                shapes_x.append(value.start)
+                shapes_x.append(value.start+time)
+                shapes_x.append(value.start+time)
+                shapes_x.append(value.start)
+                shapes_x.append(value.start)
+                shapes_x.append(None)
+                shapes_y.append(value.proc + .225)
+                shapes_y.append(value.proc + .225)
+                shapes_y.append(value.proc + .725)
+                shapes_y.append(value.proc + .725)
+                shapes_y.append(value.proc + .225)
+                shapes_y.append(None)
+
+        for key, value in colors.items():
+            fig.add_trace(
+                go.Scatter(
+                    x=value[0],
+                    y=value[1],
+                    fill="toself",
+                    fillcolor=key,
+                    marker=dict(
+                        color=key,
+                        size=1,
+                        line=dict(
+                            color=key,
+                            width=0.1
+                        )
+                    ),
+                    hoverinfo='text',
+                    text='Cost:'+str(value[3]),
+                    name= value[2],
+                    showlegend=True
+                )
+            )
+        fig.update_xaxes(title="Time")
+        fig.update_yaxes(title="Processor rank")
+        fig.update_yaxes(
+            ticktext=['P' + str(i) for i in range(self.nProc - 1, -1, -1)],
+            tickvals=(np.linspace(self.nProc - 1, 0, self.nProc) + 0.5).tolist(),
+        )
+        fig.show()
+
     def plot(self, figName: str, figSize: tuple = (8, 4.8), saveFig: str = "") -> None:
         """
         Helper function to plot a schedule
@@ -145,7 +209,7 @@ class Scheduler(ABC, ParamClass):
                    fontsize=16)
         if saveFig != "":
             fig.savefig(saveFig, bbox_inches='tight', pad_inches=0.5)
-        plt.show()
+        fig.show()
 
 
 # Dictionary to store all the scheduler implementations

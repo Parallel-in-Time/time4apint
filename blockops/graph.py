@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 from math import floor, ceil
+import plotly.graph_objects as go
 
 from blockops.taskPool import TaskPool, Task
 
@@ -192,6 +193,115 @@ class PintGraph:
             fig.savefig(saveFig, bbox_inches='tight', pad_inches=0.5)
 
         plt.show()
+
+    def plotGraphForOneBlockPlotly(self, k: int, n: int):
+        """
+        Plots subgraph containing only nodes for one given block and iteration
+
+        Parameters
+        ----------
+        k  : int
+            Iteration to plot
+        n : int
+            Block to plot
+        figName : str
+            Name of the figure
+        figSize: tuple
+            Figure size
+        saveFig : str
+            Save figure to path represented by str. No saving if str == ""
+        """
+
+        # Compute subgraph
+        tasks = nx.get_node_attributes(self.graph, 'task')
+        a = {}
+        nodes = set()
+        for key, value in tasks.items():
+            if value.block == n and value.iteration == k:
+                nodes.add(key)
+                for item in value.dep:
+                    nodes.add(a[item])
+
+            a[value.result] = key
+
+        self.plotGraphPlotly(graph=self.graph.subgraph(nodes))
+        return
+
+    def plotGraphPlotly(self, graph = None):
+        """
+        Plots the graph using plotly
+        """
+        if graph is None:
+            graph = self.graph
+        edge_x = []
+        edge_y = []
+        for edge in graph.edges():
+            x0, y0 = graph.nodes[edge[0]]['pos']
+            x1, y1 = graph.nodes[edge[1]]['pos']
+            edge_x.append(x0)
+            edge_x.append(x1)
+            edge_x.append(None)
+            edge_y.append(y0)
+            edge_y.append(y1)
+            edge_y.append(None)
+
+        edge_trace = go.Scatter(
+            x=edge_x, y=edge_y,
+            line=dict(width=1, color='#888'),
+            hoverinfo='none',
+            marker=dict(size=10, symbol="arrow-bar-up", angleref="previous"),
+            mode='lines+markers')
+
+        fig = go.Figure(data=[edge_trace],
+                        layout=go.Layout(
+                            titlefont_size=16,
+                            showlegend=True,
+                            hovermode='closest',
+                            margin=dict(b=20, l=5, r=5, t=40),
+                        )
+                        )
+
+        node_x = []
+        node_y = []
+        col = []
+        for node in graph.nodes():
+            x, y = graph.nodes[node]['pos']
+            node_x.append(x)
+            node_y.append(y)
+            col.append(graph.nodes[node]['task'].color)
+
+        color = [node[1]['task'].color for node in graph.nodes(data=True)]
+        node_text = [node[1]['res'] for node in graph.nodes(data=True)]
+        inv_map = {v: k for k, v in self.pool.colorLookup.items()}
+        for c in set(color):
+            x_new = [node_x[j] for j in range(len(col)) if col[j] == c]
+            y_new = [node_y[j] for j in range(len(col)) if col[j] == c]
+            text_new = [node_text[j] for j in range(len(col)) if col[j] == c]
+            fig.add_trace(
+                go.Scatter(
+                    x=x_new,
+                    y=y_new,
+                    hoverinfo='text',
+                    marker=dict(
+                        color=c,
+                        size=10,
+                        line_width=2),
+                    text=text_new,
+                    name= inv_map[c],
+                    mode='markers',
+                    showlegend=True
+                )
+            )
+        labels_to_show_in_legend = [inv_map[item] for item in set(color)]
+
+        for trace in fig['data']:
+            if (not trace['name'] in labels_to_show_in_legend):
+                trace['showlegend'] = False
+
+        fig.update_xaxes(title="Time block n")
+        fig.update_yaxes(title="Iteration k")
+
+        fig.show()
 
     def plotGraph(self, figName: str = "", figSize: tuple = (6.4, 4.8), saveFig: str = ""):
         """

@@ -258,9 +258,10 @@ class BlockIteration(object):
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         pool = TaskPool(run=run)
         pintGraph = PintGraph(N, max(K), pool)
-        pintGraph.plotGraphForOneBlock(k=plotIter, n=plotBlock,
-                                       figName=None if self.name is None else self.name + ' (graph)',
-                                       figSize=figSize, saveFig=saveFig)
+        pintGraph.plotGraphForOneBlockPlotly(k=plotIter, n=plotBlock)
+        # pintGraph.plotGraphForOneBlock(k=plotIter, n=plotBlock,
+        #                                figName=None if self.name is None else self.name + ' (graph)',
+        #                                figSize=figSize, saveFig=saveFig)
         return run, pool, pintGraph
 
     def plotGraph(self, N: int, K, figSize: tuple = (6.4, 4.8), saveFig: str = ""):
@@ -268,8 +269,9 @@ class BlockIteration(object):
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         pool = TaskPool(run=run)
         pintGraph = PintGraph(N, max(K), pool)
-        pintGraph.plotGraph(figName=None if self.name is None else self.name + ' (graph)',
-                            figSize=figSize, saveFig=saveFig)
+        pintGraph.plotGraphPlotly()
+        # pintGraph.plotGraph(figName=None if self.name is None else self.name + ' (graph)',
+        #                     figSize=figSize, saveFig=saveFig)
         return run, pool, pintGraph
 
     def plotSchedule(self, N: int, K, nProc: int, schedulerType: str = 'BLOCK-BY-BLOCK', figSize: tuple = (8, 4.8),
@@ -278,8 +280,9 @@ class BlockIteration(object):
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         pool = TaskPool(run=run)
         schedule = getSchedule(taskPool=pool, nProc=nProc, nPoints=N + 1, schedulerType=schedulerType)
-        schedule.plot(figName=None if self.name is None else self.name + f' ({schedule.NAME} schedule)',
-                      figSize=figSize, saveFig=saveFig)
+        schedule.plotPlotly()
+        # schedule.plot(figName=None if self.name is None else self.name + f' ({schedule.NAME} schedule)',
+        #           figSize=figSize, saveFig=saveFig)
 
     def checkK(self, N, K):
         if isinstance(K, int):
