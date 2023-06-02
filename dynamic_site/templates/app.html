@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title }}</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.ico" />
+    <meta name="description" content="description" />
+    <meta name="author" content="author" />
+    <meta name="keywords" content="keywords" />
+  </head>
+  <body>
+    <!-- React -->
+    <div id="root"></div>
+
+    {% if not json_file %}
+    <!-- Dev Mode for Vite -->
+    <script type="module">
+      import RefreshRuntime from 'http://localhost:5173/@react-refresh';
+      RefreshRuntime.injectIntoGlobalHook(window);
+      window.$RefreshReg$ = () => {};
+      window.$RefreshSig$ = () => (type) => type;
+      window.__vite_plugin_react_preamble_installed__ = true;
+    </script>
+    <script type="module" src="http://localhost:5173/@vite/client"></script>
+    <script type="module" src="http://localhost:5173/src/main.tsx"></script>
+    {% else %}
+    <link rel="stylesheet" href="{{ css_file }}" />
+    <script type="module" src="{{ json_file }}"></script>
+    {% endif %}
+
+    <!-- Math Equation Renderer -->
+    <script>
+      MathJax = {
+        loader: { load: ['input/asciimath', 'output/chtml'] },
+        tex: {
+          inlineMath: [
+            ['$', '$'],
+            ['\\(', '\\)'],
+          ],
+        },
+      };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script
+      type="text/javascript"
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+  </body>
+</html>

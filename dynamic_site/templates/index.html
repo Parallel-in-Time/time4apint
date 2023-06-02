@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Call of PinTy</title>
+    <meta name="description" content="description" />
+    <meta name="author" content="author" />
+    <meta name="keywords" content="keywords" />
+
+    <!-- Math Equation Renderer -->
+    <script>
+      MathJax = {
+        loader: { load: ['input/asciimath', 'output/chtml'] },
+        tex: {
+          inlineMath: [
+            ['$', '$'],
+            ['\\(', '\\)'],
+          ],
+        },
+      };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script
+      type="text/javascript"
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+
+    <!-- UIkit CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/uikit@3.16.15/dist/css/uikit.min.css"
+    />
+
+    <!-- UIkit JS -->
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.15/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.15/dist/js/uikit-icons.min.js"></script>
+  </head>
+  <body>
+    <div class="uk-height-1-1 uk-padding uk-background-muted">
+      <div class="uk-container uk-container-expand">
+        <!-- Title -->
+        <div uk-grid>
+          <div class="uk-width-1-1">
+            <h1 class="uk-heading uk-heading-line uk-text-center">
+              <span> Call of PinTy </span>
+            </h1>
+          </div>
+
+          <!-- Description -->
+          <div class="uk-width-1-1">
+            <div class="uk-card uk-card-body uk-card-default uk-card-hover">
+              <div class="uk-container">{{ text | safe }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
