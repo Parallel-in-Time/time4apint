@@ -3665,10 +3665,10 @@ typescript@^5.0.2:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.0.4.tgz#b217fd20119bd61a94d4011274e0ab369058da3b"
   integrity sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==
 
-uikit@^3.16.15:
-  version "3.16.17"
-  resolved "https://registry.yarnpkg.com/uikit/-/uikit-3.16.17.tgz#1d9dfb7373835c6b0e6081d361771e011efb0d36"
-  integrity sha512-nLg75OxuapYMvFMxiy21pU1GAAM+C8g3R2esDwu1QUQRS/xUJ63K6NoWf2+L1U7CQoWy+lp7z7jX8qdFt+lzBg==
+uikit@^3.16.19:
+  version "3.16.19"
+  resolved "https://registry.yarnpkg.com/uikit/-/uikit-3.16.19.tgz#2b1120f32807d5a3fe92837f6a032cf5a46e1bca"
+  integrity sha512-o3q00RX95tpPJrmfghdPJ9xC5FMgLABaqCw2iGXBK55ovqkvtRx4/1FycfaTQuB6Y26RAN/kFpWSEigcBIa3kg==
 
 unified@^10.0.0:
   version "10.1.2"

@@ -18,4 +18,13 @@ export default defineConfig({
     // Output directory
     outDir: '../static/',
   },
+
+  // Include UIKit in the build
+  resolve: {
+    alias: {
+      '../../images/backgrounds': 'uikit/src/images/backgrounds',
+      '../../images/components': 'uikit/src/images/components',
+      '../../images/icons': 'uikit/src/images/icons',
+    },
+  },
 });

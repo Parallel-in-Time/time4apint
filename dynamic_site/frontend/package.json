@@ -22,7 +22,7 @@
     "react-plotly.js": "^2.6.0",
     "rehype-katex": "^6.0.3",
     "remark-math": "^5.1.1",
-    "uikit": "^3.16.15"
+    "uikit": "^3.16.19"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",

@@ -4,7 +4,7 @@ import pkgutil
 import json
 from inspect import getmembers, isclass
 
-from flask import Flask, jsonify, render_template, abort, request
+from flask import Flask, jsonify, render_template, abort, request, send_from_directory
 
 import dynamic_site
 from dynamic_site.app import App, ResponseError
@@ -69,6 +69,11 @@ class Site:
         def index():
             text = self.render_md(open(self.index_file).read())
             return render_template('index.html', text=text)
+        
+
+        @self.flask_app.route('/favicon.ico') 
+        def favicon(): 
+            return send_from_directory(os.path.join(self.flask_app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
         @self.flask_app.route('/<app_name>')
         def app_route(app_name):
