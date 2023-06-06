@@ -6,7 +6,7 @@ function DocsComponent(props: DocsComponentsProps) {
   useEffect(() => {
     // On new render, check for new math formulas
     // @ts-expect-error
-    MathJax.typeset();
+    renderAllMathEquations();
   }, [props.text]);
 
   return (

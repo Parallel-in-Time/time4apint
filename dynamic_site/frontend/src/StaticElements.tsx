@@ -31,7 +31,7 @@ function DocumentationModal(props: {
 }) {
   useEffect(() => {
     // @ts-expect-error
-    MathJax.typeset();
+    renderAllMathEquations();
   }, []);
 
   return (

@@ -9,7 +9,7 @@ import {
   DocumentationButton,
   DocumentationModal,
   HomeButton,
-} from './AbsoluteElements.js';
+} from './StaticElements.js';
 import { useEffect, useState } from 'react';
 
 function Title() {

@@ -24,7 +24,7 @@ def convert_to_web(params: dict[str, BlockParameter]) -> list[WebParameter]:
 # Note that it converts the MultipleChoices to two different WebParameters
 def convert_block_param_to_web(param: BlockParameter) -> WebParameter:
     id_name = str(param.uniqueID)
-    name = f'`{param.latexName}`'
+    name = f'${param.latexName}$'
     placeholder = str(param.__doc__)
     doc = str(param.docs)
     default = param.default

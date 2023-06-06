@@ -26,7 +26,7 @@ function Settings(props: SettingsProp) {
   useEffect(() => {
     // On new render, check for new math formulas
     // @ts-expect-error
-    MathJax.typeset();
+    renderAllMathEquations();
   }, [components]);
 
   return (
