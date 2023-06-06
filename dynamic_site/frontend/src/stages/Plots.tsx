@@ -2,7 +2,7 @@ import PlotsStage from './PlotsStage';
 
 import { PlotsProp } from './Interfaces';
 
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 
 function Plots(props: PlotsProp) {
   const plots = useMemo(
@@ -12,12 +12,6 @@ function Plots(props: PlotsProp) {
       )),
     [props.plots]
   );
-
-  useEffect(() => {
-    // On new render, check for new math formulas
-    // @ts-expect-error
-    renderAllMathEquations();
-  }, [plots]);
 
   return (
     <div>

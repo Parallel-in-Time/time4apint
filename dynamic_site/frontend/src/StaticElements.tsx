@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 function HomeButton() {
   return (
@@ -29,11 +30,6 @@ function DocumentationModal(props: {
   text: string;
   toggleVisibility: Function;
 }) {
-  useEffect(() => {
-    // @ts-expect-error
-    renderAllMathEquations();
-  }, []);
-
   return (
     <div
       style={{
@@ -48,7 +44,11 @@ function DocumentationModal(props: {
       }}
     >
       <div className='uk-container uk-container-expand uk-background-default  uk-padding-large'>
-        <ReactMarkdown>{props.text}</ReactMarkdown>
+        <ReactMarkdown
+          children={props.text}
+          remarkPlugins={[remarkMath]}
+          rehypePlugins={[rehypeKatex]}
+        />
 
         <p className='uk-text-right'>
           <button

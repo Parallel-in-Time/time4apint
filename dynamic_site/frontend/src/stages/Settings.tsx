@@ -3,7 +3,7 @@ import { SettingsProp } from './Interfaces';
 
 import { StageContext } from './StageContext';
 
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 
 function Settings(props: SettingsProp) {
   const components = useMemo(
@@ -22,12 +22,6 @@ function Settings(props: SettingsProp) {
       )),
     [props.settings]
   );
-
-  useEffect(() => {
-    // On new render, check for new math formulas
-    // @ts-expect-error
-    renderAllMathEquations();
-  }, [components]);
 
   return (
     <div>

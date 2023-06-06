@@ -2,6 +2,9 @@ import { useMemo } from 'react';
 import { SettingsStageProp } from './Interfaces';
 import ParameterList from './parameters/ParameterList';
 
+import 'katex/dist/katex.min.css';
+import Latex from 'react-latex-next';
+
 function SettingsStage(props: SettingsStageProp) {
   const parameterList = useMemo(
     () => (
@@ -20,7 +23,7 @@ function SettingsStage(props: SettingsStageProp) {
           className='uk-heading-bullet uk-margin-small-top uk-text-bolder'
           style={{ color: '#666' }}
         >
-          {props.title}
+          <Latex>{props.title}</Latex>
         </div>
       </a>
       <div className='uk-accordion-content'>{parameterList}</div>

@@ -1,14 +1,9 @@
-import { useEffect } from 'react';
 import { DocsComponentsProps } from './Interfaces';
 import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 function DocsComponent(props: DocsComponentsProps) {
-  useEffect(() => {
-    // On new render, check for new math formulas
-    // @ts-expect-error
-    renderAllMathEquations();
-  }, [props.text]);
-
   return (
     <>
       <div className='uk-grid-small uk-child-width-1-1' data-uk-grid>
@@ -16,7 +11,11 @@ function DocsComponent(props: DocsComponentsProps) {
           {props.title}
         </div>
         <div>
-          <ReactMarkdown>{props.text}</ReactMarkdown>
+          <ReactMarkdown
+            children={props.text}
+            remarkPlugins={[remarkMath]}
+            rehypePlugins={[rehypeKatex]}
+          />
         </div>
       </div>
     </>

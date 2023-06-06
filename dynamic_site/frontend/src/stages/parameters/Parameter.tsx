@@ -1,6 +1,9 @@
 import { ParameterProp, ParameterType } from '../Interfaces';
 
 import { useMemo } from 'react';
+import 'katex/dist/katex.min.css';
+import Latex from 'react-latex-next';
+
 import Boolean from './Boolean';
 import Enumeration from './Enumeration';
 import Float from './Float';
@@ -113,7 +116,7 @@ function Parameter(props: ParameterProp) {
   return (
     <div className='uk-margin-small-left uk-padding-small-left' data-uk-grid>
       <span className='uk-padding-remove-left uk-margin-small-right uk-margin-small-top'>
-        {props.name}
+        <Latex>{props.name}</Latex>
       </span>
 
       <div className='uk-width-expand@m uk-padding-remove-left'>

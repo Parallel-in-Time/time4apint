@@ -1,4 +1,6 @@
 import { useEffect, useMemo } from 'react';
+import 'katex/dist/katex.min.css';
+import Latex from 'react-latex-next';
 
 interface Parameters {
   [stage: string]: {
@@ -15,7 +17,10 @@ interface Parameters {
 function Error(props: { name: string }) {
   return (
     <div className='uk-alert-danger uk-margin-small-right' data-uk-alert>
-      <p className='uk-text-bold'>{props.name}</p>
+      <p className='uk-text-bold'>
+        {' '}
+        <Latex>{props.name}</Latex>
+      </p>
     </div>
   );
 }
@@ -23,7 +28,9 @@ function Error(props: { name: string }) {
 function Info(props: { message: string }) {
   return (
     <div className='uk-alert-success' data-uk-alert>
-      <p>{props.message}</p>
+      <p>
+        <Latex>{props.message}</Latex>
+      </p>
     </div>
   );
 }
@@ -55,12 +62,6 @@ function InfoBar(props: {
       <Error name={name} key={i} />
     ));
   }, [props.invalidParameters]);
-
-  useEffect(() => {
-    // On new render, check for new math formulas
-    // @ts-expect-error
-    renderAllMathEquations();
-  }, [errors]);
 
   return (
     <div className='uk-width-1-1' data-uk-sticky>

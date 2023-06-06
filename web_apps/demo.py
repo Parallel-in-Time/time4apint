@@ -43,30 +43,30 @@ $$
 # ==============
 
 s1_params = [
-    Integer('i', r'`i`', r'Placeholder no latex: `\alpha`',
-            r'Hover docs (no latex: `\phi`)', False),
-    StrictlyPositiveInteger('phi', r'`\phi`',
+    Integer('i', r'$i$', r'Placeholder no latex: $\alpha$',
+            r'Hover docs (no latex: $\phi$)', False),
+    StrictlyPositiveInteger('phi', r'$\phi$',
                             'Placeholder: for StrictlyPositiveInteger',
                             r'Hover docs', False),
     Enumeration('option', 'Option', 'Placeholder: for Enumeration',
                 r'Hover docs', False, ['A', 'B', 'C'], 'B'),
-    Boolean('b', r'`\text{A boolean value}`', 'Placeholder: for Boolean',
+    Boolean('b', r'$\text{A boolean value}$', 'Placeholder: for Boolean',
             r'Hover docs', False, True)
 ]
 s2_params = [
-    PositiveInteger('xi', r'`\xi`', 'Placeholder: for PositiveInteger',
+    PositiveInteger('xi', r'$\xi$', 'Placeholder: for PositiveInteger',
                     r'Hover docs', False),
-    StrictlyPositiveInteger('Phi', r'`\Phi`',
+    StrictlyPositiveInteger('Phi', r'$\Phi$',
                             'Placeholder: for StrictlyPositiveInteger',
                             r'Hover docs', False),
-    PositiveFloat('alpha', r'`\alpha_{\beta - 2}^3`',
+    PositiveFloat('alpha', r'$\alpha_{\beta - 2}^3$',
                   'Placeholder: for PositiveFloat', r'Hover docs', False),
-    Float('rho', r'`\rho`', 'Placeholder: for Float', r'Hover docs', False),
+    Float('rho', r'$\rho$', 'Placeholder: for Float', r'Hover docs', False),
     Enumeration('selection', 'Selection', 'Placeholder: for Enumeration',
                 r'Hover docs', False, ['First', 'Second', 'Third']),
-    FloatList('n', r'`n`', r'Placeholder: for FloatList', r'Hover docs',
+    FloatList('n', r'$n$', r'Placeholder: for FloatList', r'Hover docs',
               False),
-    Boolean('b', r'`\mathbb{B}`', 'Placeholder: for Boolean', r'Hover docs',
+    Boolean('b', r'$\mathbb{B}$', 'Placeholder: for Boolean', r'Hover docs',
             False)
 ]
 
