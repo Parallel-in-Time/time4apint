@@ -5,6 +5,8 @@ import sys
 import re
 
 
+SIMPLE_FORM = True
+
 class BlockIterationGenerator():
 
     def __init__(self):
@@ -55,7 +57,24 @@ class BlockIterationGenerator():
             if gen.mode == 1:
                 print('Found rule: \n')
                 print('u_n+1^k+1=')
-                tmp = gen.generateBlockRule().args
+                tmp = gen.generateBlockRule()
+                
+                if SIMPLE_FORM:             
+                    dico = self.generateData(6, 4)
+                    subDico = {}
+                    prol = 1
+                    rest = 1
+                    for i, (phiOp, chiOp, TCtoF, TFtoC, prop) in enumerate(zip(
+                            dico['phi'], dico['chi'], dico['T_c_to_f'], dico['T_f_to_c'],
+                            ['F', 'G', 'H', 'K'])):
+                        sym = sy.symbols(prop, commutative=False)
+                        subDico[prol*phiOp**(-1)*chiOp*rest] = sym
+                        subDico[prol * (phiOp**(-1)*chiOp)**2 * rest] = sym**2
+                        prol = prol*TCtoF
+                        rest = TFtoC*rest
+                    tmp = tmp.subs(subDico)
+                
+                tmp = tmp.args
                 for i in range(len(tmp)):
                     print('   ', str(tmp[i]) if str(tmp[i]).startswith('-') or i == 0 else '+' + str(tmp[i]))
                 print('')
@@ -281,8 +300,9 @@ class Generator:
         return tmp
 
 
-PararealGenerator(n=6)
-MultilevelGenerator(n=6, L=2, pre_smoothing=1, post_smoothing=0)
+# PararealGenerator(n=6)
 MultilevelGenerator(n=6, L=3, pre_smoothing=1, post_smoothing=0)
-MultilevelGenerator(n=6, L=2, pre_smoothing=2, post_smoothing=0)
-MultilevelGenerator(n=6, L=2, pre_smoothing=1, post_smoothing=1)
+# MultilevelGenerator(n=6, L=3, pre_smoothing=1, post_smoothing=0)
+# MultilevelGenerator(n=6, L=4, pre_smoothing=1, post_smoothing=0)
+# MultilevelGenerator(n=6, L=2, pre_smoothing=2, post_smoothing=0)
+# MultilevelGenerator(n=6, L=2, pre_smoothing=1, post_smoothing=1)
