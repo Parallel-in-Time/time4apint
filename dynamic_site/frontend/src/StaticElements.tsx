@@ -43,7 +43,7 @@ function DocumentationModal(props: {
         boxShadow: '0 5px 15px rgba(0, 0, 0, 0.08)',
       }}
     >
-      <div className='uk-container uk-container-expand uk-background-default  uk-padding-large'>
+      <div className='uk-container uk-container-expand uk-background-default uk-padding-large'>
         <ReactMarkdown
           children={props.text}
           remarkPlugins={[remarkMath]}
