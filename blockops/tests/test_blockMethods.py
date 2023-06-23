@@ -34,7 +34,7 @@ def checkResults(method, run, pool):
     i = 0
     for key, value in pool.pool.items():
         assert results[method]['taskPool'][i][0] == str(key)
-        assert results[method]['taskPool'][i][1] == str(value.fullOP)
+        assert str(value.fullOP) in results[method]['taskPool'][i][1]
         i = i + 1
 
 

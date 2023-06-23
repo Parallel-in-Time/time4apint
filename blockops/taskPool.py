@@ -1,6 +1,7 @@
 import sympy as sy
 import re
 import warnings
+import time
 
 from blockops.run import PintRun
 
@@ -109,7 +110,6 @@ class TaskPool(object):
             The PinT run which should be split into tasks
         """
         self.counter = Counter()  # Helper to assign unique task numbers
-        self.tasks = {}  # Additional helper, can probably be removed
         self.results = {}  # Helper to store result of each task
         self.pool = {}  # Actual task pool
         self.colorLookup = {
@@ -223,36 +223,37 @@ class TaskPool(object):
         res : Expression
             The result of this task (full expression).
         """
-        res = (ope * inp).simplify()
-        if res in self.results and type(res) != sy.core.numbers.Zero:
-            # Task already in pool
-            task = self.results[res]
-        elif -res in self.results and type(res) != sy.core.numbers.Zero:
-            # Negative of the task already in pool
-            task = -self.results[-res]
+        if ope * inp in self.results and type(ope * inp) != sy.core.numbers.Zero:
+            task = self.results[ope * inp]
+        elif -ope * inp in self.results and type(-ope * inp) != sy.core.numbers.Zero:
+            task = self.results[-ope * inp]
+        elif ope * -inp in self.results and type(ope * -inp) != sy.core.numbers.Zero:
+            task = self.results[ope * -inp]
+        elif -ope * -inp in self.results and type(-ope * -inp) != sy.core.numbers.Zero:
+            task = self.results[-ope * -inp]
         else:
             # Task not in pool, create and add it
             if result is None:
                 task = sy.symbols(f'u_{n}^{k}_{self.counter}', commutative=False)
             else:
                 task = result
-            # print(task, ':', ope, '--', inp)
-            self.tasks[task] = (ope, inp, dep)
+
+            # Set cost of the task
             if type(ope) == sy.Integer or type(ope) == sy.core.numbers.Zero or type(ope) == sy.core.numbers.NegativeOne:
                 cost = 0
             elif str(ope) in self.blockIteration.blockOps:
                 cost = self.blockIteration.blockOps[str(ope)].cost
             elif str(ope**(-1)) in self.blockIteration.blockOps:
                 cost = self.blockIteration.blockOps[str(ope**(-1))].cost
-                warnings.warn(f'Using cost of the inverse for {ope}')
+                warnings.warn(f'Using cost of the inverse for {str(ope)}')
             else:
                 warnings.warn(f'Unknown costs for operation {str(ope)}, set to 1')
                 cost = 1
-            self.pool[task] = self.createTask(op=ope, fullOp=res, result=task, cost=cost, n=n, k=k, dep=dep)
-            self.results[res] = task
+            self.pool[task] = self.createTask(op=ope, fullOp=ope * inp, result=task, cost=cost, n=n, k=k, dep=dep)
+            self.results[ope * inp] = task
             self.counter.increment()
 
-        return task, res
+        return task, ope * inp
 
     def createTask(self, op, fullOp, result: sy.Symbol, cost: float, n: int, k: int, dep: sy.Symbol):
         """
