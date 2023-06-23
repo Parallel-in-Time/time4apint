@@ -112,11 +112,15 @@ class Scheduler(ABC, ParamClass):
                         )
                         )
         colors = {}
-        for key, value in self.schedule.items():
-            if value.color not in colors:
-                colors[value.color] = [[],[], value.name, value.end - value.start]
+        maxRuntime = 0
         for key, value in self.schedule.items():
             time = value.end - value.start
+
+            if value.color not in colors:
+                colors[value.color] = [[],[], value.name, value.end - value.start, []]
+
+            if value.end > maxRuntime:
+                maxRuntime = value.end
             if time > 0:
                 shapes_x = colors[value.color][0]
                 shapes_y = colors[value.color][1]
@@ -141,11 +145,11 @@ class Scheduler(ABC, ParamClass):
                     fill="toself",
                     fillcolor=key,
                     marker=dict(
-                        color=key,
+                        color='black',
                         size=1,
                         line=dict(
-                            color=key,
-                            width=0.1
+                            color='black',
+                            width=5
                         )
                     ),
                     hoverinfo='text',
