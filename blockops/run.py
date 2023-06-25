@@ -39,6 +39,8 @@ class PintRun:
         self.kMax = kMax  # Maximum number of iterations per block
         self.approxToComputation = {}  # Dictionary result to rule for simplifications
         self.computationToApprox = {}  # Dictionary rule to result for simplifications
+        self.approxToComputationNZero = {}  # Dictionary result to rule for simplifications for the first block
+        self.computationToApproxNZero = {}  # Dictionary rule to result for simplifications for the first block
         self.equBlockCoeff = {}  # Dictionary for simplifications of equivalent block coefficients
         self.generator = [Generator(i) for i in range(max(kMax) + 1)]  # Rule generator for reduced computation times
         self.blockRules = {}
@@ -134,7 +136,7 @@ class PintRun:
         else:
             return True
 
-    def substituteAndSimplify(self, expr, res, k: int):
+    def substituteAndSimplify(self, expr, res, n: int):
         """
         Simplifies expression
 
@@ -159,29 +161,34 @@ class PintRun:
 
         # Expand expression based on previous result:rule pairs
         # Consider only pairs which are directly present in the expression to speed up substitution
-        expr = expr.subs({key: self.approxToComputation[key] for key in
-                          [atoms for atoms in expr.atoms() if str(atoms).startswith('u')] if
-                          key in self.approxToComputation})
+        # Special treatment of block zero
+        if n > 0:
+            expr = expr.subs({key: self.approxToComputation[key] for key in
+                              [atoms for atoms in expr.atoms() if str(atoms).startswith('u')] if
+                              key in self.approxToComputation})
+        else:
+            expr = expr.subs({key: self.approxToComputationNZero[key] for key in
+                              [atoms for atoms in expr.atoms() if str(atoms).startswith('u')] if
+                              key in self.approxToComputationNZero})
+
         # Apply rules if present
         if ruleSimplifaction:
             expr = expr.subs(self.blockIteration.rules)
 
-        # The saver way is to use the first if case, where all entries of computationToApprox are used.
-        # However, this is also quite expensive. Therefore, we only use this strategy
-        # for the first two iterations. For these iterations it is necessary, since everything can go
-        # back to the initial condition. Afterwards, we use a reduced version of computationToApprox
-        # where we only consider entries that contain an u_x^y present in the expr.
-        # if k in [0, 1,2,3,4,5]:
-        if True: # TODO: Make this cheaper again
+        # Special treatment of block zero
+        if n > 0:
             for key, value in self.computationToApprox.items():
                 expr = expr.subs({key: self.computationToApprox[key]})
         else:
-            reducedCompuToApprox = {item2[1]: self.computationToApprox[item2[1]] for item2 in
-                                    [[key.atoms(), key] for key, value in self.computationToApprox.items()] if
-                                    set(item2[0]).intersection(
-                                        set([atoms for atoms in expr.atoms() if str(atoms).startswith('u')]))}
-            for key, value in reducedCompuToApprox.items():
-                expr = expr.subs({key: value})
+            for key, value in self.computationToApproxNZero.items():
+                expr = expr.subs({key: self.computationToApproxNZero[key]})
+        # else:
+        #     reducedCompuToApprox = {item2[1]: self.computationToApprox[item2[1]] for item2 in
+        #                             [[key.atoms(), key] for key, value in self.computationToApprox.items()] if
+        #                             set(item2[0]).intersection(
+        #                                 set([atoms for atoms in expr.atoms() if str(atoms).startswith('u')]))}
+        #     for key, value in reducedCompuToApprox.items():
+        #         expr = expr.subs({key: value})
         tmp = expr
         # Apply rules if present
         if ruleSimplifaction:
@@ -191,7 +198,10 @@ class PintRun:
         if len(self.equBlockCoeff) > 0:
             expr = tmp.subs(self.equBlockCoeff)
             if tmp != expr:
-                expr = expr.subs(self.computationToApprox)
+                if n > 0:
+                    expr = expr.subs(self.computationToApprox)
+                else:
+                    expr = expr.subs(self.computationToApproxNZero)
                 # Apply rules if present
                 if ruleSimplifaction:
                     expr = expr.subs(self.blockIteration.rules)
@@ -231,7 +241,7 @@ class PintRun:
                     # all existing rules and simplify as much as possible
                     if self.generator[0].mode == 0:
                         # If pattern is not detected
-                        rule = self.substituteAndSimplify(self.createPredictionRule(n=n + 1), res, 0)
+                        rule = self.substituteAndSimplify(self.createPredictionRule(n=n + 1), res, n)
                         self.generator[0].check(rule, n + 1)
                     # Else create rule based on pattern
                     else:
@@ -240,12 +250,17 @@ class PintRun:
                     if len(rule.args) > 0:
                         self.approxToComputation[res] = rule
                         self.computationToApprox[rule] = res
+                        if n == 0:
+                            self.computationToApproxNZero[rule] = res
+                            self.approxToComputationNZero[res] = rule
                     else:
                         self.equBlockCoeff[res] = rule
                     self.blockRules[(n + 1, 0)] = {'result': res, 'rule': rule}
 
         # Iterate over iterations and blocks
         for k in range(max(self.kMax)):
+            tmpDicoATC = {}
+            tmpDicoCTA = {}
             for n in range(self.nBlocks):
                 if n >= self.startBlock:
                     if k < self.kMax[n + 1]:
@@ -256,7 +271,7 @@ class PintRun:
                         # If no patterns is detected (mode == 0), substitute
                         # all existing rules and simplify as much as possible
                         if self.generator[k + 1].mode == 0:
-                            rule = self.substituteAndSimplify(self.createIterationRule(n=n + 1, k=k + 1), res, k + 1)
+                            rule = self.substituteAndSimplify(self.createIterationRule(n=n + 1, k=k + 1), res, n)
                             self.generator[k + 1].check(rule, n + 1)
                         # Else create rule based on pattern
                         else:
@@ -265,10 +280,17 @@ class PintRun:
                         if len(rule.args) > 0:
                             self.computationToApprox[rule] = res
                             self.approxToComputation[res] = rule
+                            tmpDicoCTA[rule] = res
+                            tmpDicoATC[res] = rule
+                            if n == 0:
+                                self.computationToApproxNZero[rule] = res
+                                self.approxToComputationNZero[res] = rule
                         else:
                             self.equBlockCoeff[res] = rule
 
                         self.blockRules[(n + 1, k + 1)] = {'result': res, 'rule': rule}
+            self.computationToApprox = tmpDicoCTA
+            self.approxToComputation = tmpDicoATC
 
     def factorizeBlockRules(self) -> None:
         """
