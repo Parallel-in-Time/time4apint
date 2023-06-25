@@ -223,37 +223,45 @@ class TaskPool(object):
         res : Expression
             The result of this task (full expression).
         """
-        if ope * inp in self.results and type(ope * inp) != sy.core.numbers.Zero:
-            task = self.results[ope * inp]
-        elif -ope * inp in self.results and type(-ope * inp) != sy.core.numbers.Zero:
-            task = self.results[-ope * inp]
-        elif ope * -inp in self.results and type(ope * -inp) != sy.core.numbers.Zero:
-            task = self.results[ope * -inp]
-        elif -ope * -inp in self.results and type(-ope * -inp) != sy.core.numbers.Zero:
-            task = self.results[-ope * -inp]
+        tmpRes = ope * inp
+        notZero = type(tmpRes) != sy.core.numbers.Zero
+
+        if tmpRes in self.results and notZero:
+            task = self.results[tmpRes]
+            return task, tmpRes
+
+        check2 = -ope * inp
+        if check2 in self.results and notZero:
+            task = self.results[check2]
+            return task, tmpRes
+
+        check3 = ope * -inp
+        if check3 in self.results and notZero:
+            task = self.results[check3]
+            return task, tmpRes
+
+        # Task not in pool, create and add it
+        if result is None:
+            task = sy.symbols(f'u_{n}^{k}_{self.counter}', commutative=False)
         else:
-            # Task not in pool, create and add it
-            if result is None:
-                task = sy.symbols(f'u_{n}^{k}_{self.counter}', commutative=False)
-            else:
-                task = result
+            task = result
 
-            # Set cost of the task
-            if type(ope) == sy.Integer or type(ope) == sy.core.numbers.Zero or type(ope) == sy.core.numbers.NegativeOne:
-                cost = 0
-            elif str(ope) in self.blockIteration.blockOps:
-                cost = self.blockIteration.blockOps[str(ope)].cost
-            elif str(ope**(-1)) in self.blockIteration.blockOps:
-                cost = self.blockIteration.blockOps[str(ope**(-1))].cost
-                warnings.warn(f'Using cost of the inverse for {str(ope)}')
-            else:
-                warnings.warn(f'Unknown costs for operation {str(ope)}, set to 1')
-                cost = 1
-            self.pool[task] = self.createTask(op=ope, fullOp=ope * inp, result=task, cost=cost, n=n, k=k, dep=dep)
-            self.results[ope * inp] = task
-            self.counter.increment()
+        # Set cost of the task
+        if type(ope) == sy.Integer or type(ope) == sy.core.numbers.Zero or type(ope) == sy.core.numbers.NegativeOne:
+            cost = 0
+        elif str(ope) in self.blockIteration.blockOps:
+            cost = self.blockIteration.blockOps[str(ope)].cost
+        elif str(ope ** (-1)) in self.blockIteration.blockOps:
+            cost = self.blockIteration.blockOps[str(ope ** (-1))].cost
+            warnings.warn(f'Using cost of the inverse for {str(ope)}')
+        else:
+            warnings.warn(f'Unknown costs for operation {str(ope)}, set to 1')
+            cost = 1
+        self.pool[task] = self.createTask(op=ope, fullOp=tmpRes, result=task, cost=cost, n=n, k=k, dep=dep)
+        self.results[tmpRes] = task
+        self.counter.increment()
 
-        return task, ope * inp
+        return task, tmpRes
 
     def createTask(self, op, fullOp, result: sy.Symbol, cost: float, n: int, k: int, dep: sy.Symbol):
         """
