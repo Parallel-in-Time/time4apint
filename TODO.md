@@ -16,10 +16,10 @@ Choice for [Parallel Computing](https://www.sciencedirect.com/journal/parallel-c
 - [ ] Migration to plotly for every plots (Jens + Tibo)
 - [ ] Code cleaning / experiments to checks every edge cases
 - [ ] 3-level analysis :
-    - [ ] symbolic computation (Jens)
+    - [x] symbolic computation (Jens)
     - [ ] computation per hand for reference (Tibo)
 - [ ] template for memo format
-- [ ] reduction of computation time for schedule (Jens)
+- [x] reduction of computation time for schedule (Jens)
 - [ ] addition of other scheduler (bonus, Jens)
 - [ ] proper definition and settings for block costs
 - [ ] validation blockops
