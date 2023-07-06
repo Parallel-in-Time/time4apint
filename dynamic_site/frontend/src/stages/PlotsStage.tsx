@@ -14,7 +14,7 @@ function PlotModal(props: {
         <Plot
           data={p.data}
           layout={p.layout}
-          style={{ width: '100%', minHeight: '50vh' }}
+          style={{ width: '100%', minHeight: '65vh' }}
           config={{ responsive: true }}
         />
       );
@@ -41,13 +41,23 @@ function PlotModal(props: {
         overflow: 'auto',
         boxShadow: '0 5px 15px rgba(0, 0, 0, 0.08)',
       }}
-      className='uk-container uk-container-expand uk-background-default uk-padding-large'
+      className='uk-container uk-container-expand uk-background-default'
     >
-      <div className='uk-padding-large'>
-        <h2 className='uk-title'>{props.plot.title}</h2>
+      <div className='uk-padding-small'>
+        <h2 className='uk-title uk-margin-left'>{props.plot.title}</h2>
 
         <div>{plot()}</div>
-        <p className='uk-text-right'>
+        <p className='uk-text-center'>
+          <button
+            className='uk-button uk-button-primary uk-modal-close uk-width-4-5'
+            type='button'
+            onClick={() => props.toggleVisibility()}
+          >
+            Close
+          </button>
+        </p>
+
+        <div style={{ position: 'absolute', right: '5px', top: '5px' }}>
           <button
             className='uk-button uk-button-default uk-modal-close'
             type='button'
@@ -55,7 +65,7 @@ function PlotModal(props: {
           >
             Close
           </button>
-        </p>
+        </div>
       </div>
     </div>
   );
