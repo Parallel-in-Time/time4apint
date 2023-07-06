@@ -6,6 +6,11 @@ Develop a python code based on a generic framework allowing to investigate and a
 
 Implement a graphical user interface that could be exposed through a [demonstration website (web api)](./doc/website.md).
 
+**Existing Apps** (the links might change)
+
+- [API Demonstration](./demo)
+- [Acuraccy App](./accuracy)
+
 ## Base convention
 
 Represent an iterative PinT algorithm with a **block iteration** of the form
@@ -59,12 +64,11 @@ Additional scripts :
 
 1. [BlockOperator :](./doc/blockOperator.md) base object, used to represents, manipulate and evaluate block operators and block coefficients. Implemented [here](./blockops/block.py), with some documentation details provided [here](./doc/blockOperator.md).
 2. [BlockIteration :](./doc/blockIteration.md) object implementing a block iteration (_i.e_ one given algorithm), using a given set of block coefficients.
-Implemented [here](./blockops/iteration.py), with some documentation details provided [here](./doc/blockIteration.md).
+   Implemented [here](./blockops/iteration.py), with some documentation details provided [here](./doc/blockIteration.md).
 3. [BlockProblem :](./doc/blockProblem.md) object representing a given problem, _i.e_ the numerical solution of the ODE problem represented as a linear system where each time solution is an unknown of the problem.
-Implemented [here](./blockops/problem.py), with some documentation details provided [here](./doc/blockProblem.md).
+   Implemented [here](./blockops/problem.py), with some documentation details provided [here](./doc/blockProblem.md).
 4. [Task Graph:](./doc/taskGraphs.md) TODO
 5. [Schedule:](./doc/schedules.md) TODO
-
 
 **:scroll: Important notes** :
 
@@ -75,10 +79,10 @@ Implemented [here](./blockops/problem.py), with some documentation details provi
 ## Acknowledgements
 
 This repository results from a collaboration between University of Wuppertal
-([Jens HAHNE](https://www.hpc.uni-wuppertal.de/de/mitarbeiter/jens-hahne/)) and 
-Hamburg University of Technology 
+([Jens HAHNE](https://www.hpc.uni-wuppertal.de/de/mitarbeiter/jens-hahne/)) and
+Hamburg University of Technology
 ([Thibaut LUNET](https://www.mat.tuhh.de/home/tlunet/?homepage_id=tlunet)),
-as part of the [Time-X project](https://www.timex-eurohpc.eu/). 
+as part of the [Time-X project](https://www.timex-eurohpc.eu/).
 
 1. [Basic example with Parareal](./notebook/01_baseTuto.ipynb)
 2. [Playing with Approximate Block Jacobi](./notebook/02_ApproximateBlockJacobi.ipynb)
@@ -93,7 +97,7 @@ as part of the [Time-X project](https://www.timex-eurohpc.eu/).
 This project has received funding from the [European High-Performance Computing Joint Undertaking](https://eurohpc-ju.europa.eu/) (JU)
 under grant agreement No 955701 ([Time-X](https://www.timex-eurohpc.eu/)).
 The JU receives support from the European Union’s Horizon 2020 research and innovation programme and Belgium, France, Germany, and Switzerland.
-This project also received funding from the 
+This project also received funding from the
 [German Federal Ministry of Education and Research](https://www.bmbf.de/bmbf/en/home/home_node.html) (BMBF) grant 16HPC048.
 
 <p align="center">
@@ -105,7 +109,7 @@ This project also received funding from the
 ## Web Interface
 
 Install the dependencies stated in the `requirements.txt` and then open a browser at `127.0.0.1:8000` after running
+
 ```sh
 python web.py
 ```
-
