@@ -9,7 +9,7 @@ Implement a graphical user interface that could be exposed through a [demonstrat
 **Existing Apps** (the links might change)
 
 - [API Demonstration](./demo)
-- [Acuraccy App](./accuracy)
+- [Accuracy App](./accuracy)
 
 ## Base convention
 
