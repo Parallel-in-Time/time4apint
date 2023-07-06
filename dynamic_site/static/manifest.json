@@ -301,10 +301,8 @@
       "assets/KaTeX_Typewriter-Regular-e14fed02.woff",
       "assets/KaTeX_Typewriter-Regular-f01f3e87.ttf"
     ],
-    "css": [
-      "assets/main-d34577cc.css"
-    ],
-    "file": "assets/main-0b2da284.js",
+    "css": ["assets/main-d34577cc.css"],
+    "file": "assets/main-8b19878b.js",
     "isEntry": true,
     "src": "src/main.tsx"
   }
