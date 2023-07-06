@@ -153,7 +153,9 @@ class Site:
                     self.apps[app_name].compute(request_data).get_stages()
                 )
             except ResponseError as e:
-                return str(e), 400  # jsonify({'error': str(e)})
+                return str(e), 400
+            except Exception as e:
+                return f"<b>Internal Error</b><br>{str(e)}", 400
 
             # Serialize them to objects
             docs = [stage.serialize() for stage in docs]
