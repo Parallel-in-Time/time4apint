@@ -5,7 +5,6 @@ from dynamic_site.stage.parameters import Parameter
 
 
 class DocsStage:
-
     def __init__(
         self,
         title: str,
@@ -27,13 +26,12 @@ class DocsStage:
 
     def serialize(self) -> dict[str, Any]:
         return {
-            'title': self.title,
-            'text': self.text,
+            "title": self.title,
+            "text": self.text,
         }
 
 
 class SettingsStage:
-
     def __init__(
         self,
         unique_name: str,
@@ -67,26 +65,37 @@ class SettingsStage:
                 # Might raise another KeyError
                 parameter.optional = response_data[parameter.id]
             except KeyError:  # If its from another
-                raise KeyError(
-                    f'"{parameter.id}" not in response settings data!')
+                raise KeyError(f'"{parameter.id}" not in response settings data!')
 
-        return SettingsStage(self.unique_name, self.title, parameters,
-                             self.folded)
+        return SettingsStage(self.unique_name, self.title, parameters, self.folded)
+
+    def convert_to_types(self, response_data: dict[str, Any]) -> dict[str, Any]:
+        result = {}
+        for parameter in self.parameters:
+            try:
+                result[parameter.id] = parameter.convert(response_data[parameter.id])
+            except KeyError:  # If for some reason this parameter doesn't exist
+                print(
+                    f"The parameter {parameter.id} doesn't exist. This might be a development problem."
+                )
+            except ValueError:  # If for some reason the conversion doesn't work
+                print(
+                    f"The parameter {parameter.id} = {response_data[parameter.id]} couldn't be converted. This might be a development problem."
+                )
+        return result
 
     def serialize(
-        self
+        self,
     ) -> dict[str, Any]:  # Returns a dictionary to be sent to the frontend
         return {
-            'id': self.unique_name,
-            'title': self.title,
-            'parameters':
-            [parameter.serialize() for parameter in self.parameters],
-            'folded': self.folded
+            "id": self.unique_name,
+            "title": self.title,
+            "parameters": [parameter.serialize() for parameter in self.parameters],
+            "folded": self.folded,
         }
 
 
 class PlotsStage:
-
     def __init__(
         self,
         title: str,
@@ -108,6 +117,6 @@ class PlotsStage:
 
     def serialize(self) -> dict[str, Any]:
         return {
-            'title': self.title,
-            'plot': self.plot,
+            "title": self.title,
+            "plot": self.plot,
         }

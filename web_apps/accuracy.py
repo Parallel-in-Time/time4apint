@@ -84,9 +84,14 @@ class Accuracy(App):
         # =================
         # Some computations
 
-        # id of the settings stage, then variable
-        nBlocks = int(response_data["block_problem"]["N"])
-        K = [int(response_data["block_problem"]["K"])] * nBlocks
+        # Convert the parameters of the block_problem stage to its corresponding types
+        block_problem_data = s1_settings.convert_to_types(
+            response_data["block_problem"]
+        )
+
+        # Then access the converted variables
+        nBlocks = block_problem_data["N"]
+        K = [block_problem_data["K"]] * nBlocks
 
         G = BlockOperator("G", cost=1)
         F = BlockOperator("F", cost=10)
