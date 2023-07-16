@@ -42,23 +42,32 @@ function DocumentationModal(props: {
         overflow: 'auto',
         boxShadow: '0 5px 15px rgba(0, 0, 0, 0.08)',
       }}
+      className='uk-container uk-container-expand uk-background-default uk-padding-large'
     >
-      <div className='uk-container uk-container-expand uk-background-default uk-padding-large'>
-        <ReactMarkdown
-          children={props.text}
-          remarkPlugins={[remarkMath]}
-          rehypePlugins={[rehypeKatex]}
-        />
+      <ReactMarkdown
+        children={props.text}
+        remarkPlugins={[remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+      />
 
-        <p className='uk-text-right'>
-          <button
-            className='uk-button uk-button-default uk-modal-close'
-            type='button'
-            onClick={() => props.toggleVisibility()}
-          >
-            Close
-          </button>
-        </p>
+      <p className='uk-text-center'>
+        <button
+          className='uk-button uk-button-primary uk-modal-close uk-width-4-5'
+          type='button'
+          onClick={() => props.toggleVisibility()}
+        >
+          Close
+        </button>
+      </p>
+
+      <div style={{ position: 'absolute', right: '5px', top: '5px' }}>
+        <button
+          className='uk-button uk-button-default uk-modal-close'
+          type='button'
+          onClick={() => props.toggleVisibility()}
+        >
+          Close
+        </button>
       </div>
     </div>
   );

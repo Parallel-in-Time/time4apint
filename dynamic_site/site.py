@@ -11,6 +11,7 @@ import dynamic_site
 from dynamic_site.app import App, ResponseError
 
 import mistune
+import emoji
 
 
 def import_module(path):
@@ -40,11 +41,24 @@ class Site:
 
         self.generate_apps()
 
-        self.index_file = f"{apps_path}/index.md"
-        if not os.path.exists(self.index_file):
-            raise RuntimeError(f'There is no index.md file in "{apps_path}"!')
+        # Initialize the index text from the readme once, it doesn't change
+        self.make_index_text()
 
         self.initialize_flask_server()
+
+    def make_index_text(self) -> None:
+        # Note that this conversion isn't really clean...
+        index_file = "README.md"
+        if not os.path.exists(index_file):
+            raise RuntimeError(f"The README.md file couldn't be found!")
+
+        raw = open(index_file).read()
+        lines = raw.split("\n")
+        self.title = lines[0][2:]  # Remove the hashtag at front
+
+        math_fixed = "\n".join(lines[1:]).replace("```math", "$$").replace("```", "$$")
+
+        self.index_text = emoji.emojize(self.render_md(math_fixed))
 
     def generate_apps(self) -> None:
         modules = import_module(self.apps_path)
@@ -77,8 +91,7 @@ class Site:
 
         @self.flask_app.route("/")
         def index():
-            text = self.render_md(open(self.index_file).read())
-            return render_template("index.html", text=text)
+            return render_template("index.html", title=self.title, text=self.index_text)
 
         @self.flask_app.route("/favicon.ico")
         def favicon():
@@ -140,7 +153,9 @@ class Site:
                     self.apps[app_name].compute(request_data).get_stages()
                 )
             except ResponseError as e:
-                return str(e), 400  # jsonify({'error': str(e)})
+                return str(e), 400
+            except Exception as e:
+                return f"<b>Internal Error</b><br>{str(e)}", 400
 
             # Serialize them to objects
             docs = [stage.serialize() for stage in docs]
@@ -165,4 +180,4 @@ class Site:
         return self.flask_app
 
     def run(self) -> None:
-        self.flask_app.run(debug=False, host="0.0.0.0", port=8000)
+        self.flask_app.run(debug=True, host="0.0.0.0", port=8000)
