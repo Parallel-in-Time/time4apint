@@ -48,7 +48,7 @@ class Parameter(object):
             if self.name is None:
                 return None
             else:
-                return r"\text{"f"{self.name[0].upper() + self.name[1:]}""}"
+                return f"{self.name[0].upper() + self.name[1:]}"
         else:
             return self._latexName
         

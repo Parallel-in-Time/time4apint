@@ -15,7 +15,7 @@ from blockops.utils.params import setParams, Boolean
 
 @register
 @setParams(
-    collUpdate=Boolean(latexName=r'\text{Collocation Update}')
+    collUpdate=Boolean(latexName="Collocation Update")
     )
 class Collocation(BlockScheme):
     """

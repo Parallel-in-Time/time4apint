@@ -23,10 +23,10 @@ def getTransferMatrices(nodesFine, nodesCoarse, vectorized=False):
 
 
 @setParams(
-    nPoints=PositiveInteger(latexName='M'),
-    ptsType=MultipleChoices(*NODE_TYPES, latexName=r'\text{Distribution}'),
-    quadType=MultipleChoices(*QUAD_TYPES, latexName=r'\text{Quadrature Type}'),
-    form=MultipleChoices('Z2N', 'N2N', latexName=r'\text{Formulation}')
+    nPoints=PositiveInteger(latexName='$M$'),
+    ptsType=MultipleChoices(*NODE_TYPES, latexName="Point Distribution"), 
+    quadType=MultipleChoices(*QUAD_TYPES, latexName="Quadrature Type"),
+    form=MultipleChoices('Z2N', 'N2N')
 )
 class BlockScheme(ParamClass):
     """

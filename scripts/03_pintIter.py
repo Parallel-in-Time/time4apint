@@ -9,13 +9,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from blockops import BlockProblem
-from blockops.plots import plotAccuracyContour, plotContour
+
+import blockops.plots as bp
+bp = bp.Matplotlib
 
 nBlocks = 10
 nPoints = 1
-schemeF = 'RK4'
+schemeF = 'BE'
 nStepsF = 20
-schemeG = 'RK4'
+schemeG = 'BE'
 nStepsG = 1
 algoName = 'Parareal'
 
@@ -48,8 +50,8 @@ errDiscr = np.abs(uExact - uNum)
 errDiscrMax = np.max(errDiscr, axis=(0, -1)).reshape(lam.shape)
 stab = np.abs(uNum)[0, :, -1].reshape(lam.shape)
 if plotFineDiscrError:
-    plotAccuracyContour(reLam, imLam, errDiscrMax, stab, 
-                        figName=f'discrErr, {suffix}')
+    bp.plotAccuracyContour(reLam, imLam, errDiscrMax, stab, 
+                           figName=f'discrErr, {suffix}')
 
 # Compute approximate solution and error
 uApprox = prob.getSolution('approx')
@@ -57,8 +59,8 @@ errApprox = np.abs(uNum - uApprox)
 errApproxMax = np.max(errApprox, axis=(0, -1)).reshape(lam.shape)
 stab = np.abs(uApprox)[0, :, -1].reshape(lam.shape)
 if plotApproxError:
-    plotAccuracyContour(reLam, imLam, errApproxMax, stab, 
-                        figName=f'coarseErr, {suffix}')
+    bp.plotAccuracyContour(reLam, imLam, errApproxMax, stab, 
+                           figName=f'coarseErr, {suffix}')
 
 # Compute PinT solution and error
 nIterMax = nBlocks
@@ -77,8 +79,8 @@ for err in errPinTMax[-1::-1]:
 
 if plotNumIter:
     # Plot number of iteration until discretization error
-    plotContour(reLam=reLam, imLam=imLam, val=nIter, levels=None, 
-                figName=f'PinTIter, {suffix}')
+    bp.plotContour(reLam=reLam, imLam=imLam, val=nIter, levels=None, 
+                   figName=f'PinTIter, {suffix}')
     plt.gcf().set_size_inches(7.56, 8.72)
 
 reqIters = np.unique(nIter).tolist()
@@ -96,9 +98,9 @@ if computeLCF:
     nEfficiency = efficiencyLCF[nIter]
     
     # Plotting
-    plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, 
+    plt.plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, 
                 levels=None, figName=f'Lowest Cost First Schedule, {suffix}')
-    plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, 
+    bp.plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, 
                 levels=None, figName=f'Lowest Cost First Schedule, {suffix}')
     plt.gcf().set_size_inches(7.56, 8.72)
 
@@ -112,8 +114,8 @@ nSpeedup = speedupBbB[nIter]
 nEfficiency = efficiencyBbB[nIter]
 
 # Plotting
-plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, 
-            levels=None, figName=f'Block-by-Block Schedule, {suffix}')
-plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, 
-            levels=None, figName=f'Block-by-Block Schedule, {suffix}')
+bp.plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, 
+               levels=None, figName=f'Block-by-Block Schedule, {suffix}')
+bp.plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, 
+               levels=None, figName=f'Block-by-Block Schedule, {suffix}')
 plt.gcf().set_size_inches(7.56, 8.72)

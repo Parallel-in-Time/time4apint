@@ -17,10 +17,13 @@ Other arguments can be given
 import numpy as np
 
 from blockops import BlockProblem
-from blockops.plots import plotAccuracyContour
+import blockops.plots as bp
 
-reLam = np.linspace(-4, 0.5, 128)
-imLam = np.linspace(-3, 3, 128)
+bp = bp.Plotly
+
+
+reLam = np.linspace(-4, 0.5, 256)
+imLam = np.linspace(-3, 3, 256)
 nBlocks = 10
 
 params = {
@@ -51,4 +54,5 @@ errMax = np.max(err, axis=(0, -1)).reshape(lam.shape)
 err = errMax
 
 # Plot discretization error on complex plane
-plotAccuracyContour(reLam, imLam, err, stab)
+fig = bp.plotAccuracyContour(reLam, imLam, err, stab)
+fig.show()

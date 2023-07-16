@@ -8,11 +8,13 @@ Created on Thu Dec 22 09:25:12 2022
 import numpy as np
 
 from blockops import BlockProblem
-from blockops.plots import plotAccuracyContour
+import blockops.plots as plt
+
+plt = plt.Plotly
 
 zoom = 1
-reLam = np.linspace(-4/zoom, 0.5/zoom, 128)
-imLam = np.linspace(-3/zoom, 3/zoom, 128)
+reLam = np.linspace(-4/zoom, 0.5/zoom, 256)
+imLam = np.linspace(-3/zoom, 3/zoom, 256)
 nBlocks = 10
 nPoints = 1
 scheme = 'RK4'
@@ -29,7 +31,7 @@ prob.setApprox('RungeKutta', rkScheme=scheme, nStepsPerPoint=nStepsG)
 algo = prob.getBlockIteration(algoName)
 
 uNum = prob.getSolution('fine')
-uPar = algo(nIter=4)
+uPar = algo(nIter=2)
 
 err = np.abs(uNum-uPar)
 
@@ -40,4 +42,4 @@ errMax = np.max(err[-1], axis=(0, -1)).reshape(lam.shape)
 err = errMax
 
 # Plot discretization error on complex plane
-plotAccuracyContour(reLam, imLam, err, stab)
+plt.plotAccuracyContour(reLam, imLam, err, stab).show()

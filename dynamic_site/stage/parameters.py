@@ -1,6 +1,7 @@
 from typing import Any
 from enum import Enum
 
+import blockops.utils.params as bp
 from dynamic_site.stage.utils import slugify
 
 
@@ -253,3 +254,29 @@ class Boolean(Parameter):
 
     def convert(self, value: str) -> Any:
         return bool(value)
+
+
+def getParam(name: str, param: bp.Parameter) -> Parameter:
+    if type(param) == bp.PositiveInteger:
+        return StrictlyPositiveInteger(
+            name, param.latexName, 
+            param.docs, 
+            param.docs, 
+            False,
+            value=param.default)
+    elif type(param) == bp.MultipleChoices:
+        return Enumeration(
+            name, param.latexName, 
+            param.docs, 
+            param.docs, 
+            False,
+            param.choices,
+            value=param.default)
+    elif type(param) == bp.Boolean:
+        return Boolean(
+            name, param.latexName, 
+            param.docs, 
+            param.docs, 
+            False,
+            value=param.default)
+    raise NotImplementedError(f"type(param) = {type(param)}")

@@ -55,8 +55,8 @@ N_STAGES = {
 
 @register
 @setParams(
-    rkScheme=MultipleChoices(*STABILITY_FUNCTIONS.keys(), latexName=r'\text{Scheme}'),
-    nStepsPerPoint=PositiveInteger(latexName=r'\ell')
+    rkScheme=MultipleChoices(*STABILITY_FUNCTIONS.keys(), latexName=r'RK Scheme'),
+    nStepsPerPoint=PositiveInteger(latexName=r'$\ell$')
     )
 class RungeKutta(BlockScheme):
     """
@@ -67,7 +67,7 @@ class RungeKutta(BlockScheme):
     rkScheme : str, optional
         Name of the Runge-Kutta scheme (BE, FE, TRAP, RK4, ...).
     nStepsPerPoint : int, optional
-        Number of time-steps per block time point.
+        Number of time-steps time point in each block.
     """
     def __init__(self, nPoints, ptsType='EQUID', quadType='LOBATTO', form='Z2N',
                  rkScheme='BE', nStepsPerPoint=1):

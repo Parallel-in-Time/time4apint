@@ -14,8 +14,8 @@ nBlocks = 10
 nPoints = 1
 schemeF = 'RK4'
 nStepsF = 20
-schemeG = 'RK4'
-nStepsG = 1
+schemeG = 'RK2'
+nStepsG = 2
 algoName = 'Parareal'
 
 
