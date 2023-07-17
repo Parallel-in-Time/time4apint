@@ -15,7 +15,7 @@ from blockops.webutils import convert_block_param_to_web
 # ===================
 
 s1_docs = stages.DocsStage(
-    "Defining the Block Problem",
+    "Quick Documentation",
     r"""
 First define the **Block Problem** representing the time-dependant problem,
 that can be represented into matrix form as :
@@ -36,8 +36,21 @@ $$
 \end{bmatrix}
 $$
 
-with $N$ the number of blocks. Then the **Block Operators** $\phi$ and $\chi$
-are determined considering the chosen time-integration method ... 
+with $N$ the number of blocks.
+Each block represent a time solution on $M$ time points
+which follow a given distribution (equidistant, legendre, ...)
+and a quadrature type that denote wether block boundary are included
+(or not) in the block time points :
+
+- LOBATTO : include both left and right block boundary
+- RADAU-RIGHT : include right block boundary only
+- RADAU-LEFT : include left block boundary only
+- GAUSS : do not include any block boundary 
+
+Then the **Block Operators** $\phi$ and $\chi$
+are determined considering the chosen time-integration method,
+that can have specific parameters depending on the chosen
+time scheme ...
 """,
 )
     
@@ -52,7 +65,6 @@ Define the Block Scheme parameters ...
 # Settings Stage
 # ==============
 
-# block_problem_web_params = convert_to_web(BlockProblem.PARAMS)
 block_problem_web_params = [
     par.StrictlyPositiveInteger(
         "nBlocks",
@@ -61,8 +73,7 @@ block_problem_web_params = [
         r"Strictly positive integer",
         False,
     ),
-    *[#par.getParam(name, param) 
-      convert_block_param_to_web(param)
+    *[convert_block_param_to_web(param, name)
       for name, param in BlockScheme.PARAMS.items()
       if name in ['nPoints', 'ptsType', 'quadType']],
     par.Enumeration(
@@ -75,7 +86,7 @@ block_problem_web_params = [
 ]
 
 s1_settings = stages.SettingsStage(
-    "block_problem", s1_docs.title, block_problem_web_params, False
+    "block_problem", "Parameter Settings", block_problem_web_params, False
 )
 
 
@@ -121,7 +132,7 @@ class Accuracy(App):
         # Add scheme-specific parameters
         block_scheme_params = [
             # par.getParam(name, param) 
-            convert_block_param_to_web(param)
+            convert_block_param_to_web(param, name)
             for name, param in Scheme.PARAMS.items()
             if name not in BlockScheme.PARAMS.keys()
         ]
@@ -174,7 +185,7 @@ class Accuracy(App):
         err = np.abs(uExact-uNum)
 
         stab = np.abs(uNum)[0, :, -1].reshape(lam.shape)
-        errEnd = err[-1, :, -1].reshape(lam.shape) # For later ...
+        # errEnd = err[-1, :, -1].reshape(lam.shape) # For later ...
         errMax = np.max(err, axis=(0, -1)).reshape(lam.shape)
 
         err = errMax

@@ -4,8 +4,6 @@ from dynamic_site.stage.parameters import Parameter as WebParameter
 from dynamic_site.stage import parameters as web_params
 from blockops.utils import params as block_params
 
-from dynamic_site.stage.utils import slugify
-
 # Note: M = nPoints
 
 
@@ -22,8 +20,8 @@ def convert_to_web(params: dict[str, BlockParameter]) -> list[WebParameter]:
 
 
 # Note that it converts the MultipleChoices to two different WebParameters
-def convert_block_param_to_web(param: BlockParameter) -> WebParameter:
-    id_name = str(param.uniqueID)
+def convert_block_param_to_web(param: BlockParameter, name=None) -> WebParameter:
+    id_name = str(param.uniqueID) if name is None else name
     name = param.latexName
     placeholder = str(param.__doc__)
     doc = str(param.docs).replace('\n', ' ')

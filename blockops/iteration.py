@@ -280,7 +280,8 @@ class BlockIteration(object):
         run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
         pool = TaskPool(run=run)
         schedule = getSchedule(taskPool=pool, nProc=nProc, nPoints=N + 1, schedulerType=schedulerType)
-        schedule.plotPlotly()
+        return schedule.plotPlotly()
+        
         # schedule.plot(figName=None if self.name is None else self.name + f' ({schedule.NAME} schedule)',
         #           figSize=figSize, saveFig=saveFig)
 

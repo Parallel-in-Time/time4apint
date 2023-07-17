@@ -13,7 +13,10 @@ Choice for [Parallel Computing](https://www.sciencedirect.com/journal/parallel-c
 
 ## Library, Analysis
 
-- [ ] Migration to plotly for every plots (Jens + Tibo)
+- [ ] Migration to plotly for every plots
+    - [x] contours for in log scale (discretization error, PinT error)
+    - [ ] contours in linear scale (nIter, speedup, efficiency)
+    - [ ] 2D plots
 - [ ] Code cleaning / experiments to checks every edge cases
 - [ ] 3-level analysis :
     - [x] symbolic computation (Jens)
@@ -29,7 +32,7 @@ Choice for [Parallel Computing](https://www.sciencedirect.com/journal/parallel-c
 
 ## Website
 
-- [ ] First application with time discretization accuracy / stability (Tibo)
+- [x] First application with time discretization accuracy / stability (Tibo)
 - [ ] Second application with cost and schedule (Jens)
 
 # Additional Ideas

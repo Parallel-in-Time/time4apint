@@ -164,7 +164,7 @@ class Scheduler(ABC, ParamClass):
             ticktext=['P' + str(i) for i in range(self.nProc - 1, -1, -1)],
             tickvals=(np.linspace(self.nProc - 1, 0, self.nProc) + 0.5).tolist(),
         )
-        fig.show()
+        return fig
 
     def plot(self, figName: str, figSize: tuple = (8, 4.8), saveFig: str = "") -> None:
         """
@@ -214,6 +214,7 @@ class Scheduler(ABC, ParamClass):
         if saveFig != "":
             fig.savefig(saveFig, bbox_inches='tight', pad_inches=0.5)
         fig.show()
+        return fig
 
 
 # Dictionary to store all the scheduler implementations

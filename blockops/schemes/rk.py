@@ -67,7 +67,7 @@ class RungeKutta(BlockScheme):
     rkScheme : str, optional
         Name of the Runge-Kutta scheme (BE, FE, TRAP, RK4, ...).
     nStepsPerPoint : int, optional
-        Number of time-steps time point in each block.
+        Number of time-steps per time point in each block.
     """
     def __init__(self, nPoints, ptsType='EQUID', quadType='LOBATTO', form='Z2N',
                  rkScheme='BE', nStepsPerPoint=1):
