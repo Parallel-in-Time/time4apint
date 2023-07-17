@@ -55,7 +55,8 @@ pararealSettings = [
         placeholder='', 
         doc='Type of scheduler use for Parareal', 
         optional=False,
-        choices=SCHEDULERS
+        choices=SCHEDULERS,
+        value='BLOCK-BY-BLOCK'
     ),
 ]
 
