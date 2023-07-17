@@ -8,6 +8,7 @@ import dynamic_site.stage.stages as stages
 from blockops.schemes import BlockScheme, SCHEMES
 from blockops.problem import BlockProblem 
 from blockops.plots import Plotly as bp
+from blockops.webutils import convert_block_param_to_web
 
 # ===================
 # Documentation Stage
@@ -60,7 +61,8 @@ block_problem_web_params = [
         r"Strictly positive integer",
         False,
     ),
-    *[par.getParam(name, param) 
+    *[#par.getParam(name, param) 
+      convert_block_param_to_web(param)
       for name, param in BlockScheme.PARAMS.items()
       if name in ['nPoints', 'ptsType', 'quadType']],
     par.Enumeration(
@@ -93,6 +95,8 @@ class Accuracy(App):
         super().__init__(title="Accuracy on Complex Plane")
 
     def compute(self, response_data: dict[str, Any] | None) -> ResponseStages:
+        print(f"Current status is {STATUS['current']}")
+        
         # Create a response, where stages will be added to
         r = ResponseStages()
 
@@ -116,7 +120,8 @@ class Accuracy(App):
         
         # Add scheme-specific parameters
         block_scheme_params = [
-            par.getParam(name, param) 
+            # par.getParam(name, param) 
+            convert_block_param_to_web(param)
             for name, param in Scheme.PARAMS.items()
             if name not in BlockScheme.PARAMS.keys()
         ]
@@ -142,49 +147,46 @@ class Accuracy(App):
             False
         )
         r.add_settings_stage(s2_settings)
-        
-        if STATUS['current'] == 's1':
+
+        if 'additional' not in response_data:
             r.add_plot_stage(s1_plot)
-            STATUS['current'] = 's2'
             return r
-            
-        if STATUS['current'] == 's2':
-            
-            parS1 = s1_settings.convert_to_types(
-                response_data["block_problem"]
-            )
-            parS2 = s2_settings.convert_to_types(
-                response_data["additional"]
-            )
-            zoom = parS2.pop('zoom')
-            parS1.update(parS2)
-            parS1['tEnd'] = parS1['nBlocks']
-            
-            
-            reLam = np.linspace(-4*zoom, 0.5*zoom, 256)
-            imLam = np.linspace(-3*zoom, 3*zoom, 256)
-            
-            lam = reLam[:, None] + 1j*imLam[None, :]
-            prob = BlockProblem(lam.ravel(), **parS1)
-
-            uExact = prob.getSolution('exact')
-            uNum = prob.getSolution('fine')
-            err = np.abs(uExact-uNum)
-
-            stab = np.abs(uNum)[0, :, -1].reshape(lam.shape)
-            errEnd = err[-1, :, -1].reshape(lam.shape) # For later ...
-            errMax = np.max(err, axis=(0, -1)).reshape(lam.shape)
-
-            err = errMax
-
-            # Plot discretization error on complex plane
-            fig = bp.plotAccuracyContour(reLam, imLam, err, stab)
-            
-            # === Response ===
         
-            plot_stage = s1_plot.copy()
-            plot_stage.plot = fig.to_json()
-            r.add_plot_stage(plot_stage)
+        parS1 = s1_settings.convert_to_types(
+            response_data["block_problem"]
+        )
+        parS2 = s2_settings.convert_to_types(
+            response_data["additional"]
+        )
+        zoom = parS2.pop('zoom')
+        parS1.update(parS2)
+        parS1['tEnd'] = parS1['nBlocks']
+        
+        
+        reLam = np.linspace(-4*zoom, 0.5*zoom, 256)
+        imLam = np.linspace(-3*zoom, 3*zoom, 256)
+        
+        lam = reLam[:, None] + 1j*imLam[None, :]
+        prob = BlockProblem(lam.ravel(), **parS1)
+
+        uExact = prob.getSolution('exact')
+        uNum = prob.getSolution('fine')
+        err = np.abs(uExact-uNum)
+
+        stab = np.abs(uNum)[0, :, -1].reshape(lam.shape)
+        errEnd = err[-1, :, -1].reshape(lam.shape) # For later ...
+        errMax = np.max(err, axis=(0, -1)).reshape(lam.shape)
+
+        err = errMax
+
+        # Plot discretization error on complex plane
+        fig = bp.plotAccuracyContour(reLam, imLam, err, stab)
+        
+        # === Response ===
+    
+        plot_stage = s1_plot.copy()
+        plot_stage.plot = fig.to_json()
+        r.add_plot_stage(plot_stage)
         
         return r
 
