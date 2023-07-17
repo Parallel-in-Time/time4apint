@@ -55,10 +55,11 @@ class Plotly():
             constrain="domain"
         )
         fig.update_yaxes(
+            constrain="domain",
             scaleanchor="x",
             scaleratio=1,
         )
-        fig.update_layout(height=450, width=380)
+        fig.update_layout(margin=dict(l=0, r=0, b=0, t=0), height=450)
         return fig
     
 
