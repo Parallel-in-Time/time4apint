@@ -11,7 +11,8 @@ Implement a graphical user interface that could be exposed through a [demonstrat
 **Existing Apps** (the links might change)
 
 - [API Demonstration](./demo)
-- [Accuracy App](./accuracy)
+- [Accuracy (and stability) of general time-discretization on the Complex Plane](./accuracy)
+- [Parareal Scheduling](./pararealSchedule)
 
 ## Base convention
 
