@@ -53,12 +53,13 @@ class Site:
             raise RuntimeError(f"The README.md file couldn't be found!")
 
         raw = open(index_file).read()
+
         lines = raw.split("\n")
         self.title = lines[0][2:]  # Remove the hashtag at front
 
-        math_fixed = "\n".join(lines[1:]).replace("```math", "$$").replace("```", "$$")
+        content = "\n".join(lines[1:])
 
-        self.index_text = emoji.emojize(self.render_md(math_fixed))
+        self.index_text = emoji.emojize(self.render_md(content))
 
     def generate_apps(self) -> None:
         modules = import_module(self.apps_path)
