@@ -8,11 +8,11 @@ In addition to this code, a website framework is provided to allow building of *
 that uses the [blockops] code for specific application and experiments. Currently, the website is available at
 https://jupyterhub.mat.tu-harburg.de/blockops/, and here is the current list of WebApp paths :
 
-- [Accuracy (and stability) of general time-discretization on the Complex Plane](./accuracy)
-- [Automatic Generation of Task Scheduling for Parareal](./parareal)
+- [Analysis of Sequential Time-Integration Methods (accuracy, order, ...)](./seqint/)
+- [Performance Analysis of Scheduling Strategies for different PinT Algorithms](./schedule/)
 
 The WebApps are currently under development : current could be improved, and other WebApp could also be added,
-see the [demo WebApp](./demo) for an example.
+see the [demo WebApp](./demo/) for an example.
 
 ## Base Convention
 
