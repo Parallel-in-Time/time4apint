@@ -2,7 +2,8 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Call of PinTy : BlockOps</title>
+    <title>{{ title }}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('favicon') }}" />
     <meta name="description" content="description" />
     <meta name="author" content="author" />
     <meta name="keywords" content="keywords" />
@@ -29,15 +30,12 @@
     <script>
       document.addEventListener('DOMContentLoaded', function () {
         renderMathInElement(document.body, {
-          // customised options
-          // • auto-render specific keys, e.g.:
           delimiters: [
             { left: '$$', right: '$$', display: true },
             { left: '$', right: '$', display: false },
             { left: '\\(', right: '\\)', display: false },
             { left: '\\[', right: '\\]', display: true },
           ],
-          // • rendering keys, e.g.:
           throwOnError: false,
         });
 
@@ -92,7 +90,7 @@
     </div>
     <!-- Home Button -->
     <div style="position: absolute; left: 5px; top: 5px">
-      <a href="/">
+      <a href="{{ url_for('index') }}">
         <span className="uk-margin-small-right" data-uk-icon="home"></span>
       </a>
     </div>

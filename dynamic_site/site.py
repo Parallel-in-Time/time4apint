@@ -146,8 +146,8 @@ class Site:
                 f"{STATIC_FOLDER}/manifest.json"
             ):
                 manifest = json.load(open(f"{STATIC_FOLDER}/manifest.json", "r"))
-                json_file = manifest["src/main.tsx"]["file"]
-                css_file = manifest["src/main.css"]["file"]
+                json_file = os.path.basename(manifest["src/main.tsx"]["file"])
+                css_file = os.path.basename(manifest["src/main.css"]["file"])
                 if self.verbose:
                     print("Using built js/css files!")
 
