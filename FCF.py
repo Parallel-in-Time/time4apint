@@ -15,5 +15,5 @@ parareal_fcf = BlockIteration(
     **blockOps)
 parareal_fcf.plotGraph(N=nBlocks, K=nBlocks,  figSize=(6.4*2, 4.8*2))
 # parareal_fcf.plotGraphForOneBlock(N=nBlocks, K=nBlocks, plotBlock=4, plotIter=2,  figSize=(6.4*2, 4.8*2))
-parareal_fcf.plotSchedule(N=nBlocks, K=nBlocks, nProc=nBlocks, schedulerType="BLOCK-BY-BLOCK")
-
+fig = parareal_fcf.plotSchedule(N=nBlocks, K=nBlocks, nProc=nBlocks, schedulerType="BLOCK-BY-BLOCK")
+fig.show()

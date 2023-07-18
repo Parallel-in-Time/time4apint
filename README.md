@@ -9,7 +9,8 @@ that uses the [blockops] code for specific application and experiments. Currentl
 https://jupyterhub.mat.tu-harburg.de/blockops/, and here is the current list of WebApp :
 
 - [Accuracy (and stability) of general time-discretization on the Complex Plane](./accuracy)
-- [Automatic Generation of Parareal Task Scheduling using different strategies](./pararealSchedule)
+- [Automatic Generation of Task Scheduling for Parareal](./pararealSchedule)
+- [Automatic Generation of Task Scheduling for Parareal with Overlap (MGRIT-FCF)](./pararealFCFSchedule)
 
 The WebApps are currently under development : current could be improved, and other WebApp could also be added,
 see the [demo WebApp](./demo) for an example.
