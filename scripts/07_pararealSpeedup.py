@@ -16,4 +16,4 @@ fig = parareal.plotSchedule(N, K, nProc=N, schedulerType=schedulerType)
 fig.show()
 
 time = parareal.getRuntime(N, K, N, schedulerType=schedulerType)
-print(f"Runtime = {time}")
+print(f"Runtime = {time:.1f}")
