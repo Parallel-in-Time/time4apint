@@ -17,7 +17,7 @@ Consider the block update formula of Parareal with overlap
 (MGRIT with FCF relaxation) :
 
 $$
-u^{k+1}_{n+1} = F \circ F(u^{k}_{n-1}) + G(u^{k+1}_n) - G \circ F(u^{k}_{n-1})
+u^{k+1}_{n+1} = F^2 (u^{k}_{n-1}) + G(u^{k+1}_n) - G \circ F(u^{k}_{n-1})
 $$
 
 Define the number of blocks $N$ (time-intervals), the number of iterations $K$ 
