@@ -132,7 +132,7 @@ class PararealSchedule(App):
         # === Response ===
     
         plot_stage = s1_plot.copy()
-        plot_stage.title += f" (runtime = {time})"
+        plot_stage.title += f" (runtime = {time:.1f})"
         plot_stage.plot = fig.to_json()
         r.add_plot_stage(plot_stage)
         
