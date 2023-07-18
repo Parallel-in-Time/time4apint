@@ -17,9 +17,9 @@ import emoji
 def import_module(path):
     package = importlib.import_module(path)
     results = {}
-    for _, name, _ in pkgutil.walk_packages(package.__path__):
-        full_name = package.__name__ + "." + name
-        results[full_name] = importlib.import_module(full_name)
+    for loader, module_name, _ in pkgutil.walk_packages(package.__path__):
+        module = loader.find_module(module_name).load_module(module_name)
+        results[module_name] = module
     return results
 
 
@@ -42,24 +42,25 @@ class Site:
         self.generate_apps()
 
         # Initialize the index text from the readme once, it doesn't change
-        self.make_index_text()
+        self.title, self.index_text = self.make_index_text("README.md")
 
         self.initialize_flask_server()
 
-    def make_index_text(self) -> None:
+    def make_index_text(self, file: str) -> tuple[str, str]:
         # Note that this conversion isn't really clean...
-        index_file = "README.md"
-        if not os.path.exists(index_file):
-            raise RuntimeError(f"The README.md file couldn't be found!")
+        if not os.path.exists(file):
+            raise FileNotFoundError(f"{file} file couldn't be found!")
 
-        raw = open(index_file).read()
+        raw = open(file).read()
 
         lines = raw.split("\n")
-        self.title = lines[0][2:]  # Remove the hashtag at front
+        title = lines[0][2:]  # Remove the hashtag at front
 
         content = "\n".join(lines[1:])
 
-        self.index_text = emoji.emojize(self.render_md(content))
+        text = emoji.emojize(self.render_md(content))
+
+        return title, text
 
     def generate_apps(self) -> None:
         modules = import_module(self.apps_path)
@@ -72,8 +73,7 @@ class Site:
                 if isclass(a[1]) and issubclass(a[1], App) and a[1] != App
             ]
             if len(apps) == 1:
-                module_name = name.split(".")[1]  # Remove the web_apps.
-                self.apps[module_name] = apps[0][1]()  # Create an instance
+                self.apps[name] = apps[0][1]()  # Create an instance
             elif len(apps) > 1:
                 raise RuntimeError(
                     f"In {name} are multiple apps defined! Only define one!"
@@ -85,7 +85,6 @@ class Site:
         STATIC_FOLDER = f"{self.dynamic_site_path}/static"
         self.flask_app = Flask(
             __name__,
-            static_url_path="",
             static_folder=STATIC_FOLDER,
             template_folder=f"{self.dynamic_site_path}/templates",
         )
@@ -102,18 +101,34 @@ class Site:
                 mimetype="image/vnd.microsoft.icon",
             )
 
-        @self.flask_app.route("/<app_name>")
-        def app_route(app_name):
+        @self.flask_app.route("/assets/<file>")
+        def assets(file):
+            return send_from_directory(
+                os.path.join(self.flask_app.root_path, "static", "assets"),
+                file,
+            )
+
+        # -----------
+        # Subdirectory path apps
+        # -----------
+
+        @self.flask_app.route("/<app_path>")
+        @self.flask_app.route("/<path:app_path>")
+        def app_path_route(app_path):
+            app_name = app_path.replace("/", ".")
+            # First check if the app_path corresponds to an index file
+            try:
+                index_file_path = os.path.join(self.apps_path, app_path, "index.md")
+                title, text = self.make_index_text(index_file_path)
+            except FileNotFoundError:
+                pass
+            else:
+                return render_template("index.html", title=title, text=text)
+
+            # Otherwise check if its an app
             # If the app_name doesn't exist raise a 404
             if app_name not in self.apps.keys():
                 abort(404)
-
-            # Fetch the documentation which should have the same name as the app
-            documentation = ""
-            if os.path.exists(f"{self.apps_path}/{app_name}.md"):
-                documentation = self.render_md(
-                    open(f"{self.apps_path}/{app_name}.md").read()
-                )
 
             # Get the app title (raises an error if empty)
             app_title = self.apps[app_name].title
@@ -131,15 +146,12 @@ class Site:
 
             # Then render the template and inject the corresponding documentation
             return render_template(
-                "app.html",
-                title=app_title,
-                json_file=json_file,
-                css_file=css_file,
-                documentation=documentation,
+                "app.html", title=app_title, json_file=json_file, css_file=css_file
             )
 
-        @self.flask_app.route("/<app_name>/compute", methods=["POST"])
-        def app_compute(app_name):
+        @self.flask_app.route("/<path:app_path>/compute", methods=["POST"])
+        def app_path_compute(app_path):
+            app_name = app_path.replace("/", ".")
             # If the app_name doesn't exist raise a 404
             if app_name not in self.apps.keys():
                 abort(404)
@@ -164,8 +176,9 @@ class Site:
             plots = [stage.serialize() for stage in plots]
             return jsonify({"docs": docs, "settings": settings, "plots": plots})
 
-        @self.flask_app.route("/<app_name>/documentation", methods=["GET"])
-        def app_documentation(app_name):
+        @self.flask_app.route("/<path:app_path>/documentation", methods=["GET"])
+        def app_path_documentation(app_path):
+            app_name = app_path.replace("/", ".")
             # If the app_name doesn't exist raise a 404
             if app_name not in self.apps.keys():
                 abort(404)
@@ -173,8 +186,8 @@ class Site:
             documentation = (
                 "Sorry, but it seems that there is no dedicated documentation."
             )
-            if os.path.exists(f"{self.apps_path}/{app_name}.md"):
-                documentation = open(f"{self.apps_path}/{app_name}.md").read()
+            if os.path.exists(f"{self.apps_path}/{app_path}.md"):
+                documentation = open(f"{self.apps_path}/{app_path}.md").read()
             return jsonify({"text": documentation})
 
     def wsgi(self) -> Flask:

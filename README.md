@@ -6,11 +6,10 @@ Develop a python code based on a generic framework allowing to investigate and a
 
 In addition to this code, a website framework is provided to allow building of **Application Webpage (or WebApp)**,
 that uses the [blockops] code for specific application and experiments. Currently, the website is available at
-https://jupyterhub.mat.tu-harburg.de/blockops/, and here is the current list of WebApp :
+https://jupyterhub.mat.tu-harburg.de/blockops/, and here is the current list of WebApp paths :
 
 - [Accuracy (and stability) of general time-discretization on the Complex Plane](./accuracy)
-- [Automatic Generation of Task Scheduling for Parareal](./pararealSchedule)
-- [Automatic Generation of Task Scheduling for Parareal with Overlap (MGRIT-FCF)](./pararealFCFSchedule)
+- [Automatic Generation of Task Scheduling for Parareal](./parareal)
 
 The WebApps are currently under development : current could be improved, and other WebApp could also be added,
 see the [demo WebApp](./demo) for an example.

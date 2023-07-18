@@ -3,7 +3,7 @@ import sys
 
 
 # For deployment run
-# waitress-serve --call web:deployS
+# waitress-serve --call web:deploy
 def deploy():
     site = Site(
         apps_path="web_apps",
