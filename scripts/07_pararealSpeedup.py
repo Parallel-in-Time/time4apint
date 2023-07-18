@@ -11,4 +11,5 @@ parareal = BlockIteration(
     "(F - G) u_{n}^k + G * u_{n}^{k+1}",
     propagator="F", predictor="G", F=F, G=G, I=I, name='Parareal')
 
-parareal.plotSchedule(N, K, nProc=N, schedulerType='LOWEST-COST-FIRST')
+fig = parareal.plotSchedule(N, K, nProc=N, schedulerType='LOWEST-COST-FIRST')
+fig.show()
