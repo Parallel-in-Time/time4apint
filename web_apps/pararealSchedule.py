@@ -85,6 +85,14 @@ s1_settings = stages.SettingsStage(
 
 s1_plot = stages.PlotsStage("Parareal Schedule", None)
 
+CAPTION_FORMAT = """
+**Performance Estimation ($N_p={nProcs}$):**
+
+- Runtime : {time:.1f}
+- Speedup : {speedup:.1f}
+- Efficiency : {efficiency:.1f}%
+"""
+
 # ====================================================
 #                  Accuracy App
 # ====================================================
@@ -127,11 +135,15 @@ class PararealSchedule(App):
 
         fig = parareal.plotSchedule(N, K, nProc=N, schedulerType=schedulerType)
         time = parareal.getRuntime(N, K, N, schedulerType)
+        speedup, efficiency, nProcs = parareal.getPerformances(
+            N, K, N, schedulerType)
         
         # === Response ===
     
         plot_stage = s1_plot.copy()
-        plot_stage.title += f" (runtime = {time:.1f})"
+        plot_stage.caption = CAPTION_FORMAT.format(
+            time=time, N=N, speedup=speedup, efficiency=efficiency*100,
+            nProcs=nProcs)
         plot_stage.plot = fig.to_json()
         r.add_plot_stage(plot_stage)
         
