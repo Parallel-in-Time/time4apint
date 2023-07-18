@@ -99,9 +99,11 @@ class PlotsStage:
     def __init__(
         self,
         title: str,
-        plot: Any | None,
+        caption: str = "",
+        plot: Any | None = None,
     ) -> None:
         self.title: str = title
+        self.caption: str = caption
         self.plot: Any | None = plot
 
     def copy(self):
@@ -112,11 +114,13 @@ class PlotsStage:
         """
         return PlotsStage(
             self.title,
+            self.caption,
             self.plot,
         )
 
     def serialize(self) -> dict[str, Any]:
         return {
             "title": self.title,
+            "caption": self.caption,
             "plot": self.plot,
         }

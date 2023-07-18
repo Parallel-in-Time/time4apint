@@ -25,6 +25,7 @@ export interface SettingsProp {
 
 export interface PlotsStageProp {
   title: string;
+  caption: string;
   plot: string;
 }
 

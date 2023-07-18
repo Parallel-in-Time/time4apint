@@ -6,7 +6,7 @@ from dynamic_site.stage import parameters as par
 import dynamic_site.stage.stages as stages
 
 from blockops.schemes import BlockScheme, SCHEMES
-from blockops.problem import BlockProblem 
+from blockops.problem import BlockProblem
 from blockops.plots import Plotly as bp
 from blockops.webutils import convert_block_param_to_web
 
@@ -53,7 +53,7 @@ that can have specific parameters depending on the chosen
 time scheme ...
 """,
 )
-    
+
 s2_docs = stages.DocsStage(
     "Scheme-specific parameters",
     r"""
@@ -73,16 +73,19 @@ block_problem_web_params = [
         r"Strictly positive integer",
         False,
     ),
-    *[convert_block_param_to_web(param, name)
-      for name, param in BlockScheme.PARAMS.items()
-      if name in ['nPoints', 'ptsType', 'quadType']],
+    *[
+        convert_block_param_to_web(param, name)
+        for name, param in BlockScheme.PARAMS.items()
+        if name in ["nPoints", "ptsType", "quadType"]
+    ],
     par.Enumeration(
-        'scheme', 
-        'Scheme Type', 
-        "Time-Integration in block", 
+        "scheme",
+        "Scheme Type",
+        "Time-Integration in block",
         "Time-Integration in block",
         optional=False,
-        choices=list(SCHEMES.keys())),
+        choices=list(SCHEMES.keys()),
+    ),
 ]
 
 s1_settings = stages.SettingsStage(
@@ -99,7 +102,8 @@ s1_plot = stages.PlotsStage("Error Contour", None)
 # ====================================================
 #                  Accuracy App
 # ====================================================
-STATUS = {'current': 's1'}
+STATUS = {"current": "s1"}
+
 
 class Accuracy(App):
     def __init__(self) -> None:
@@ -107,7 +111,7 @@ class Accuracy(App):
 
     def compute(self, response_data: dict[str, Any] | None) -> ResponseStages:
         print(f"Current status is {STATUS['current']}")
-        
+
         # Create a response, where stages will be added to
         r = ResponseStages()
 
@@ -116,9 +120,8 @@ class Accuracy(App):
         if not response_data:
             r.add_settings_stage(s1_settings)
             r.add_plot_stage(s1_plot)
-            STATUS['current'] = 's1'
+            STATUS["current"] = "s1"
             return r
-
 
         # Convert parameters to correct types
         block_problem_data = s1_settings.convert_to_types(
@@ -128,61 +131,55 @@ class Accuracy(App):
         # Then access the converted variables
         scheme = block_problem_data["scheme"]
         Scheme = SCHEMES[scheme]
-        
+
         # Add scheme-specific parameters
         block_scheme_params = [
-            # par.getParam(name, param) 
+            # par.getParam(name, param)
             convert_block_param_to_web(param, name)
             for name, param in Scheme.PARAMS.items()
             if name not in BlockScheme.PARAMS.keys()
         ]
-        block_scheme_params += [ 
+        block_scheme_params += [
             par.Float(
-                unique_id='zoom', 
-                name='Zoom', 
-                placeholder="Floating point number", 
-                doc="Zoom factor for the plot", 
-                optional=False, 
-                value=1)]
+                unique_id="zoom",
+                name="Zoom",
+                placeholder="Floating point number",
+                doc="Zoom factor for the plot",
+                optional=False,
+                value=1,
+            )
+        ]
 
         # Add the settings with the set values
         r.add_settings_stage(
             s1_settings.copy_from_response(response_data["block_problem"])
         )
-        
+
         # Add scheme-specific settings
         s2_settings = stages.SettingsStage(
-            "additional", 
-            'Additional parameters', 
-            block_scheme_params, 
-            False
+            "additional", "Additional parameters", block_scheme_params, False
         )
         r.add_settings_stage(s2_settings)
 
-        if 'additional' not in response_data:
+        if "additional" not in response_data:
             r.add_plot_stage(s1_plot)
             return r
-        
-        parS1 = s1_settings.convert_to_types(
-            response_data["block_problem"]
-        )
-        parS2 = s2_settings.convert_to_types(
-            response_data["additional"]
-        )
-        zoom = parS2.pop('zoom')
+
+        parS1 = s1_settings.convert_to_types(response_data["block_problem"])
+        parS2 = s2_settings.convert_to_types(response_data["additional"])
+        zoom = parS2.pop("zoom")
         parS1.update(parS2)
-        parS1['tEnd'] = parS1['nBlocks']
-        
-        
-        reLam = np.linspace(-4*zoom, 0.5*zoom, 256)
-        imLam = np.linspace(-3*zoom, 3*zoom, 256)
-        
-        lam = reLam[:, None] + 1j*imLam[None, :]
+        parS1["tEnd"] = parS1["nBlocks"]
+
+        reLam = np.linspace(-4 * zoom, 0.5 * zoom, 256)
+        imLam = np.linspace(-3 * zoom, 3 * zoom, 256)
+
+        lam = reLam[:, None] + 1j * imLam[None, :]
         prob = BlockProblem(lam.ravel(), **parS1)
 
-        uExact = prob.getSolution('exact')
-        uNum = prob.getSolution('fine')
-        err = np.abs(uExact-uNum)
+        uExact = prob.getSolution("exact")
+        uNum = prob.getSolution("fine")
+        err = np.abs(uExact - uNum)
 
         stab = np.abs(uNum)[0, :, -1].reshape(lam.shape)
         # errEnd = err[-1, :, -1].reshape(lam.shape) # For later ...
@@ -192,13 +189,12 @@ class Accuracy(App):
 
         # Plot discretization error on complex plane
         fig = bp.plotAccuracyContour(reLam, imLam, err, stab)
-        
+
         # === Response ===
-    
+
         plot_stage = s1_plot.copy()
         plot_stage.plot = fig.to_json()
+        # plot_stage.caption = r"markdown caption $\phi \in \mathbb{R}$"
         r.add_plot_stage(plot_stage)
-        
-        return r
 
-        
+        return r

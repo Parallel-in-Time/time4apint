@@ -1,6 +1,10 @@
 import { useState, useMemo } from 'react';
 import { PlotsStageProp } from './Interfaces';
 
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+
 import Plot from 'react-plotly.js';
 
 function PlotModal(props: {
@@ -14,7 +18,7 @@ function PlotModal(props: {
         <Plot
           data={p.data}
           layout={p.layout}
-          style={{ width: '100%', minHeight: '65vh' }}
+          style={{ width: '100%', minHeight: '58vh' }}
           config={{ responsive: true }}
         />
       );
@@ -47,6 +51,13 @@ function PlotModal(props: {
         <h2 className='uk-title uk-margin-left'>{props.plot.title}</h2>
 
         <div>{plot()}</div>
+        <div className='uk-section uk-section-xsmall uk-text-center'>
+          <ReactMarkdown
+            children={props.plot.caption}
+            remarkPlugins={[remarkMath]}
+            rehypePlugins={[rehypeKatex]}
+          />
+        </div>
         <p className='uk-text-center'>
           <button
             className='uk-button uk-button-primary uk-modal-close uk-width-4-5'
@@ -90,6 +101,14 @@ function PlotsStage(props: PlotsStageProp) {
             config={{ responsive: true }}
           />
 
+          <div className='uk-section uk-section-xsmall uk-text-center'>
+            <ReactMarkdown
+              children={props.caption}
+              remarkPlugins={[remarkMath]}
+              rehypePlugins={[rehypeKatex]}
+            />
+          </div>
+
           <button
             className='uk-button uk-button-default uk-width-1-1'
             type='button'
@@ -100,6 +119,16 @@ function PlotsStage(props: PlotsStageProp) {
             Full screen
           </button>
         </>
+      );
+    } else if (props.caption) {
+      return (
+        <div>
+          <ReactMarkdown
+            children={props.caption}
+            remarkPlugins={[remarkMath]}
+            rehypePlugins={[rehypeKatex]}
+          />
+        </div>
       );
     } else {
       return (

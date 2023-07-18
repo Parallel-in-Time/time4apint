@@ -122,9 +122,30 @@ s2_settings = stages.SettingsStage("S2", "Folded Stage", s2_params, True)
 # Plots Stage
 # ===========
 
-p1_plots = stages.PlotsStage("Contour", None)
+# If the plot stage has a caption but no plot (=None),
+# then the caption will be displayed in large as a result
+# including multiline equations
+p1_plots = stages.PlotsStage(
+    "Contour",
+    r"""
+Test equation with a $\phi \in \mathbb{R}$
+$$
+\begin{align*}
+x^2 + y^2 &= 1 \\\\
+y &= \sqrt{1 - x^2}.
+\end{align*}
+$$
+""",
+    None,
+)
 
-p2_plots = stages.PlotsStage("Plot 2", None)
+# If both, a plot and a caption are set, then the caption will
+# be diplayed as a caption (see at the bottom where `.caption = ...`)
+
+# If only a plot is set without a caption, then only the plot will be displayed
+
+# If both are empty, then 'No plot computed' will be displayed
+p2_plots = stages.PlotsStage("Plot 2")
 
 # =============
 # Dummy figures
@@ -233,6 +254,7 @@ class Demo(App):
         # Set the figure data
         plot_p1 = p1_plots.copy()
         plot_p1.plot = dummy_fig_1()
+        plot_p1.caption = r"Informative caption $\alpha^4$ with $\phi \in \mathbb{R}$"
 
         # We can also dynamically change the title
         plot_p2 = p2_plots.copy()

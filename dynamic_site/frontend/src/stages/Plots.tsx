@@ -8,7 +8,12 @@ function Plots(props: PlotsProp) {
   const plots = useMemo(
     () =>
       props.plots.map((element, i) => (
-        <PlotsStage title={element.title} plot={element.plot} key={i} />
+        <PlotsStage
+          title={element.title}
+          caption={element.caption}
+          plot={element.plot}
+          key={i}
+        />
       )),
     [props.plots]
   );
