@@ -13,7 +13,23 @@ from blockops import BlockOperator, BlockIteration, I
 s1_docs = stages.DocsStage(
     "Quick Documentation",
     r"""
-Incoming ...
+Consider the Parareal block update formula :
+
+$$
+u^{k+1}_{n+1} = F(u^{k}_n) + G(u^{k+1}_n) - G(u^{k}_n)
+$$
+
+Define the number of blocks $N$ (time-intervals), the number of iterations $K$ 
+(eventually different for each block), and the cost of $F$
+and $G$.
+Then choose a scheduler type :
+
+- BLOCK-BY-BLOCK : uses $N$ processors, where each processor is dedicated
+to one time block
+- LOWEST-COST-FIRST : uses $N$ processors, and compute first the tasks
+with lower cost
+- OPTIMAL : eventually use more than $N$ processors to minimize the
+overall computation time 
 """,
 )
 
@@ -25,18 +41,16 @@ SCHEDULERS = ['LOWEST-COST-FIRST', 'OPTIMAL', 'BLOCK-BY-BLOCK']
 
 pararealSettings = [
     par.StrictlyPositiveInteger(
-        "nBlocks",
-        r"$N$",
-        r"Number of Blocks",
-        r"Strictly positive integer",
-        False,
+        unique_id="nBlocks", name="$N$",
+        placeholder="Number of Blocks",
+        doc="Strictly positive integer",
+        optional=False,
     ),
-    par.StrictlyPositiveInteger(
-        "nIter",
-        r"$K$",
-        r"Number of Iterations",
-        r"Strictly positive integer",
-        False,
+    par.FloatList(
+        unique_id="nIter", name="$K$",
+        placeholder="Number of Iterations",
+        doc="Number of iteration for each block (1 or N values)",
+        optional=False,
     ),
     par.Float(
         unique_id='costF', name='Computation time for $F$', 
@@ -102,7 +116,9 @@ class PararealSchedule(App):
         G = BlockOperator('G', cost=pararealSettings['costG'])
         F = BlockOperator('F', cost=pararealSettings['costF'])
         N = pararealSettings['nBlocks']
-        K = pararealSettings['nIter']
+        K = [int(k) for k in pararealSettings['nIter']]
+        K = K[0] if len(K) == 1 else K
+        
         schedulerType = pararealSettings['schedulerType']
 
         parareal = BlockIteration(
