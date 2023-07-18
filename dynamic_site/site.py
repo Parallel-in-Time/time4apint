@@ -107,6 +107,13 @@ class Site:
                 os.path.join(self.flask_app.root_path, "static", "assets"),
                 file,
             )
+        
+        @self.flask_app.route("/doc/images/<file>")
+        def doc(file):
+            return send_from_directory(
+                os.path.join(self.flask_app.root_path, "static", "doc", "images"),
+                file,
+            )
 
         # -----------
         # Subdirectory path apps
