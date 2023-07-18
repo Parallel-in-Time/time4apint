@@ -126,10 +126,12 @@ class PararealSchedule(App):
             propagator="F", predictor="G", F=F, G=G, I=I, name='Parareal')
 
         fig = parareal.plotSchedule(N, K, nProc=N, schedulerType=schedulerType)
+        time = parareal.getRuntime(N, K, N, schedulerType)
         
         # === Response ===
     
         plot_stage = s1_plot.copy()
+        plot_stage.title += f" (runtime = {time})"
         plot_stage.plot = fig.to_json()
         r.add_plot_stage(plot_stage)
         
