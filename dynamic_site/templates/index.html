@@ -3,7 +3,11 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ title }}</title>
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('favicon') }}" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{{ url_for('apps.favicon') }}"
+    />
     <meta name="description" content="description" />
     <meta name="author" content="author" />
     <meta name="keywords" content="keywords" />
@@ -90,8 +94,8 @@
     </div>
     <!-- Home Button -->
     <div style="position: absolute; left: 5px; top: 5px">
-      <a href="{{ url_for('index') }}">
-        <span className="uk-margin-small-right" data-uk-icon="home"></span>
+      <a href="{{ url_for('apps.index') }}">
+        <span className="ukmargin-small-right" data-uk-icon="home"></span>
       </a>
     </div>
   </body>

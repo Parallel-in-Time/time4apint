@@ -5,7 +5,15 @@ import json
 from inspect import getmembers, isclass
 from typing import Any
 
-from flask import Flask, jsonify, render_template, abort, request, send_from_directory
+from flask import (
+    Flask,
+    jsonify,
+    render_template,
+    abort,
+    request,
+    send_from_directory,
+    Blueprint,
+)
 
 import dynamic_site
 from dynamic_site.app import App, ResponseError
@@ -27,11 +35,13 @@ class Site:
     def __init__(
         self,
         apps_path: str,
+        url_prefix: str = "",
         enforce_dev_mode: bool = False,
         escape_html_in_md: bool = True,
         verbose: bool = False,
     ) -> None:
         self.apps_path = apps_path
+        self.url_prefix = url_prefix
         self.enforce_dev_mode = enforce_dev_mode
         self.dynamic_site_path = os.path.dirname(dynamic_site.__file__)
         self.render_md = mistune.create_markdown(
@@ -46,7 +56,7 @@ class Site:
 
         self.initialize_flask_server()
 
-    def make_index_text(self, file: str, folder: str="") -> tuple[str, str]:
+    def make_index_text(self, file: str, folder: str = "") -> tuple[str, str]:
         # Note that this conversion isn't really clean...
         if not os.path.exists(file):
             raise FileNotFoundError(f"{file} file couldn't be found!")
@@ -93,15 +103,16 @@ class Site:
         self.flask_app = Flask(
             __name__,
             static_folder=STATIC_FOLDER,
-            # static_url_path="",
             template_folder=f"{self.dynamic_site_path}/templates",
         )
 
-        @self.flask_app.route("/")
+        bp = Blueprint("apps", __name__)
+
+        @bp.route("/")
         def index():
             return render_template("index.html", title=self.title, text=self.index_text)
 
-        @self.flask_app.route("/favicon.ico")
+        @bp.route("/favicon.ico")
         def favicon():
             return send_from_directory(
                 os.path.join(self.flask_app.root_path, "static"),
@@ -109,14 +120,14 @@ class Site:
                 mimetype="image/vnd.microsoft.icon",
             )
 
-        @self.flask_app.route("/assets/<file>")
+        @bp.route("/assets/<file>")
         def assets(file):
             return send_from_directory(
                 os.path.join(self.flask_app.root_path, "static", "assets"),
                 file,
             )
-        
-        @self.flask_app.route("/doc/images/<file>")
+
+        @bp.route("/doc/images/<file>")
         def doc(file):
             return send_from_directory(
                 os.path.join(self.flask_app.root_path, "static", "doc", "images"),
@@ -127,14 +138,16 @@ class Site:
         # Subdirectory path apps
         # -----------
 
-        @self.flask_app.route("/<app_path>")
-        @self.flask_app.route("/<path:app_path>")
+        @bp.route("/<app_path>")
+        @bp.route("/<path:app_path>")
         def app_path_route(app_path):
             app_name = app_path.replace("/", ".")
             # First check if the app_path corresponds to an index file
             try:
                 index_file_path = os.path.join(self.apps_path, app_path, "index.md")
-                title, text = self.make_index_text(index_file_path, folder=app_path+'/')
+                title, text = self.make_index_text(
+                    index_file_path, folder=app_path + "/"
+                )
             except FileNotFoundError:
                 pass
             else:
@@ -164,7 +177,7 @@ class Site:
                 "app.html", title=app_title, json_file=json_file, css_file=css_file
             )
 
-        @self.flask_app.route("/<path:app_path>/compute", methods=["POST"])
+        @bp.route("/<path:app_path>/compute", methods=["POST"])
         def app_path_compute(app_path):
             app_name = app_path.replace("/", ".")
             # If the app_name doesn't exist raise a 404
@@ -191,7 +204,7 @@ class Site:
             plots = [stage.serialize() for stage in plots]
             return jsonify({"docs": docs, "settings": settings, "plots": plots})
 
-        @self.flask_app.route("/<path:app_path>/documentation", methods=["GET"])
+        @bp.route("/<path:app_path>/documentation", methods=["GET"])
         def app_path_documentation(app_path):
             app_name = app_path.replace("/", ".")
             # If the app_name doesn't exist raise a 404
@@ -204,6 +217,8 @@ class Site:
             if os.path.exists(f"{self.apps_path}/{app_path}.md"):
                 documentation = open(f"{self.apps_path}/{app_path}.md").read()
             return jsonify({"text": documentation})
+
+        self.flask_app.register_blueprint(bp, url_prefix=self.url_prefix)
 
     def wsgi(self) -> Flask:
         return self.flask_app

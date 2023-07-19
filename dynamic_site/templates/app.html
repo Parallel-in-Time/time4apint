@@ -3,7 +3,11 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ title }}</title>
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('favicon') }}" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{{ url_for('apps.favicon') }}"
+    />
     <meta name="description" content="description" />
     <meta name="author" content="author" />
     <meta name="keywords" content="keywords" />
@@ -34,10 +38,10 @@
     <script type="module" src="http://localhost:5173/@vite/client"></script>
     <script type="module" src="http://localhost:5173/src/main.tsx"></script>
     {% else %}
-    <link rel="stylesheet" href="{{ url_for('assets', file=css_file) }}" />
+    <link rel="stylesheet" href="{{ url_for('apps.assets', file=css_file) }}" />
     <script
       type="module"
-      src="{{ url_for('assets', file=json_file) }}"
+      src="{{ url_for('apps.assets', file=json_file) }}"
     ></script>
     {% endif %}
 

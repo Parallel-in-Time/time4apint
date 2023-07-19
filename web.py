@@ -7,6 +7,7 @@ import sys
 def deploy():
     site = Site(
         apps_path="web_apps",
+        url_prefix="/blockops",
         enforce_dev_mode=False,
         escape_html_in_md=False,
     )
