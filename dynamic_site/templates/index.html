@@ -6,7 +6,7 @@
     <link
       rel="icon"
       type="image/svg+xml"
-      href="{{ url_for('apps.favicon') }}"
+      href="{{ url_for_root('favicon') }}"
     />
     <meta name="description" content="description" />
     <meta name="author" content="author" />
@@ -94,7 +94,7 @@
     </div>
     <!-- Home Button -->
     <div style="position: absolute; left: 5px; top: 5px">
-      <a href="{{ url_for('apps.index') }}">
+      <a href="{{ url_for_root('index') }}">
         <span className="ukmargin-small-right" data-uk-icon="home"></span>
       </a>
     </div>

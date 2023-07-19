@@ -12,7 +12,7 @@ from flask import (
     abort,
     request,
     send_from_directory,
-    Blueprint,
+    url_for,
 )
 
 import dynamic_site
@@ -35,7 +35,7 @@ class Site:
     def __init__(
         self,
         apps_path: str,
-        application_root: str = "/",
+        application_root: str = "",
         enforce_dev_mode: bool = False,
         escape_html_in_md: bool = True,
         verbose: bool = False,
@@ -106,13 +106,19 @@ class Site:
             template_folder=f"{self.dynamic_site_path}/templates",
         )
 
-        bp = Blueprint("apps", __name__)
+        def url_for_root(route: str, **kwargs) -> str:
+            url = url_for(route, **kwargs)
+            if self.application_root:
+                url = f"{self.application_root}{url}"
+            return url
 
-        @bp.route("/")
+        self.flask_app.jinja_env.globals.update(url_for_root=url_for_root)
+
+        @self.flask_app.route("/")
         def index():
             return render_template("index.html", title=self.title, text=self.index_text)
 
-        @bp.route("/favicon.ico")
+        @self.flask_app.route("/favicon.ico")
         def favicon():
             return send_from_directory(
                 os.path.join(self.flask_app.root_path, "static"),
@@ -120,14 +126,14 @@ class Site:
                 mimetype="image/vnd.microsoft.icon",
             )
 
-        @bp.route("/assets/<file>")
+        @self.flask_app.route("/assets/<file>")
         def assets(file):
             return send_from_directory(
                 os.path.join(self.flask_app.root_path, "static", "assets"),
                 file,
             )
 
-        @bp.route("/doc/images/<file>")
+        @self.flask_app.route("/doc/images/<file>")
         def doc(file):
             return send_from_directory(
                 os.path.join(self.flask_app.root_path, "static", "doc", "images"),
@@ -138,8 +144,8 @@ class Site:
         # Subdirectory path apps
         # -----------
 
-        @bp.route("/<app_path>")
-        @bp.route("/<path:app_path>")
+        @self.flask_app.route("/<app_path>")
+        @self.flask_app.route("/<path:app_path>")
         def app_path_route(app_path):
             app_name = app_path.replace("/", ".")
             # First check if the app_path corresponds to an index file
@@ -177,7 +183,7 @@ class Site:
                 "app.html", title=app_title, json_file=json_file, css_file=css_file
             )
 
-        @bp.route("/<path:app_path>/compute", methods=["POST"])
+        @self.flask_app.route("/<path:app_path>/compute", methods=["POST"])
         def app_path_compute(app_path):
             app_name = app_path.replace("/", ".")
             # If the app_name doesn't exist raise a 404
@@ -204,7 +210,7 @@ class Site:
             plots = [stage.serialize() for stage in plots]
             return jsonify({"docs": docs, "settings": settings, "plots": plots})
 
-        @bp.route("/<path:app_path>/documentation", methods=["GET"])
+        @self.flask_app.route("/<path:app_path>/documentation", methods=["GET"])
         def app_path_documentation(app_path):
             app_name = app_path.replace("/", ".")
             # If the app_name doesn't exist raise a 404
@@ -217,9 +223,6 @@ class Site:
             if os.path.exists(f"{self.apps_path}/{app_path}.md"):
                 documentation = open(f"{self.apps_path}/{app_path}.md").read()
             return jsonify({"text": documentation})
-
-        self.flask_app.register_blueprint(bp)
-        self.flask_app.config["APPLICATION_ROOT"] = self.application_root
 
     def wsgi(self) -> Flask:
         return self.flask_app
