@@ -35,13 +35,13 @@ class Site:
     def __init__(
         self,
         apps_path: str,
-        url_prefix: str = "",
+        application_root: str = "/",
         enforce_dev_mode: bool = False,
         escape_html_in_md: bool = True,
         verbose: bool = False,
     ) -> None:
         self.apps_path = apps_path
-        self.url_prefix = url_prefix
+        self.application_root = application_root
         self.enforce_dev_mode = enforce_dev_mode
         self.dynamic_site_path = os.path.dirname(dynamic_site.__file__)
         self.render_md = mistune.create_markdown(
@@ -218,7 +218,8 @@ class Site:
                 documentation = open(f"{self.apps_path}/{app_path}.md").read()
             return jsonify({"text": documentation})
 
-        self.flask_app.register_blueprint(bp, url_prefix=self.url_prefix)
+        self.flask_app.register_blueprint(bp)
+        self.flask_app.config["APPLICATION_ROOT"] = self.application_root
 
     def wsgi(self) -> Flask:
         return self.flask_app
