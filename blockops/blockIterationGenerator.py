@@ -301,7 +301,7 @@ class Generator:
 
 
 # PararealGenerator(n=6)
-MultilevelGenerator(n=6, L=1, pre_smoothing=1, post_smoothing=0)
+MultilevelGenerator(n=20, L=2, pre_smoothing=10, post_smoothing=0)
 # MultilevelGenerator(n=6, L=3, pre_smoothing=1, post_smoothing=0)
 # MultilevelGenerator(n=6, L=4, pre_smoothing=1, post_smoothing=0)
 # MultilevelGenerator(n=6, L=2, pre_smoothing=2, post_smoothing=0)

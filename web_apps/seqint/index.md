@@ -2,7 +2,7 @@
 
 ## Currents
 
-- [Accuracy (and stability) of general time-discretization on the Complex Plane](./accuracy)
+- [Accuracy (and stability) of general time-discretization on the Complex Plane](./accuracy.md)
 
 ## Planned
 

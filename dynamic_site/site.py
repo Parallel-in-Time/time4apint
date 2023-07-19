@@ -86,6 +86,7 @@ class Site:
         self.flask_app = Flask(
             __name__,
             static_folder=STATIC_FOLDER,
+            # static_url_path="",
             template_folder=f"{self.dynamic_site_path}/templates",
         )
 
