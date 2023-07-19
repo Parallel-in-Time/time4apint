@@ -46,7 +46,7 @@ class Site:
 
         self.initialize_flask_server()
 
-    def make_index_text(self, file: str) -> tuple[str, str]:
+    def make_index_text(self, file: str, folder: str="") -> tuple[str, str]:
         # Note that this conversion isn't really clean...
         if not os.path.exists(file):
             raise FileNotFoundError(f"{file} file couldn't be found!")
@@ -58,11 +58,14 @@ class Site:
 
         content = "\n".join(lines[1:])
 
-        text = emoji.emojize(self.render_md(content))
-
         # Convert relative links to webapps pages :
-        text = text.replace("web_apps/", "")
-        text = text.replace("/index.md", "")
+        content = content.replace("web_apps/", "")
+        content = content.replace("/index.md", "")
+        content = content.replace("(./", f"(./{folder}")
+        if folder != "":
+            content = content.replace(".md)", ")")
+
+        text = emoji.emojize(self.render_md(content))
 
         return title, text
 
@@ -131,7 +134,7 @@ class Site:
             # First check if the app_path corresponds to an index file
             try:
                 index_file_path = os.path.join(self.apps_path, app_path, "index.md")
-                title, text = self.make_index_text(index_file_path)
+                title, text = self.make_index_text(index_file_path, folder=app_path+'/')
             except FileNotFoundError:
                 pass
             else:
