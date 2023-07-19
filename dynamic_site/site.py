@@ -60,6 +60,10 @@ class Site:
 
         text = emoji.emojize(self.render_md(content))
 
+        # Convert relative links to webapps pages :
+        text = text.replace("web_apps/", "")
+        text = text.replace("/index.md", "")
+
         return title, text
 
     def generate_apps(self) -> None:
