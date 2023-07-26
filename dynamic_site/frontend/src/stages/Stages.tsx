@@ -46,15 +46,35 @@ function Stages() {
       });
     });
 
+    // Add a computing spinner
+    // @ts-expect-error
+    let notification = null;
+    if (Object.keys(data).length > 0) {
+      // @ts-expect-error
+      notification = UIkit.notification({
+        message: '<div uk-spinner></div> &nbsp; Computing...',
+        pos: 'top-center',
+        timeout: 0,
+      });
+    }
+
     axios
       .post(`${window.location.pathname}/compute`, data)
       .then((response) => {
+        // Remove the spinner if it exists
+        // @ts-expect-error
+        if (notification !== null) notification.close();
+
         // Set all stages with the data
         setDocsData(() => response.data.docs);
         setSettingsData(() => response.data.settings);
         setPlotsData(() => response.data.plots);
       })
       .catch((error) => {
+        // Remove the spinner if it exists
+        // @ts-expect-error
+        if (notification !== null) notification.close();
+
         if (error.response.status === 400) {
           // @ts-expect-error
           UIkit.notification(error.response.data, 'danger');
