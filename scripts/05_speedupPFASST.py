@@ -3,7 +3,7 @@
 import numpy as np
 
 from blockops import BlockProblem
-from blockops.plots import plotAccuracyContour, plotContour
+from blockops.plots import Matplotlib, Plotly
 
 zoom = 1
 reLam = np.linspace(-3 / zoom, 0.5 / zoom, 256)
@@ -12,11 +12,10 @@ nBlocks = 6
 
 lam = reLam[:, None] + 1j * imLam[None, :]
 prob = BlockProblem(
-    lam.ravel(), tEnd=nBlocks, nBlocks=nBlocks, nPoints=5, 
+    lam.ravel(), tEnd=nBlocks, nBlocks=nBlocks, nPoints=5,
     scheme='Collocation', quadType='LOBATTO')
 prob.setApprox('RungeKutta', rkScheme='BE')
 prob.setCoarseLevel(3)
-
 
 chi = prob.chi.matrix
 phi = prob.phi.matrix
@@ -28,7 +27,6 @@ TCtoF = prob.TCtoF.matrix
 phiCoarse = prob.phiCoarse.matrix
 chiCoarse = prob.chiCoarse.matrix
 
-
 algo = prob.getBlockIteration('PFASST')
 
 # Compute fine solution
@@ -39,14 +37,15 @@ uExact = prob.getSolution('exact')
 errDiscr = np.abs(uExact - uNum)
 errDiscrMax = np.max(errDiscr, axis=(0, -1)).reshape(lam.shape)
 stab = np.abs(uNum)[0, :, -1].reshape(lam.shape)
-plotAccuracyContour(reLam, imLam, errDiscrMax, stab, figName='discrErr')
+# plotAccuracyContour(reLam, imLam, errDiscrMax, stab, figName='discrErr')
+
 
 # Compute approximate solution and error
 uApprox = prob.getSolution('approx')
 errApprox = np.abs(uNum - uApprox)
 errApproxMax = np.max(errApprox, axis=(0, -1)).reshape(lam.shape)
 stab = np.abs(uApprox)[0, :, -1].reshape(lam.shape)
-plotAccuracyContour(reLam, imLam, errApproxMax, stab, figName='coarseErr')
+# plotAccuracyContour(reLam, imLam, errApproxMax, stab, figName='coarseErr')
 
 # Compute PinT solution and error
 nIterMax = nBlocks
@@ -64,24 +63,27 @@ for err in errPinTMax[-1::-1]:
     k -= 1
 
 # Plot number of iteration until discretization error
-plotContour(reLam=reLam, imLam=imLam, val=nIter, nLevels=None, figName='PinTIter')
+# plotContour(reLam=reLam, imLam=imLam, val=nIter, nLevels=None, figName='PinTIter')
 
 reqIters = np.unique(nIter).tolist()
 reqIters.pop(0)
 
-
 # %% Block-by-Block scheduling
 speedupBbB = np.zeros(nBlocks + 1)
 efficiencyBbB = np.zeros(nBlocks + 1)
-for k in reqIters:
-    speedupBbB[k], efficiencyBbB[k], _ = algo.getPerformances(
-        N=nBlocks, K=k, schedulerType='BbB')
+run = None
+for k in reqIters[::-1]:
+    if run is None:
+        speedupBbB[k], efficiencyBbB[k], _, run = algo.getPerformances(
+            N=nBlocks, K=k, schedulerType='BbB')
+    else:
+        speedupBbB[k], efficiencyBbB[k], _, _ = algo.getPerformances(
+            N=nBlocks, K=k, schedulerType='BbB', run=run)
 nSpeedup = speedupBbB[nIter]
 nEfficiency = efficiencyBbB[nIter]
 
 # Plotting
-plotContour(reLam=reLam, imLam=imLam, val=nSpeedup, 
-            nLevels=None, figName='Block-by-Block Schedule')
-plotContour(reLam=reLam, imLam=imLam, val=nEfficiency, 
-            nLevels=None, figName='Block-by-Block Schedule')
-
+# plotContour(reLam=reLam, imLam=imLam, val=nSpeedup,
+#            nLevels=None, figName='Block-by-Block Schedule')
+# plotContour(reLam=reLam, imLam=imLam, val=nEfficiency,
+#            nLevels=None, figName='Block-by-Block Schedule')

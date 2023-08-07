@@ -45,7 +45,7 @@ class TestMethods:
             update="(phi**(-1)-phiD**(-1))*chi*u_{n}^k + phiD**(-1)*chi* u_{n}^{k+1}",
             propagator=phi ** (-1) * chi,
             **blockOps)
-        run = PintRun(blockIteration=parareal, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4])
+        run = PintRun(blockIteration=parareal, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4], useLookup=False)
         pool = TaskPool(run=run)
         checkResults(method='PararealPhiChiNoPredictor', run=run, pool=pool)
 
@@ -54,7 +54,7 @@ class TestMethods:
             update="(phi**(-1)-phiD**(-1))*chi*u_{n}^k + phiD**(-1)*chi* u_{n}^{k+1}",
             propagator=phi ** (-1) * chi, predictor=phiD ** (-1) * chi,
             **blockOps)
-        run = PintRun(blockIteration=parareal, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4])
+        run = PintRun(blockIteration=parareal, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4], useLookup=False)
         pool = TaskPool(run=run)
         checkResults(method='PararealPhiChi', run=run, pool=pool)
 
@@ -65,7 +65,7 @@ class TestMethods:
             propagator=f,
             rules=rules,  # list of rules (optional)
             f=f, g=g)
-        run = PintRun(blockIteration=parareal, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4])
+        run = PintRun(blockIteration=parareal, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4], useLookup=False)
         pool = TaskPool(run=run)
         checkResults(method='PararealFGNoPredictor', run=run, pool=pool)
 
@@ -76,7 +76,7 @@ class TestMethods:
             propagator=f, predictor=g,
             rules=rules,  # list of rules (optional)
             f=f, g=g)
-        run = PintRun(blockIteration=parareal, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4])
+        run = PintRun(blockIteration=parareal, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4], useLookup=False)
         pool = TaskPool(run=run)
         checkResults(method='PararealFG', run=run, pool=pool)
 
@@ -86,7 +86,7 @@ class TestMethods:
             propagator=f,
             rules=rules,  # list of rules (optional)
             f=f, g=g, p=p, r=r)
-        run = PintRun(blockIteration=parareal, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4])
+        run = PintRun(blockIteration=parareal, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4], useLookup=False)
         pool = TaskPool(run=run)
         checkResults(method='PararealSCFGNoPredictor', run=run, pool=pool)
 
@@ -97,7 +97,7 @@ class TestMethods:
             propagator=f, predictor="p*g*r",
             rules=rules,  # list of rules (optional)
             f=f, g=g, p=p, r=r)
-        run = PintRun(blockIteration=parareal, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4])
+        run = PintRun(blockIteration=parareal, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4], useLookup=False)
         pool = TaskPool(run=run)
         checkResults(method='PararealSCFG', run=run, pool=pool)
 
@@ -106,7 +106,7 @@ class TestMethods:
             "phiD**(-1)*chi*u_{n}^k + (I-phiD**(-1)*phi)* u_{n+1}^{k}",
             propagator=phi ** (-1) * chi, predictor=I,
             **blockOps)
-        run = PintRun(blockIteration=blockJacobi, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4])
+        run = PintRun(blockIteration=blockJacobi, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4], useLookup=False)
         pool = TaskPool(run=run)
         checkResults(method='BlockJacobiPredictorI', run=run, pool=pool)
 
@@ -115,7 +115,7 @@ class TestMethods:
             "phiD**(-1)*chi*u_{n}^k + (I-phiD**(-1)*phi)* u_{n+1}^{k}",
             propagator=phi ** (-1) * chi,
             **blockOps)
-        run = PintRun(blockIteration=blockJacobi, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4])
+        run = PintRun(blockIteration=blockJacobi, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4], useLookup=False)
         pool = TaskPool(run=run)
         checkResults(method='BlockJacobiNoPredictor', run=run, pool=pool)
 
@@ -125,7 +125,7 @@ class TestMethods:
             "phiD**(-1)*chi*u_{n}^k + (I-phiD**(-1)*phi)* u_{n+1}^{k}",
             propagator=phi ** (-1) * chi, predictor=phiD ** (-1) * chi,
             **blockOps)
-        run = PintRun(blockIteration=blockJacobi, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4])
+        run = PintRun(blockIteration=blockJacobi, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4], useLookup=False)
         pool = TaskPool(run=run)
         checkResults(method='BlockJacobi', run=run, pool=pool)
 
@@ -135,7 +135,7 @@ class TestMethods:
             update="phiD**(-1)*chi*u_{n}^{k+1} + (I-phiD**(-1)*phi)* u_{n+1}^{k}",
             propagator=phi ** (-1) * chi,
             **blockOps)
-        run = PintRun(blockIteration=approxBlockGaussSeidel, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4])
+        run = PintRun(blockIteration=approxBlockGaussSeidel, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4], useLookup=False)
         pool = TaskPool(run=run)
         checkResults(method='ApproxBlockGaussSeidelNoPredictor', run=run, pool=pool)
 
@@ -145,7 +145,7 @@ class TestMethods:
             update="phiD**(-1)*chi*u_{n}^{k+1} + (I-phiD**(-1)*phi)* u_{n+1}^{k}",
             propagator=phi ** (-1) * chi, predictor=phiD ** (-1) * chi,
             **blockOps)
-        run = PintRun(blockIteration=approxBlockGaussSeidel, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4])
+        run = PintRun(blockIteration=approxBlockGaussSeidel, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4], useLookup=False)
         pool = TaskPool(run=run)
         checkResults(method='ApproxBlockGaussSeidel', run=run, pool=pool)
 
@@ -154,6 +154,6 @@ class TestMethods:
         prob.setApprox('RungeKutta', rkScheme='BE')
         prob.setCoarseLevel(2)
         algo = prob.getBlockIteration('PFASST')
-        run = PintRun(blockIteration=algo, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4])
+        run = PintRun(blockIteration=algo, nBlocks=nBlocks, kMax=[0, 4, 4, 4, 4], useLookup=False)
         pool = TaskPool(run=run)
         checkResults(method='PFASST', run=run, pool=pool)

@@ -5,6 +5,7 @@ import sympy as sy
 
 # BlockOps import
 from blockops.utils.expr import Generator, getFactorizedRule
+from blockops.lookup.lookupTable import findEntry
 
 
 class PintRun:
@@ -17,7 +18,7 @@ class PintRun:
     block iteration.
     """
 
-    def __init__(self, blockIteration, nBlocks: int, kMax: list) -> None:
+    def __init__(self, blockIteration, nBlocks: int, kMax: list, useLookup: bool = True) -> None:
         """
         Constructor to initialize a parallel-in-time run.
 
@@ -60,10 +61,17 @@ class PintRun:
                         newValue = self.createSymbolForUnk(n=i + 1, k=z)
                         self.multiStepRule[newKey] = newValue
 
-        # Iterate over all expression
-        self.createExpressions()
+        # Create blockRules and facBlockRules if no lookup entry exists
+        # Otherwise load both from the lookup entry
+        lookUp, res = findEntry(blockIteration, nBlocks, kMax)
+        if not lookUp or not useLookup:
+            # Iterate over all expression
+            self.createExpressions()
 
-        self.factorizeBlockRules()
+            self.factorizeBlockRules()
+        else:
+            self.blockRules = res.blockRules
+            self.facBlockRules = res.facBlockRules
 
     def createSymbolForUnk(self, n: int, k: int) -> sy.Symbol:
         """

@@ -8,6 +8,7 @@ Created on Mon Nov  7 15:40:41 2022
 import numpy as np
 import sympy as sy
 from typing import Dict
+import time
 
 from blockops.block import BlockOperator, I
 from blockops.run import PintRun
@@ -15,6 +16,7 @@ from blockops.taskPool import TaskPool
 from blockops.utils.expr import getCoeffsFromFormula
 from blockops.graph import PintGraph
 from blockops.scheduler import getSchedule
+from blockops.utils.checkRun import checkRunParameters, reduceRun
 
 
 # -----------------------------------------------------------------------------
@@ -209,7 +211,7 @@ class BlockIteration(object):
         schedule = getSchedule(taskPool=pool, nProc=nProc, nPoints=N + 1, schedulerType=schedulerType)
         return schedule.getRuntime()
 
-    def getPerformances(self, N, K, nProc=None, schedulerType='BLOCK-BY-BLOCK', verbose=False):
+    def getPerformances(self, N, K, nProc=None, schedulerType='BLOCK-BY-BLOCK', verbose=False, run=None):
 
         seqPropCost = self.propagator.cost
         if (seqPropCost is None) or (seqPropCost == 0):
@@ -221,7 +223,13 @@ class BlockIteration(object):
         K = self.checkK(N=N, K=K)
         print(f' -- computing {schedulerType} cost for K={K}')
 
-        run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
+        if run is None:
+            run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
+        elif not checkRunParameters(run, N, K):
+            run = PintRun(blockIteration=self, nBlocks=N, kMax=K)
+        elif checkRunParameters(run, N, K):
+            run = reduceRun(run, N, K)
+
         pool = TaskPool(run=run)
         schedule = getSchedule(
             taskPool=pool, nProc=nProc, nPoints=N + 1,
@@ -250,7 +258,7 @@ class BlockIteration(object):
 
         speedup = runtimeTs / runtime
         efficiency = speedup / nProc
-        return speedup, efficiency, nProc
+        return speedup, efficiency, nProc, run
 
     def plotGraphForOneBlock(self, N: int, K: int, plotBlock: int, plotIter: int, figSize: tuple = (6.4, 4.8),
                              saveFig: str = ""):
