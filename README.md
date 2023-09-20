@@ -4,15 +4,12 @@
 
 Develop a python code based on a generic framework allowing to investigate and analyze the performance of iterative parallel-in-time (PinT) algorithms : [blockops](./blockops/)
 
-In addition to this code, a website framework is provided to allow building of **Application Webpage (or WebApp)**,
-that uses the [blockops](./blockops/) code for specific application and experiments. Currently, the website is available at
-[https://jupyterhub.mat.tu-harburg.de/blockops/](https://jupyterhub.mat.tu-harburg.de/blockops/), and here is the current list of WebApp paths :
+In addition to this code, a [website framework](./dynamic_site) is provided to allow building of **Application Webpage (or WebApp)**,
+that uses the `blockops` code for specific application and experiments. 
 
-- [Analysis of Sequential Time-Integration Methods (accuracy, order, ...)](./web_apps/seqint/index.md)
-- [Performance Analysis of Scheduling Strategies for different PinT Algorithms](./web_apps/schedule/index.md)
+> :bell: See the current [**online demo website**](https://jupyterhub.mat.tu-harburg.de/blockops/)
 
-The WebApps are currently under development : current could be improved, and other WebApp could also be added,
-see the [demo WebApp](./demo/) for an example.
+The WebApps are now under development : current will be improved, and other WebApps will be added soon ...
 
 ## Base Convention
 
