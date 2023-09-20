@@ -7,9 +7,12 @@ Develop a python code based on a generic framework allowing to investigate and a
 In addition to this code, a [website framework](./dynamic_site) is provided to allow building of **Application Webpage (or WebApp)**,
 that uses the `blockops` code for specific application and experiments. 
 
-> :bell: See the current [**online demo website**](https://jupyterhub.mat.tu-harburg.de/blockops/)
+See the current [**online demo website**](https://jupyterhub.mat.tu-harburg.de/blockops/), that has a few WebApps implemented :
 
-The WebApps are now under development : current will be improved, and other WebApps will be added soon ...
+- [Analysis of Sequential Time-Integration Methods (accuracy, order, ...)](./web_apps/seqint/index.md)
+- [Performance Analysis of Scheduling Strategies for different PinT Algorithms](./web_apps/schedule/index.md)
+
+> :bell: The WebApps are now under development : current will be improved, and other WebApps will be added soon ...
 
 ## Base Convention
 
