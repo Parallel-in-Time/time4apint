@@ -2,10 +2,10 @@
 
 ## Motivations
 
-Develop a python code based on a generic framework allowing to investigate and analyze the performance of iterative parallel-in-time (PinT) algorithms : [blockops](./blockops/)
+Develop a python code based on a generic framework allowing to investigate and analyze the performance of iterative parallel-in-time (PinT) algorithms : `blockops`
 
 In addition to this code, a website framework is provided to allow building of **Application Webpage (or WebApp)**,
-that uses the `blockops` code for specific applications and experiments. 
+that uses the code for specific applications and experiments.
 
 See the current [**online demo website**](https://jupyterhub.mat.tu-harburg.de/blockops/), that has a few WebApps implemented :
 
