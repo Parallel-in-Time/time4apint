@@ -4,7 +4,7 @@
 
 Develop a python code based on a generic framework allowing to investigate and analyze the performance of iterative parallel-in-time (PinT) algorithms : [blockops](./blockops/)
 
-In addition to this code, a [website framework](./dynamic_site) is provided to allow building of **Application Webpage (or WebApp)**,
+In addition to this code, a website framework is provided to allow building of **Application Webpage (or WebApp)**,
 that uses the `blockops` code for specific applications and experiments. 
 
 See the current [**online demo website**](https://jupyterhub.mat.tu-harburg.de/blockops/), that has a few WebApps implemented :
@@ -13,6 +13,7 @@ See the current [**online demo website**](https://jupyterhub.mat.tu-harburg.de/b
 - [Analysis of Sequential Time-Integration Methods (accuracy, order, ...)](./web_apps/seqint/index.md)
 
 > :bell: The WebApps are now under development : current will be improved, and other WebApps will be added soon ...
+> Also not that most of the links below do not work on the website (yet), so you'll have to see this page on the [github repository](https://github.com/Parallel-in-Time/time4apint#readme) to follow them.
 
 ## Base Convention
 
@@ -105,7 +106,10 @@ This project also received funding from the
 
 ## Web Interface
 
-Install the dependencies stated in the `requirements.txt` and then open a browser at `127.0.0.1:8000` after running
+- [generic source code](./dynamic_site/)
+- [current web apps](./web_apps/)
+
+You can run the website on your own computer : install the dependencies stated in the `requirements.txt` and then open a browser at `127.0.0.1:8000` after running
 
 ```bash
 python web.py
