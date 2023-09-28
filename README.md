@@ -13,7 +13,7 @@ See the current [**online demo website**](https://jupyterhub.mat.tu-harburg.de/b
 - [Analysis of Sequential Time-Integration Methods (accuracy, order, ...)](./web_apps/seqint/index.md)
 
 > :bell: The WebApps are now under development : current will be improved, and other WebApps will be added soon ...
-> Also not that most of the links below do not work on the website (yet), so you'll have to see this page on the [github repository](https://github.com/Parallel-in-Time/time4apint#readme) to follow them.
+> Also note that most of the links below do not work on the website (yet), so you'll have to see this page on the [github repository](https://github.com/Parallel-in-Time/time4apint#readme) to follow them.
 
 ## Base Convention
 
