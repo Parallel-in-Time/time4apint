@@ -135,7 +135,7 @@ class PararealSchedule(App):
 
         fig = parareal.plotSchedule(N, K, nProc=N, schedulerType=schedulerType)
         time = parareal.getRuntime(N, K, N, schedulerType)
-        speedup, efficiency, nProcs = parareal.getPerformances(
+        speedup, efficiency, nProcs, _ = parareal.getPerformances(
             N, K, N, schedulerType)
         
         # === Response ===
