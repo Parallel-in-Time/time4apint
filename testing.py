@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 from blockops.problem import BlockProblem
 
 
-tEnd = 2*np.pi-0.2
-lam = 1j
+tEnd = np.pi
+lam = 1j-1.0
 nBlocks = 4
 nStepsF = 20
 nStepsG = 1
@@ -20,8 +20,8 @@ nPoints = 1
 nPointsCoarse = 1
 algoName = 'PFASST'
 
-prob = BlockProblem(lam, tEnd, nBlocks, nPoints, 
-                    'RungeKutta', rkScheme='BE', nStepsPerPoint=nStepsF)
+prob = BlockProblem(lam, tEnd, nBlocks, 'RungeKutta', 
+                    rkScheme='BE', nPoints=nPoints, nStepsPerPoint=nStepsF)
 prob.setApprox('RungeKutta', rkScheme='BE', nStepsPerPoint=nStepsG)
 prob.setCoarseLevel(nPointsCoarse)
 

@@ -236,7 +236,7 @@
     "src": "node_modules/katex/dist/fonts/KaTeX_Typewriter-Regular.woff2"
   },
   "src/main.css": {
-    "file": "assets/main-d34577cc.css",
+    "file": "assets/main-2558acf0.css",
     "src": "src/main.css"
   },
   "src/main.tsx": {
@@ -302,9 +302,9 @@
       "assets/KaTeX_Typewriter-Regular-f01f3e87.ttf"
     ],
     "css": [
-      "assets/main-d34577cc.css"
+      "assets/main-2558acf0.css"
     ],
-    "file": "assets/main-241d0ff6.js",
+    "file": "assets/main-f8453f4e.js",
     "isEntry": true,
     "src": "src/main.tsx"
   }
