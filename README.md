@@ -106,7 +106,7 @@ This project also received funding from the
 
 ## Web Interface
 
-- [generic source code](./dynamic_site/)
+- [wepps](https://github.com/Parallel-in-Time/wepps)
 - [current web apps](./web_apps/)
 
 You can run the website on your own computer : install the dependencies stated in the `requirements.txt` and then open a browser at `127.0.0.1:8000` after running

@@ -1,7 +1,7 @@
 from blockops.utils.params import Parameter as BlockParameter
-from dynamic_site.stage.parameters import Parameter as WebParameter
+from wepps.stage.parameters import Parameter as WebParameter
 
-from dynamic_site.stage import parameters as web_params
+from wepps.stage import parameters as web_params
 from blockops.utils import params as block_params
 
 # Note: M = nPoints

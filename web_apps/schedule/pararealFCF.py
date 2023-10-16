@@ -1,8 +1,8 @@
 from typing import Any
 
-from dynamic_site.app import App, ResponseStages
-from dynamic_site.stage import parameters as par
-import dynamic_site.stage.stages as stages
+from wepps.app import App, ResponseStages
+from wepps.stage import parameters as par
+import wepps.stage.stages as stages
 
 from blockops import BlockOperator, BlockIteration
 

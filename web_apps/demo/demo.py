@@ -1,8 +1,8 @@
 from typing import Any
 
-from dynamic_site.app import App, ResponseStages, ResponseError
-import dynamic_site.stage.stages as stages
-from dynamic_site.stage.parameters import (
+from wepps.app import App, ResponseStages, ResponseError
+import wepps.stage.stages as stages
+from wepps.stage.parameters import (
     Integer,
     PositiveInteger,
     StrictlyPositiveInteger,

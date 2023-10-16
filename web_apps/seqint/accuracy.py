@@ -1,9 +1,9 @@
 from typing import Any
 import numpy as np
 
-from dynamic_site.app import App, ResponseStages
-from dynamic_site.stage import parameters as par
-import dynamic_site.stage.stages as stages
+from wepps.app import App, ResponseStages
+from wepps.stage import parameters as par
+import wepps.stage.stages as stages
 
 from blockops.schemes import BlockScheme, SCHEMES
 from blockops.problem import BlockProblem

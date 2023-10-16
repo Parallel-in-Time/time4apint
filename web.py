@@ -1,4 +1,4 @@
-from dynamic_site.site import Site
+from wepps.site import Site
 import sys
 
 
