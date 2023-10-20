@@ -24,7 +24,7 @@ def getTransferMatrices(nodesFine, nodesCoarse, vectorized=False):
 
 @setParams(
     nPoints=PositiveInteger(latexName='$M$'),
-    ptsType=MultipleChoices(*NODE_TYPES, latexName="Point Distribution"), 
+    ptsType=MultipleChoices(*NODE_TYPES, latexName="Point Distribution"),
     quadType=MultipleChoices(*QUAD_TYPES, latexName="Quadrature Type"),
     form=MultipleChoices('Z2N', 'N2N')
 )
@@ -115,7 +115,7 @@ class BlockScheme(ParamClass):
             The value of :math:`\lambda\Delta{T}` for the block.
         phiName : str
             The symbol name for the :math:`\phi` operator.
-        chiName : Tstr
+        chiName : str
             The symbol name for the :math:`\chi` operator.
 
         Returns

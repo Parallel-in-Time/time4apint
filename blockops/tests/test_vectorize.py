@@ -23,18 +23,23 @@ def testMatVecMul():
     """Test vectorized Matrix Vector Multiplication (matVecMul)"""
     mat, u = generate(M, nDOF)
 
+    # -- matVecMul for (nDOF, M, M), (nDOF, M)
     out = matVecMul(mat, u)
-
     for i in range(nDOF):
         assert np.allclose(out[i], mat[i] @ u[i])
 
+    # -- matVecMul for (M, M), (nDOF, M)
     out = matVecMul(mat[0], u)
-
     for i in range(nDOF):
         assert np.allclose(out[i], mat[0] @ u[i])
 
-    out = matVecMul(mat[0], u[0])
+    # -- matVecMul for (nDOF, M, M), (M)
+    out = matVecMul(mat, u[0])
+    for i in range(nDOF):
+        assert np.allclose(out[i], mat[i] @ u[0])
 
+    # -- matVecMul for (M, M), (M,)
+    out = matVecMul(mat[0], u[0])
     assert np.allclose(out, mat[0] @ u[0])
 
 
@@ -42,18 +47,23 @@ def testMatVecInv():
     """Test vectorized Matrix Vector Inversion (matVecInv)"""
     mat, u = generate(M, nDOF)
 
+    # -- matVecInv for (nDOF, M, M), (nDOF, M)
     out = matVecInv(mat, u)
-
     for i in range(nDOF):
         assert np.allclose(out[i], np.linalg.solve(mat[i], u[i]))
 
+    # -- matVecInv for (M, M), (nDOF, M)
     out = matVecInv(mat[0], u)
-
     for i in range(nDOF):
         assert np.allclose(out[i], np.linalg.solve(mat[0], u[i]))
 
-    out = matVecInv(mat[0], u[0])
+    # -- matVecInv for (nDOF, M, M), (M,)
+    out = matVecInv(mat, u[0])
+    for i in range(nDOF):
+        assert np.allclose(out[i], np.linalg.solve(mat[i], u[0]))
 
+    # -- matVecInv for (M, M), (M,)
+    out = matVecInv(mat[0], u[0])
     assert np.allclose(out, np.linalg.solve(mat[0], u[0]))
 
 

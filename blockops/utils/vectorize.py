@@ -26,9 +26,10 @@ def matVecMul(mat, u):
 
     Notes
     -----
-    - matVecMul((nDOF, M, M), (nDOF, M)) -> (nDOF, M) <=> (M, M) @ (M,) for each nDOF
-    - matVecMul((M, M), (nDOF, M)) -> (nDOF, M) <=> (M, M) @ (M,) for each nDOF
-    - matVecMul((M, M), (M,)) -> (M,) <=> (M, M) @ (M,)
+    - matVecMul for (nDOF, M, M), (nDOF, M) -> (nDOF, M) <=> (M, M) @ (M,) for each nDOF
+    - matVecMul for (M, M), (nDOF, M) -> (nDOF, M) <=> (M, M) @ (M,) for each nDOF
+    - matVecMul for (nDOF, M, M), (M,) -> (nDOF, M) <=> (M, M) @ (M,) for each nDOF
+    - matVecMul for (M, M), (M,) -> (M,) <=> (M, M) @ (M,)
     """
     return np.matmul(mat, u[..., None]).squeeze(axis=-1)
 
@@ -51,14 +52,18 @@ def matVecInv(mat, u):
 
     Notes
     -----
-    - matVecInv((nDOF, M, M), (nDOF, M)) -> (nDOF, M) <=> (M, M) \ (M,) for each nDOF
-    - matVecInv((M, M), (nDOF, M)) -> (nDOF, M) <=> (M, M) \ (M,) for each nDOF
-    - matVecInv((M, M), (M,)) -> (M,) <=> (M, M) \ (M,)
+    - matVecInv for (nDOF, M, M), (nDOF, M) -> (nDOF, M) <=> (M, M) \ (M,) for each nDOF
+    - matVecInv for (M, M), (nDOF, M) -> (nDOF, M) <=> (M, M) \ (M,) for each nDOF
+    - matVecInv for (nDOF, M, M), (M,) -> (nDOF, M) <=> (M, M) \ (M,) for each nDOF
+    - matVecInv for (M, M), (M,)) -> (M,) <=> (M, M) \ (M,)
     """
     try:
         return np.linalg.solve(mat, u)
     except ValueError:
-        return np.linalg.solve(mat[None, ...], u)
+        try:
+            return np.linalg.solve(mat[None, ...], u)
+        except ValueError:
+            return np.linalg.solve(mat, u[None, ...])
 
 
 def matMatMul(m1, m2):
