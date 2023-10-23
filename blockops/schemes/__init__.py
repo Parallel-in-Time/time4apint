@@ -8,20 +8,6 @@ from blockops.utils.poly import NodesGenerator, NODE_TYPES, QUAD_TYPES
 from blockops.utils.poly import LagrangeApproximation
 from blockops.block import BlockOperator
 
-
-def getTransferMatrices(nodesFine, nodesCoarse, vectorized=False):
-    # Build polynomial approximations
-    polyApproxFine = LagrangeApproximation(nodesFine)
-    polyApproxCoarse = LagrangeApproximation(nodesCoarse)
-    # Compute interpolation matrix
-    TFtoC = polyApproxFine.getInterpolationMatrix(nodesCoarse)
-    TCtoF = polyApproxCoarse.getInterpolationMatrix(nodesFine)
-    if vectorized:
-        TFtoC.shape = (1, *TFtoC.shape)
-        TCtoF.shape = (1, *TCtoF.shape)
-    return TFtoC, TCtoF
-
-
 @setParams(
     nPoints=PositiveInteger(latexName='$M$'),
     ptsType=MultipleChoices(*NODE_TYPES, latexName="Point Distribution"),
@@ -177,6 +163,38 @@ class BlockScheme(ParamClass):
             The (estimated) cost for :math:`\chi`.
         """
         raise NotImplementedError('cannot use BlockScheme class (abstract)')
+
+    def getTransferMatrices(self, pointsCoarse,
+                            lamDt=None, mgType="TMG", vectorized=False):
+        if mgType == "TMG":
+
+            # Build polynomial approximations
+            polyApproxFine = LagrangeApproximation(self.points)
+            polyApproxCoarse = LagrangeApproximation(pointsCoarse)
+            # Compute interpolation matrix
+            TFtoC = polyApproxFine.getInterpolationMatrix(pointsCoarse)
+            TCtoF = polyApproxCoarse.getInterpolationMatrix(self.points)
+            if vectorized:
+                TFtoC.shape = (1, *TFtoC.shape)
+                TCtoF.shape = (1, *TCtoF.shape)
+            return TFtoC, TCtoF
+
+        elif mgType == "MGRIT":
+            # Conditions to use MGRIT-type transfers operators
+            assert lamDt is not None
+            assert self.points[0] == 0 and self.points[-1] == 1
+            assert np.size(pointsCoarse) == 2
+            assert 0, 1 == pointsCoarse
+            assert self.form == "N2N"
+
+            # Eventually generate matrices for several lamDt
+            lamDt = np.ravel(lamDt)[None, :]
+
+            # Generate block matrices
+            phi, chi = self.getBlockMatrices(lamDt)
+
+        else:
+            raise NotImplementedError(f'mgType={mgType}')
 
 # Dictionnary to store all the BlockScheme implementations
 SCHEMES: Dict[str, BlockScheme] = {}

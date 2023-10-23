@@ -5,7 +5,7 @@ import numpy as np
 from blockops.utils.params import ParamClass, setParams, \
     PositiveInteger, ScalarNumber, VectorNumbers, MultipleChoices
 
-from blockops.schemes import SCHEMES, getTransferMatrices
+from blockops.schemes import SCHEMES
 from blockops.block import BlockOperator
 from blockops.iteration import ALGORITHMS, BlockIteration
 
@@ -199,8 +199,8 @@ class BlockProblem(ParamClass):
                 self.lam*self.dt, r'\phi_C', r'\chi_C')
 
         # Build transfer operators
-        TFtoC, TCtoF = getTransferMatrices(
-            self.points, self.pointsCoarse, vectorized=self.nLam > 1)
+        TFtoC, TCtoF = self.scheme.getTransferMatrices(
+            self.pointsCoarse, vectorized=self.nLam > 1)
         self.TFtoC = BlockOperator('T_F^C', matrix=TFtoC, cost=0)
         self.TCtoF = BlockOperator('T_C^F', matrix=TCtoF, cost=0)
 

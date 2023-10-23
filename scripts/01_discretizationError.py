@@ -30,7 +30,7 @@ params = {
     "RungeKutta": {
         "rkScheme": 'RK4',
         "nStepsPerPoint": 1,
-        "nPoints": 1,
+        "nPoints": 3,
         },
     "Collocation": {
         "nPoints": 4,

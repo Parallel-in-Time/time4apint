@@ -14,5 +14,5 @@ algo = prob.getBlockIteration('PFASST')
 algo.plotGraph(N=2,K=1)
 algo.plotSchedule(
     N=4,
-    K=4, #K=[1,2,3,4], 
+    K=4, #K=[1,2,3,4],
     nProc=4)
