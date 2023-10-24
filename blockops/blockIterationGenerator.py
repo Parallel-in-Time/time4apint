@@ -1,11 +1,10 @@
 import sympy as sy
 import numpy as np
 import copy
-import sys
 import re
 
 
-SIMPLE_FORM = True
+SIMPLE_FORM = False
 
 class BlockIterationGenerator():
 
@@ -56,10 +55,10 @@ class BlockIterationGenerator():
         for i in range(len(u)):
             if gen.mode == 1:
                 print('Found rule: \n')
-                print('u_n+1^k+1=')
+                print('u_{n+1}^{k+1}=')
                 tmp = gen.generateBlockRule()
-                
-                if SIMPLE_FORM:             
+
+                if SIMPLE_FORM:
                     dico = self.generateData(6, 4)
                     subDico = {}
                     prol = 1
@@ -73,7 +72,7 @@ class BlockIterationGenerator():
                         prol = prol*TCtoF
                         rest = TFtoC*rest
                     tmp = tmp.subs(subDico)
-                
+
                 tmp = tmp.args
                 for i in range(len(tmp)):
                     print('   ', str(tmp[i]) if str(tmp[i]).startswith('-') or i == 0 else '+' + str(tmp[i]))
@@ -85,8 +84,8 @@ class BlockIterationGenerator():
     def generateData(self, n, L, pre_s=1, post_s=0):
         save_symbols = {}
         u_0 = sy.Symbol(r'u_0', commutative=False)
-        phi = [sy.Symbol(f'\phi^{i}', commutative=False) for i in range(L)]
-        chi = [sy.Symbol(f'\chi^{i}', commutative=False) for i in range(L)]
+        phi = [sy.Symbol(f'\phi_{i}', commutative=False) for i in range(L)]
+        chi = [sy.Symbol(f'\chi_{i}', commutative=False) for i in range(L)]
         T_c_to_f = [sy.Symbol(f'T_{i + 1}^{i}', commutative=False) for i in range(L)]
         T_f_to_c = [sy.Symbol(f'T_{i}^{i + 1}', commutative=False) for i in range(L)]
         A = [sy.Matrix(np.eye(n, dtype=int) * phi[i]) + sy.Matrix(np.eye(n, k=-1, dtype=int) * -chi[i]) for i in
@@ -240,7 +239,7 @@ class Generator:
             tmp_split = re.split('_|\^', unknowns[i])
             iteration = int(tmp_split[1])
             block = int(tmp_split[2])
-            tmp_block = f'n' if n - int(block) == 0 else f'n-{n - int(block)}'
+            tmp_block = 'n' if n - int(block) == 0 else f'n-{n - int(block)}'
             tmp_iter = f'k-{self.k - iteration}' if self.k - iteration != 0 else 'k'
             tmp_str = f'u_{tmp_block}^{tmp_iter}'
             expr_str = expr_str.replace(unknowns[i], tmp_str)
@@ -273,36 +272,18 @@ class Generator:
 
     def generateBlockRule(self):
         tmp = self.generater
-        for key, val in self.translate.items():
-            if val[0] == 1:
-                if val[1] == 1:
-                    st = f'u_n^k'
-                elif val[1] > 1:
-                    st = 'todo'
-                elif val[1] == 0:
-                    st = f'u_n^k+1'
-                else:
-                    st = f'u_n^k'
-            elif val[0] > 1:
-                if val[1] == 1:
-                    st = f'u_n-{val[0] - 1}^k'
-                elif val[1] > 1:
-                    st = 'todo'
-                elif val[1] == 0:
-                    st = f'u_n-{val[0] - 1}^k+1'
-                else:
-                    st = f'u_n-{val[0] - 1}^k'
-            else:
-                st = f'u_n-{val[0]}^k-{val[1]}'
 
+        def u(n, k):
+            n = "" if n == 0 else f"+{n}" if n > 0 else f"{n}"
+            k = "" if k == 0 else f"+{k}" if k > 0 else f"{k}"
+            return "u_{n"+n+"}^{k"+k+"}"
+
+        for key, val in self.translate.items():
+            st = u(1-val[0], 1-val[1])
             tmp = tmp.replace(lambda expr: re.match(key, str(expr)),
                               lambda expr: sy.symbols(st, commutative=False))
         return tmp
 
 
 # PararealGenerator(n=6)
-MultilevelGenerator(n=20, L=2, pre_smoothing=10, post_smoothing=0)
-# MultilevelGenerator(n=6, L=3, pre_smoothing=1, post_smoothing=0)
-# MultilevelGenerator(n=6, L=4, pre_smoothing=1, post_smoothing=0)
-# MultilevelGenerator(n=6, L=2, pre_smoothing=2, post_smoothing=0)
-# MultilevelGenerator(n=6, L=2, pre_smoothing=1, post_smoothing=1)
+MultilevelGenerator(n=6, L=3, pre_smoothing=1, post_smoothing=0)
