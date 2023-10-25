@@ -6,7 +6,7 @@ Created on Fri Mar 24 16:16:27 2023
 Contains utility classes and wrapper to list and check parameters.
 """
 import inspect
-from typing import Hashable, Callable
+from typing import Hashable
 import copy
 import numpy as np
 
@@ -30,18 +30,18 @@ class ParamError(Exception):
 
 class Parameter(object):
     """Base class to describe a parameter"""
-    
+
     def __init__(self, latexName=None):
-        
+
         self.name = None
         self.docs = None
         self.default = None
         self.value = None
-        
+
         self._latexName = latexName
         self._uniqueID = None
-        
-        
+
+
     @property
     def latexName(self):
         if self._latexName is None:
@@ -51,20 +51,20 @@ class Parameter(object):
                 return f"{self.name[0].upper() + self.name[1:]}"
         else:
             return self._latexName
-        
-        
+
+
     @property
     def uniqueID(self):
         if self._uniqueID is None:
             return self.name
         else:
             return self._uniqueID
-        
+
     @uniqueID.setter
     def uniqueID(self, value):
         self._uniqueID = value
-            
-    
+
+
     def error(self, value, reason):
         reason += f" ({self.pType})"
         raise ParamError(self.name, value, reason)
@@ -149,7 +149,7 @@ class ParamClass(object):
 # Main class decorator to be applied on ParamClass subclasses
 # -----------------------------------------------------------------------------
 
-def setParams(**kwargs) -> Callable[[ParamClass], ParamClass]:
+def setParams(**kwargs):
     """Class decorator to set the parameter types"""
 
     def wrapper(cls):
@@ -204,7 +204,7 @@ class PositiveInteger(Parameter):
     def __init__(self, strict=True, latexName=None):
         self.strict = strict
         super().__init__(latexName)
-        
+
 
     def check(self, value):
         try:
@@ -228,7 +228,7 @@ class ScalarNumber(Parameter):
     def __init__(self, positive=False, latexName=None):
         self.positive = positive
         super().__init__(latexName)
-        
+
 
     def check(self, value):
         dtype = float if self.positive else complex
@@ -269,7 +269,7 @@ class MultipleChoices(Parameter):
         self.pTypes = [c for c in choices if isinstance(c, Parameter)]
         self.choices = [c for c in choices if not isinstance(c, Parameter)]
         super().__init__(latexName)
-        
+
 
     def check(self, value):
         choices = [c for c in self.choices]
