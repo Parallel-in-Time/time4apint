@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Mar 27 17:27:18 2023
-
 Class implementing a BlockScheme object for Runge-Kutta methods
 """
 import numpy as np
@@ -10,7 +8,6 @@ import numpy as np
 from blockops.utils.vectorize import matMatMul
 from blockops.schemes import BlockScheme, register
 from blockops.utils.params import setParams, MultipleChoices, PositiveInteger
-
 
 
 STABILITY_FUNCTIONS = {

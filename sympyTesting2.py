@@ -5,8 +5,8 @@ import sympy as sy
 from blockops.problem import BlockProblem
 
 # Dummy problem
-prob = BlockProblem(1, 1, 3, 1, 'BE')
-prob.setApprox('BE')
+prob = BlockProblem(1, 1, 3, "RungeKutta", nPoints=4)
+prob.setApprox(scheme="RungeKutta")
 prob.setCoarseLevel(1)
 
 algo = prob.getBlockIteration('PFASST')
@@ -29,7 +29,7 @@ verbose = True
 # -----------------------------------------------------------------------------
 # Stage 1 : factorize expression into a dictionnary
 # -----------------------------------------------------------------------------
-    
+
 # Utility aliases
 Add = sy.core.add.Add
 Mul = sy.core.mul.Mul
@@ -44,7 +44,7 @@ def getLeadingTerm(expr: Mul):
         rest = Mul(*expr.args[1:])
     else:
         # Negative term with leading -1
-        if len(expr.args) == 2:  
+        if len(expr.args) == 2:
             # Just minus one term
             leading, rest = expr.args
         else:
@@ -60,7 +60,7 @@ def decomposeAddition(expr: Add, dico: dict):
             dico[term] = 1
         elif type(term) == Mul:
             leading, rest = getLeadingTerm(term)
-            try:    
+            try:
                 dico[leading] += rest
             except KeyError:
                 dico[leading] = rest
@@ -82,7 +82,7 @@ def expandTree(dico: dict):
             dico[leading] = subDico
         else:
             raise ValueError('got neither Add nor Mul')
-            
+
 dico = decomposeAddition(e1, {})  # Note : suppose that e1 is an addition ...
 expandTree(dico)
 # --> end of stage 1
@@ -100,37 +100,37 @@ if verbose:
             else:
                 print(f'{indent} {key} (x) {val}')
     printFacto(dico)
-    
-    
+
+
 # -----------------------------------------------------------------------------
 # Stage 2 : generate tasks from factorized dictionnary
 # -----------------------------------------------------------------------------
 
 class Counter(object):
     """Helping class to be used as a counter (value stored in n attribute)"""
-    
+
     def __init__(self):
         self.n = 0
-        
+
     def increment(self):
         """Increment counter value by one"""
         self.n += 1
-        
+
     def __str__(self):
         return str(self.n)
 
 
 class TasksPool(object):
     """Helping class to store the description of the tasks"""
-    
+
     def __init__(self):
         self.counter = Counter()
         self.tasks = {}
         self.results = {}
-        
+
     def addTask(self, ope, inp, dep):
         """
-        Add a task to the pool, considering one operator, one input, 
+        Add a task to the pool, considering one operator, one input,
         and a task dependency.
 
         Parameters
@@ -164,9 +164,9 @@ class TasksPool(object):
             self.tasks[task] = (ope, inp, dep)
             self.results[res] = task
             self.counter.increment()
-            
+
         return task, res
-            
+
 # To store the tasks
 pool = TasksPool()
 
@@ -204,7 +204,7 @@ def createTasks(dico: dict):
         else:
             raise ValueError('AAAAAAAAAAAAAAAAHHHHHH')
     return res, dep
-             
+
 createTasks(dico)
 # --> end of stage 2
 

@@ -91,6 +91,11 @@ class BlockScheme(ParamClass):
         """int: number of time points in the block"""
         return len(self.points)
 
+    @property
+    def name(self):
+        return self.__class__.__name__
+
+
     def getBlockOperators(self, lamDt, phiName, chiName) -> [BlockOperator, BlockOperator]:
         r"""
         Generate the :math:`\phi` and :math:`\chi` block operators
@@ -133,6 +138,7 @@ class BlockScheme(ParamClass):
 
         return phi, chi
 
+
     def getBlockMatrices(self, lamDt) -> [np.ndarray, np.ndarray]:
         """
         Generate matrices for the :math:`\phi` and :math:`\chi` block operators.
@@ -151,6 +157,58 @@ class BlockScheme(ParamClass):
         """
         raise NotImplementedError('cannot use BlockScheme class (abstract)')
 
+
+    def getTransferMatrices(self, pointsCoarse, lamDt, tType="GEOM"):
+
+        lamDt = np.ravel(lamDt)[None, :]
+
+        if tType == "GEOM":
+
+            # Build polynomial approximations
+            polyApproxFine = LagrangeApproximation(self.points)
+            polyApproxCoarse = LagrangeApproximation(pointsCoarse)
+            # Compute interpolation matrix
+            TFtoC = polyApproxFine.getInterpolationMatrix(pointsCoarse)
+            TCtoF = polyApproxCoarse.getInterpolationMatrix(self.points)
+
+            if lamDt.size > 1:
+                TFtoC.shape = (1, *TFtoC.shape)
+                TCtoF.shape = (1, *TCtoF.shape)
+
+        elif tType == "MGRIT":
+
+            # Conditions to use MGRIT-type transfers operators
+            assert self.points[0] == 0 and self.points[-1] == 1
+            assert np.size(pointsCoarse) == 2
+            assert np.all(pointsCoarse == [0, 1])
+            assert self.name == "RungeKutta"
+
+            # Restriction operator
+            TFtoC = np.zeros((2, self.nPoints, 1))
+            TFtoC[0, 0] = 1
+            TFtoC[-1, -1] = 1
+
+            # Interpolation operator
+            phi = self.getBlockMatrices(lamDt)[0]
+            psi = phi[1, 1]**(-1)
+            TCtoF = np.zeros((self.nPoints, 2, lamDt.size), dtype=phi.dtype)
+            for m in range(self.nPoints-1):
+                TCtoF[m, 0] = psi**m
+            TCtoF[-1, -1] = 1
+
+            # Transpose and eventually squeeze
+            TFtoC = TFtoC.transpose((2,0,1))
+            TCtoF = TCtoF.transpose((2,0,1))
+            if lamDt.size == 1:
+                TFtoC = TFtoC.squeeze(axis=0)
+                TCtoF = TCtoF.squeeze(axis=0)
+
+        else:
+            raise NotImplementedError(f'tType={tType}')
+
+        return TFtoC, TCtoF
+
+
     def getBlockCosts(self) -> [float, float]:
         """
         Generate costs fpr the :math:`\phi` and :math:`\chi` block operators.
@@ -163,38 +221,6 @@ class BlockScheme(ParamClass):
             The (estimated) cost for :math:`\chi`.
         """
         raise NotImplementedError('cannot use BlockScheme class (abstract)')
-
-    def getTransferMatrices(self, pointsCoarse,
-                            lamDt=None, mgType="TMG", vectorized=False):
-        if mgType == "TMG":
-
-            # Build polynomial approximations
-            polyApproxFine = LagrangeApproximation(self.points)
-            polyApproxCoarse = LagrangeApproximation(pointsCoarse)
-            # Compute interpolation matrix
-            TFtoC = polyApproxFine.getInterpolationMatrix(pointsCoarse)
-            TCtoF = polyApproxCoarse.getInterpolationMatrix(self.points)
-            if vectorized:
-                TFtoC.shape = (1, *TFtoC.shape)
-                TCtoF.shape = (1, *TCtoF.shape)
-            return TFtoC, TCtoF
-
-        elif mgType == "MGRIT":
-            # Conditions to use MGRIT-type transfers operators
-            assert lamDt is not None
-            assert self.points[0] == 0 and self.points[-1] == 1
-            assert np.size(pointsCoarse) == 2
-            assert 0, 1 == pointsCoarse
-            assert self.form == "N2N"
-
-            # Eventually generate matrices for several lamDt
-            lamDt = np.ravel(lamDt)[None, :]
-
-            # Generate block matrices
-            phi, chi = self.getBlockMatrices(lamDt)
-
-        else:
-            raise NotImplementedError(f'mgType={mgType}')
 
 # Dictionnary to store all the BlockScheme implementations
 SCHEMES: Dict[str, BlockScheme] = {}

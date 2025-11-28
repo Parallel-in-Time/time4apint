@@ -71,7 +71,7 @@ class BlockProblem(ParamClass):
     **schemeArgs :
         Additional keyword arguments used for the time-discretization scheme.
     """
-    def __init__(self, lam, tEnd, nBlocks, scheme, u0=1, **schemeArgs):
+    def __init__(self, lam, tEnd, nBlocks, scheme, u0=1.0, **schemeArgs):
 
         # Initialize parameters
         self.initialize(locals())
@@ -113,6 +113,10 @@ class BlockProblem(ParamClass):
         self.u0 = np.ones_like(u0*lam, shape=(1, self.nPoints))
         if np.size(lam) == 1:
             self.u0 = self.u0.squeeze(axis=0)
+
+    @property
+    def lamDt(self):
+        return self.lam*self.dt
 
     @property
     def points(self):
@@ -166,7 +170,7 @@ class BlockProblem(ParamClass):
             raise ValueError(f'{scheme} scheme is not implemented')
         self.schemeApprox = SCHEMES[scheme](**schemeArgs)
         self.phiApprox, _ = self.schemeApprox.getBlockOperators(
-            self.lam*self.dt, r'\tilde{\phi}', r'\tilde{\chi}')
+            self.lamDt, r'\tilde{\phi}', r'\tilde{\chi}')
         self.propApprox = self.phiApprox**(-1) * self.chi
 
         # Eventually set the coarse approximate block operators
@@ -186,7 +190,7 @@ class BlockProblem(ParamClass):
     # -------------------------------------------------------------------------
     # Method for coarse level operators
     # -------------------------------------------------------------------------
-    def setCoarseLevel(self, nPoints, **schemeArgs):
+    def setCoarseLevel(self, nPoints, tType="GEOM", **schemeArgs):
         # Retrieve parameters and BlockScheme class from fine level
         params = self.scheme.getParamsValue()
         params.update(schemeArgs)
@@ -196,11 +200,11 @@ class BlockProblem(ParamClass):
         # Build coarse block operators
         self.schemeCoarse = BlockScheme(**params)
         self.phiCoarse, self.chiCoarse = self.schemeCoarse.getBlockOperators(
-                self.lam*self.dt, r'\phi_C', r'\chi_C')
+                self.lamDt, r'\phi_C', r'\chi_C')
 
         # Build transfer operators
         TFtoC, TCtoF = self.scheme.getTransferMatrices(
-            self.pointsCoarse, vectorized=self.nLam > 1)
+            self.pointsCoarse, self.lamDt, tType=tType)
         self.TFtoC = BlockOperator('T_F^C', matrix=TFtoC, cost=0)
         self.TCtoF = BlockOperator('T_C^F', matrix=TCtoF, cost=0)
 
@@ -355,7 +359,7 @@ class BlockProblem(ParamClass):
     # -------------------------------------------------------------------------
     # Method for block iterations
     # -------------------------------------------------------------------------
-    def getBlockIteration(self, algo: str) -> BlockIteration:
+    def getBlockIteration(self, algo:str, **algoArgs) -> BlockIteration:
         """
         Generate a block iteration object associated to the block problem.
 
@@ -370,22 +374,25 @@ class BlockProblem(ParamClass):
             The block iteration object.
         """
         try:
+
             BlockIter = ALGORITHMS[algo]
             if BlockIter.needApprox and not self.approxIsSet:
                 raise ValueError(f'{algo} need an approximate block operator')
             if BlockIter.needCoarse and not self.coarseIsSet:
                 raise ValueError(f'{algo} need a coarse block operator')
-            blockIter = BlockIter(
+
+            blockIter = BlockIter(**algoArgs,
                 phi=self.phi, phiApprox=self.phiApprox, chi=self.chi,
                 phiCoarse=self.phiCoarse, chiCoarse=self.chiCoarse,
                 TFtoC=self.TFtoC, TCtoF=self.TCtoF,
                 phiCoarseApprox=self.phiCoarseApprox)
             blockIter.prob = self
+
             return blockIter
+
         except KeyError:
             raise NotImplementedError(
                 f'block iteration for {algo} not implemented')
-
 
 
 if __name__ == '__main__':

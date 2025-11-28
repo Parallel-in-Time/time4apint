@@ -4,12 +4,9 @@ import copy
 import re
 
 
-SIMPLE_FORM = False
+SIMPLE_FORM = True
 
 class BlockIterationGenerator():
-
-    def __init__(self):
-        pass
 
     def solve(self, lhs, rhs, u):
         tmp = []
@@ -38,8 +35,8 @@ class BlockIterationGenerator():
         return sy.zeros(n, 1)
 
     def jacobi(self, A, u, f, w=1):
-        D = A.lower_triangular(0).upper_triangular(0)
-        return self.simplifyElementwise(u + w * D.inv() * (f - A * u))
+        Dinv = sy.diag([d**(-1) for d in A.diagonal()[:]], unpack=True)
+        return self.simplifyElementwise(u + w * Dinv * (f - A * u))
 
     def gausseidel(self, A, u, f, A_c, u_res):
         return self.solve(lhs=A_c * (u_res - u), rhs=f - A * u, u=u_res)
@@ -59,13 +56,13 @@ class BlockIterationGenerator():
                 tmp = gen.generateBlockRule()
 
                 if SIMPLE_FORM:
-                    dico = self.generateData(6, 4)
+                    dico = self.symbols
                     subDico = {}
                     prol = 1
                     rest = 1
                     for i, (phiOp, chiOp, TCtoF, TFtoC, prop) in enumerate(zip(
                             dico['phi'], dico['chi'], dico['T_c_to_f'], dico['T_f_to_c'],
-                            ['F', 'G', 'H', 'K'])):
+                            ['F', 'G', 'H', 'K', 'L', 'M'])):
                         sym = sy.symbols(prop, commutative=False)
                         subDico[prol*phiOp**(-1)*chiOp*rest] = sym
                         subDico[prol * (phiOp**(-1)*chiOp)**2 * rest] = sym**2
@@ -81,31 +78,34 @@ class BlockIterationGenerator():
             else:
                 gen.check(expr=u[i], n=i + 1)
 
-    def generateData(self, n, L, pre_s=1, post_s=0):
+    def generateSymbols(self, nBlocks, nLevels, nPreSmooth=1, nPostSmooth=0):
         save_symbols = {}
         u_0 = sy.Symbol(r'u_0', commutative=False)
-        phi = [sy.Symbol(f'\phi_{i}', commutative=False) for i in range(L)]
-        chi = [sy.Symbol(f'\chi_{i}', commutative=False) for i in range(L)]
-        T_c_to_f = [sy.Symbol(f'T_{i + 1}^{i}', commutative=False) for i in range(L)]
-        T_f_to_c = [sy.Symbol(f'T_{i}^{i + 1}', commutative=False) for i in range(L)]
-        A = [sy.Matrix(np.eye(n, dtype=int) * phi[i]) + sy.Matrix(np.eye(n, k=-1, dtype=int) * -chi[i]) for i in
-             range(L)]
+        phi = [sy.Symbol(f'\phi_{i}', commutative=False) for i in range(nLevels)]
+        chi = [sy.Symbol(f'\chi_{i}', commutative=False) for i in range(nLevels)]
+        T_c_to_f = [sy.Symbol(f'T_{i + 1}^{i}', commutative=False) for i in range(nLevels)]
+        T_f_to_c = [sy.Symbol(f'T_{i}^{i + 1}', commutative=False) for i in range(nLevels)]
+        A = [sy.Matrix(np.eye(nBlocks, dtype=int) * phi[i]) + sy.Matrix(np.eye(nBlocks, k=-1, dtype=int) * -chi[i]) for i in
+             range(nLevels)]
         u_k = [
-            [self.createVec('u^0', n=n, ss=save_symbols), self.createVec('u^0', n=n, ss=save_symbols)] if i == 0 else [
-                self.createVec(f'u^0_{i}', n=n, ss=save_symbols),
-                self.createZeros(n)] for i in range(L)]
+            [self.createVec('u^0', n=nBlocks, ss=save_symbols),
+             self.createVec('u^0', n=nBlocks, ss=save_symbols)] if i == 0 else [
+                self.createVec(f'u^0_{i}', n=nBlocks, ss=save_symbols),
+                self.createZeros(nBlocks)] for i in range(nLevels)]
         u_k_1 = [
-            [self.createVec('u^1', n=n, ss=save_symbols), self.createVec('u^1', n=n, ss=save_symbols)] if i == 0 else [
-                self.createVec(f'u^1_{i}', n=n, ss=save_symbols),
-                self.createVec(f'u^1_{i}', n=n, ss=save_symbols)] for i in
-            range(L)]
-        f = [sy.Matrix([[chi[0] * u_0 if i == 0 else 0 for i in range(n)]]).transpose() if i == 0 else None for i in
-             range(L)]
-        pre_smoothing = [pre_s for _ in range(L)]
-        post_smoothing = [post_s for _ in range(L)]
-        return {
-            'L': L,
-            'n': n,
+            [self.createVec('u^1', n=nBlocks, ss=save_symbols),
+             self.createVec('u^1', n=nBlocks, ss=save_symbols)] if i == 0 else [
+                self.createVec(f'u^1_{i}', n=nBlocks, ss=save_symbols),
+                self.createVec(f'u^1_{i}', n=nBlocks, ss=save_symbols)] for i in
+            range(nLevels)]
+        f = [sy.Matrix([[chi[0] * u_0 if i == 0 else 0 for i in range(nBlocks)]]).transpose()
+             if i == 0 else None for i in range(nLevels)]
+        pre_smoothing = [nPreSmooth for _ in range(nLevels)]
+        post_smoothing = [nPostSmooth for _ in range(nLevels)]
+
+        self.symbols = {
+            'L': nLevels,
+            'n': nBlocks,
             'phi': phi,
             'chi': chi,
             'T_c_to_f': T_c_to_f,
@@ -117,21 +117,23 @@ class BlockIterationGenerator():
             'pre_smoothing': pre_smoothing,
             'post_smoothing': post_smoothing,
         }
+        return self.symbols
 
 
 class PararealGenerator(BlockIterationGenerator):
 
-    def __init__(self, n):
-        super().__init__()
-        res = self.parareal(settings=self.generateData(n=n, L=2))
-        self.checkResults(res)
+    def __init__(self, nBlocks):
+        self.generateSymbols(nBlocks=nBlocks, nLevels=2)
+        self.res = self.parareal()
+        self.checkResults(self.res)
 
-    def parareal(self, settings, overlapping=False):
-        u = settings['u_k']
-        chi = settings['chi']
-        A = settings['A']
-        f = settings['f']
-        u_k_1 = settings['u_k_1']
+    def parareal(self, overlapping=False):
+        symbols = self.symbols
+        u = symbols['u_k']
+        chi = symbols['chi']
+        A = symbols['A']
+        f = symbols['f']
+        u_k_1 = symbols['u_k_1']
         jac = self.jacobi(u=u[0][1], A=A[0], f=f[0])
         if overlapping:
             jac = self.jacobi(u=jac, A=A[0], f=f[0])
@@ -140,23 +142,25 @@ class PararealGenerator(BlockIterationGenerator):
 
 
 class MultilevelGenerator(BlockIterationGenerator):
-    def __init__(self, n, L, pre_smoothing=1, post_smoothing=1):
-        super().__init__()
-        res = self.multilevel(
-            setting=self.generateData(n=n, L=L, pre_s=pre_smoothing, post_s=post_smoothing))
-        self.checkResults(res)
 
-    def multilevel(self, setting, l=0):
-        L = setting['L'] - 1
-        T_c_f_s = setting['T_c_to_f']
-        T_f_c_s = setting['T_f_to_c']
-        A = setting['A']
-        u_k = setting['u_k']
-        u_k_1 = setting['u_k_1']
-        f = setting['f']
-        pre = setting['pre_smoothing']
-        post = setting['post_smoothing']
-        chi = setting['chi']
+    def __init__(self, nBlocks, nLevels, nPreSmooth=1, nPostSmooth=1):
+        self.generateSymbols(nBlocks=nBlocks, nLevels=nLevels, nPreSmooth=nPreSmooth, nPostSmooth=nPostSmooth)
+        self.res = self.multilevel()
+        self.checkResults(self.res)
+
+    def multilevel(self, l=0):
+        symbols = self.symbols
+
+        L = symbols['L'] - 1
+        T_c_f_s = symbols['T_c_to_f']
+        T_f_c_s = symbols['T_f_to_c']
+        A = symbols['A']
+        u_k = symbols['u_k']
+        u_k_1 = symbols['u_k_1']
+        f = symbols['f']
+        pre = symbols['pre_smoothing']
+        post = symbols['post_smoothing']
+        chi = symbols['chi']
 
         state = {}
         state2 = {}
@@ -179,7 +183,7 @@ class MultilevelGenerator(BlockIterationGenerator):
                     else:
                         u_k_1[l][1] = self.jacobi(u=u_k_1[l][1], A=A[l], f=f[l])
             f[l + 1] = (T_f_c_s[l] * (f[l] - A[l] * u_k_1[l][1]))
-            self.multilevel(l=l + 1, setting=setting)
+            self.multilevel(l=l+1)
             tmp = self.solve(lhs=u_k_1[l][0],
                              rhs=u_k_1[l][1] + T_c_f_s[l] * u_k_1[l + 1][0],
                              u=u_k_1[l + 1][0]).subs(state2)
@@ -285,5 +289,6 @@ class Generator:
         return tmp
 
 
-# PararealGenerator(n=6)
-MultilevelGenerator(n=6, L=3, pre_smoothing=1, post_smoothing=0)
+if __name__ == "__main__":
+    # PararealGenerator(n=4)
+    MultilevelGenerator(nBlocks=7, nLevels=3, nPreSmooth=1, nPostSmooth=0)

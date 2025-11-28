@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Mar 27 17:27:30 2023
-
 Class implementing a BlockScheme object for Collocation methods
 """
 import numpy as np
@@ -26,7 +24,7 @@ class Collocation(BlockScheme):
     collUpdate : bool, optional
         Wether to use or not the collocation update at the end of the step.
     """
-    def __init__(self, nPoints, ptsType='LEGENDRE', quadType='LOBATTO', 
+    def __init__(self, nPoints, ptsType='LEGENDRE', quadType='LOBATTO',
                  form='Z2N', collUpdate=False):
         self.initialize(locals())
 

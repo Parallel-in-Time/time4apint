@@ -8,7 +8,6 @@ Created on Mon Nov  7 15:40:41 2022
 import numpy as np
 import sympy as sy
 from typing import Dict
-import time
 
 from blockops.block import BlockOperator, I
 from blockops.run import PintRun
@@ -289,7 +288,7 @@ class BlockIteration(object):
         pool = TaskPool(run=run)
         schedule = getSchedule(taskPool=pool, nProc=nProc, nPoints=N + 1, schedulerType=schedulerType)
         return schedule.plotPlotly()
-        
+
         # schedule.plot(figName=None if self.name is None else self.name + f' ({schedule.NAME} schedule)',
         #           figSize=figSize, saveFig=saveFig)
 
@@ -318,22 +317,26 @@ DEFAULT_PROP = {
     'explicit': 'F'}
 
 
+def u(n, k):
+    n = "" if n == 0 else f"+{n}" if n > 0 else f"{n}"
+    k = "" if k == 0 else f"+{k}" if k > 0 else f"{k}"
+    return "u_{n"+n+"}^{k"+k+"}"
+
+
 @register
 class Parareal(BlockIteration):
     needApprox = True
 
-    def __init__(self, implicitForm=True, approxPred=True, **blockOps):
-        if implicitForm:
-            B00 = "(phi**(-1)*chi-phiApprox**(-1)*chi) * u_{n}^k"
-            B01 = "phiApprox**(-1)*chi * u_{n}^{k+1}"
-            predictor = "phiApprox**(-1)*chi" if approxPred else None
-        else:
-            B00 = "(F-G) * u_{n}^k"
-            B01 = "G * u_{n}^{k+1}"
-            predictor = "G" if approxPred else None
-        update = f"{B00} + {B01}"
+    def __init__(self, implicitForm=True, approxPred=True, nOverlap=0, **blockOps):
+        F = "(phi**(-1)*chi)" if implicitForm else "F"
+        G = "(phiApprox**(-1)*chi)" if implicitForm else "G"
+        predictor = G if approxPred else None
+
+        overlapTerm = "" if nOverlap == 0 else f"*{F}**{nOverlap}"
+        update = f"({F}-{G}){overlapTerm} {u(0-nOverlap, 0)} + {G} {u(0, 1)}"
         propagator = DEFAULT_PROP['implicit'] if implicitForm \
             else DEFAULT_PROP['explicit']
+        print(update)
         super().__init__(update, propagator, predictor,
                          rules=None, name='Parareal', **blockOps)
 
@@ -344,12 +347,12 @@ class ABJ(BlockIteration):
 
     def __init__(self, implicitForm=True, approxPred=True, **blockOps):
         if implicitForm:
-            B00 = "phiApprox**(-1)*chi * u_{n}^k"
-            B10 = "(I-phiApprox**-1 * phi) * u_{n+1}^{k}"
+            B00 = "phiApprox**(-1)*chi" + u(0, 0)
+            B10 = "(I-phiApprox**-1 * phi)" + u(1, 0)
             predictor = "phiApprox**(-1)*chi" if approxPred else None
         else:
-            B00 = "G * u_{n}^k"
-            B10 = "(I-G*F**(-1)) * u_{n}^{k+1}"
+            B00 = "G" + u(0, 0)
+            B10 = "(I-G*F**(-1))" + u(1, 0)
             predictor = "G" if approxPred else None
         update = f"{B10} + {B00}"
         blockOps['I'] = I
@@ -365,12 +368,12 @@ class ABGS(BlockIteration):
 
     def __init__(self, implicitForm=True, approxPred=True, **blockOps):
         if implicitForm:
-            B01 = "phiApprox**(-1)*chi * u_{n}^{k+1}"
-            B10 = "(I-phiApprox**-1 * phi) * u_{n+1}^{k}"
+            B01 = "phiApprox**(-1)*chi" + u(0, 1)
+            B10 = "(I-phiApprox**-1 * phi)" + u(1, 0)
             predictor = "phiApprox**(-1)*chi" if approxPred else None
         else:
-            B01 = "G * u_{n}^{k+1}"
-            B10 = "(I-G*F**(-1)) * u_{n}^{k+1}"
+            B01 = "G" + u(0, 1)
+            B10 = "(I-G*F**(-1))" + u(1, 0)
             predictor = "G" if approxPred else None
         update = f"{B10} + {B01}"
         blockOps['I'] = I
@@ -384,20 +387,20 @@ class ABGS(BlockIteration):
 class TMG(BlockIteration):
     needCoarse = True
 
-    def __init__(self, coarsePred=True, **blockOps):
-        omega = blockOps.get('omega', 1)
-        blockOps.update({'omega': omega})
+    def __init__(self, coarsePred=True, omega=1, nRelax=1, **blockOps):
         phiC = "TCtoF * phiCoarse**(-1) * TFtoC"
+
         B01 = f"{phiC}*chi"" * u_{n}^{k+1}"
         B00 = f"omega*(phi**(-1)*chi - {phiC}*chi)"" * u_{n}^{k}"
         B10 = f"(1-omega)*(I-{phiC}*phi)"" * u_{n+1}^{k}"
+
         predictor = f"{phiC}*chi" if coarsePred else None
         update = f"{B10} + {B01} + {B00}"
         blockOps['I'] = I
         rules = [("TFtoC * TCtoF", I)]
         propagator = DEFAULT_PROP['implicit']
         super().__init__(update, propagator, predictor,
-                         rules=rules, name='TMG', **blockOps)
+                         rules=rules, name='TMG', omega=1, **blockOps)
         self.omega = omega
 
 
