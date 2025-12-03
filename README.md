@@ -56,9 +56,34 @@ Any combination of block operators can be seen as a unique block operator, hence
 - `BlockIteration` objects depend only on `BlockOperator` objects, and are enough alone o define and analyse the speedup of a given block iteration (if relying only on symbolic `BlockOperator`)
 - `BlockProblem` represent the time-integration of a Dahlquist problem on a given time interval with a given number of blocks. It defines the appropriate numerical `BlockOperator`, and can be used to generate some classical `BlockIteration` objects.
 
+## Installation
+
+Download this repository using `git` :
+
+```bash
+git clone https://github.com/Parallel-in-Time/time4apint.git
+```
+
+then go within your local repository and install it with `pip` :
+
+```bash
+cd time4apint
+pip install -e .
+```
+
+💡 The `-e` option create symbolic links to the package in your python environment, and do not copy its files.
+That way, when there are new commits for the package in the github repo, you simply need to pull from it to update your local package :
+
+```bash
+git pull  # update your local repo => update automatically your package
+```
+
+Also, if you do any development on your local package sources, those will be automatically used by your local python environment.
+
+
 ## Project structure
 
-### Base library :
+### Base library
 
 - [blockops](./blockops/) : the main library developped for this project
 - [old](./old/) : some previous implementations (:ghost: to be integrated/removed later in the current code ...)
