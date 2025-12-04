@@ -88,8 +88,6 @@ Also, if you do any development on your local package sources, those will be aut
 - [blockops](./blockops/) : the main library developped for this project
 - [old](./old/) : some previous implementations (:ghost: to be integrated/removed later in the current code ...)
 
-:bell: requires at minimum Python 3.10, check [requirements.txt](./requirements.txt) for packages dependencies
-
 ### Scripts and Notebook
 
 Those shows from basic to complexe usage example of the library. It uses relative symbolic link to the [blockops](./blockops/) directory, directly integrated in the following subdirectory, to avoid any modification of the local `PYTHONPATH` or else.
