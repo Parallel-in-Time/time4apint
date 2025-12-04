@@ -5,6 +5,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["time4apint"]
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [project]
 name = "time4apint"
 version = "0.0.2"
