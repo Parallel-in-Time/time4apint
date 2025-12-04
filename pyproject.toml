@@ -16,7 +16,7 @@ dependencies = [
     "networkx",
     "matplotlib",
     "plotly",
-    "wepps",
+    "wepps @ git+https://github.com/Parallel-in-Time/wepps.git@main#egg=wepps",
     "pytest",
 ]
 requires-python = ">=3.10"
