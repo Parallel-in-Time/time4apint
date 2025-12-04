@@ -34,7 +34,7 @@ def matVecMul(mat, u):
     return np.matmul(mat, u[..., None]).squeeze(axis=-1)
 
 
-def matVecInv(mat, u):
+def matVecInv(mat, vec):
     r"""
     Compute vectorized Matrix Vector Inversion :math:`A^{-1}x` (A / x)
 
@@ -42,7 +42,7 @@ def matVecInv(mat, u):
     ----------
     mat : np.ndarray, size (nDOF, M, M) or (M, M)
         Matrix or array of matrices.
-    u : np.ndarray, size (nDOF, M) or (M,)
+    vec : np.ndarray, size (nDOF, M) or (M,)
         Vector or array of vectors.
 
     Returns
@@ -57,13 +57,10 @@ def matVecInv(mat, u):
     - matVecInv for (nDOF, M, M), (M,) -> (nDOF, M) <=> (M, M) \ (M,) for each nDOF
     - matVecInv for (M, M), (M,)) -> (M,) <=> (M, M) \ (M,)
     """
-    try:
-        return np.linalg.solve(mat, u)
-    except ValueError:
-        try:
-            return np.linalg.solve(mat[None, ...], u)
-        except ValueError:
-            return np.linalg.solve(mat, u[None, ...])
+    mat, vec = np.asarray(mat), np.asarray(vec)
+    if mat.ndim > 2 and vec.ndim > 1:
+        assert mat.shape[0] == vec.shape[0], "different nDOF for mat and vec"
+    return np.linalg.solve(mat, vec[..., None]).squeeze()
 
 
 def matMatMul(m1, m2):

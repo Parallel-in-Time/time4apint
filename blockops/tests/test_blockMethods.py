@@ -1,6 +1,6 @@
 import numpy as np
 
-from .data.methodData import results
+from blockops.tests.data.methodData import results
 
 from blockops.run import PintRun
 from blockops.block import BlockOperator, I
@@ -25,17 +25,16 @@ blockOps = dict(I=I, phi=phi, phiD=phiD, chi=chi)
 
 
 def checkResults(method, run, pool):
-    i = 0
-    for key, value in run.facBlockRules.items():
+    for i, (key, value) in enumerate(run.facBlockRules.items()):
         assert results[method]['blockRules'][i][0] == str(value["result"])
         assert results[method]['blockRules'][i][1] == str(value["rule"])
-        i = i + 1
-
-    i = 0
-    for key, value in pool.pool.items():
-        assert results[method]['taskPool'][i][0] == str(key)
-        assert str(value.fullOP) in results[method]['taskPool'][i][1]
-        i = i + 1
+    for i, (key, value) in enumerate(pool.pool.items()):
+        refKey, refVal = results[method]['taskPool'][i]
+        assert refKey == str(key)
+        if isinstance(refVal, list):
+            assert str(value.fullOP) in refVal
+        else:
+            assert str(value.fullOP) == refVal
 
 
 class TestMethods:

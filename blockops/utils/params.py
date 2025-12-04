@@ -123,20 +123,17 @@ class ParamClass(object):
 
         if docs is None:
             raise ValueError(f'undocumented class {cls}')
-
         for name in names:
-            iStart = docs.find(f'\n    {name} :')
+            iStart = docs.find(f'{name} :')
             if iStart == -1:
-                iStart = docs.find(f'\n    **{name} :')
-                if iStart == -1:
-                    raise ValueError(f'{name} parameter not in {cls} docs')
-            docLines = docs[iStart:].splitlines()[2:]
+                raise ValueError(f'{name} parameter not in {cls} docs')
+            docLines = docs[iStart:].splitlines()[1:]
             descr = []
             for line in docLines:
-                if line.startswith(8 * ' '):
-                    descr.append(line.strip())
-                elif line.strip() == '':
+                if line.strip() == "":
                     continue
+                elif line.startswith(" "):
+                    descr.append(line.strip())
                 else:
                     break
             if len(descr) == 0:

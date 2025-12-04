@@ -1,7 +1,6 @@
 import sympy as sy
 import re
 import warnings
-import time
 
 from blockops.run import PintRun
 
@@ -223,21 +222,22 @@ class TaskPool(object):
         res : Expression
             The result of this task (full expression).
         """
-        tmpRes = ope * inp
-        notZero = type(tmpRes) != sy.core.numbers.Zero
+        tmpRes = sy.simplify(ope * inp)
 
-        if tmpRes in self.results and notZero:
+        # Check if result is already computed
+        notZero = type(tmpRes) != sy.core.numbers.Zero
+        if notZero and tmpRes in self.results:
             task = self.results[tmpRes]
             return task, tmpRes
 
-        check2 = -ope * inp
-        if check2 in self.results and notZero:
-            task = self.results[check2]
+        # Check if negative result is already computed
+        neg = ope * sy.expand(-inp, deep=False)
+        if notZero and neg in self.results:
+            task = self.results[neg]
             return task, tmpRes
-
-        check3 = ope * -inp
-        if check3 in self.results and notZero:
-            task = self.results[check3]
+        neg = sy.expand(-ope, deep=False) * inp
+        if notZero and neg in self.results:
+            task = self.results[neg]
             return task, tmpRes
 
         # Task not in pool, create and add it
