@@ -81,8 +81,8 @@ class BlockIterationGenerator():
     def generateSymbols(self, nBlocks, nLevels, nPreSmooth=1, nPostSmooth=0):
         save_symbols = {}
         u_0 = sy.Symbol(r'u_0', commutative=False)
-        phi = [sy.Symbol(f'\phi_{i}', commutative=False) for i in range(nLevels)]
-        chi = [sy.Symbol(f'\chi_{i}', commutative=False) for i in range(nLevels)]
+        phi = [sy.Symbol(rf'\phi_{i}', commutative=False) for i in range(nLevels)]
+        chi = [sy.Symbol(rf'\chi_{i}', commutative=False) for i in range(nLevels)]
         T_c_to_f = [sy.Symbol(f'T_{i + 1}^{i}', commutative=False) for i in range(nLevels)]
         T_f_to_c = [sy.Symbol(f'T_{i}^{i + 1}', commutative=False) for i in range(nLevels)]
         A = [sy.Matrix(np.eye(nBlocks, dtype=int) * phi[i]) + sy.Matrix(np.eye(nBlocks, k=-1, dtype=int) * -chi[i]) for i in
@@ -237,10 +237,10 @@ class Generator:
             Current block
         """
         expr_str = f'{expr}'
-        unknowns = list(set(re.findall(re.compile('u\^\d+_\d+'), expr_str)))
+        unknowns = list(set(re.findall(re.compile(r'u\^\d+_\d+'), expr_str)))
         tmpWildcard = {}
         for i in range(len(unknowns)):
-            tmp_split = re.split('_|\^', unknowns[i])
+            tmp_split = re.split(r'_|\^', unknowns[i])
             iteration = int(tmp_split[1])
             block = int(tmp_split[2])
             tmp_block = 'n' if n - int(block) == 0 else f'n-{n - int(block)}'
@@ -291,4 +291,4 @@ class Generator:
 
 if __name__ == "__main__":
     # PararealGenerator(n=4)
-    MultilevelGenerator(nBlocks=7, nLevels=3, nPreSmooth=1, nPostSmooth=0)
+    MultilevelGenerator(nBlocks=7, nLevels=4, nPreSmooth=1, nPostSmooth=0)
